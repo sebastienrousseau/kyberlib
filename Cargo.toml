@@ -1,0 +1,108 @@
+[package]
+authors = ["The kyberlib contributors <contact@kyberlib.com>"]
+build = "build.rs"
+categories = [
+    "algorithms",
+    "cryptography",
+    "encoding"
+]
+description = """
+    A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
+"""
+documentation = "https://docs.rs/kyberlib"
+edition = "2021"
+exclude = [
+    "/.git/*",
+    "/.github/*",
+    "/.gitignore",
+    "/.vscode/*"
+    ]
+homepage = "https://kyberlib.com"
+keywords = [
+    "post-quantum",
+    "kyber",
+    "kem",
+    "cryptography",
+    "security"
+]
+license = "MIT OR Apache-2.0"
+name = "kyberlib"
+readme = "README.md"
+repository = "https://github.com/sebastienrousseau/kyberlib"
+rust-version = "1.71.1"
+version = "0.0.1"
+include = [
+    "/CONTRIBUTING.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/build.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/src/**",
+]
+
+# [[bench]]
+# name = "benchmark"
+# harness = false
+# path = "benches/criterion.rs"
+
+# [profile.bench]
+# debug = true
+
+[dependencies]
+anyhow = "1.0.75"
+dtt = "0.0.4"
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = "1.0.108"
+serde_yaml = "0.9.27"
+toml = "0.8.8"
+vrd = "0.0.4"
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[lib]
+crate-type = ["lib"]
+name = "kyberlib"
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[package.metadata.docs.rs]
+all-features = true
+
+[profile.dev]
+codegen-units = 256
+debug = true
+debug-assertions = true
+incremental = true
+lto = false
+opt-level = 0
+overflow-checks = true
+panic = 'unwind'
+rpath = false
+strip = false
+
+[profile.release]
+codegen-units = 1
+debug = false
+debug-assertions = false
+incremental = false
+lto = true
+opt-level = "s"
+overflow-checks = false
+panic = "abort"
+rpath = false
+strip = "symbols"
+
+[profile.test]
+codegen-units = 256
+debug = true
+debug-assertions = true
+incremental = true
+lto = false
+opt-level = 0
+overflow-checks = true
+rpath = false
+strip = false

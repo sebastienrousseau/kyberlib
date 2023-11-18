@@ -1,0 +1,10 @@
+*.DS_Store
+*.profraw
+/.vscode/
+/output/
+/public/
+/target/
+build
+Icon?
+src/.DS_Store
+tarpaulin-report.html
