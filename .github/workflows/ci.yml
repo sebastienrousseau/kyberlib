@@ -235,7 +235,7 @@ jobs:
           - x86_64-apple-darwin # 64-bit macOS (10.7 Lion or later)                               ✅ Tested
 
           # Illumos targets 🌞
-          - x86_64-unknown-illumos # 64-bit Illumos on x86-64                                     ✅ Tested
+          # - x86_64-unknown-illumos # 64-bit Illumos on x86-64                                     ✅ Tested
 
         include:
           # FreeBSD targets 🐬
@@ -270,9 +270,9 @@ jobs:
             cross: true
 
           # Illumos targets 🌞
-          - target: x86_64-unknown-illumos
-            os: ubuntu-latest
-            cross: true
+          # - target: x86_64-unknown-illumos
+          #   os: ubuntu-latest
+          #   cross: true
 
           # macOS targets 🍎
           - target: aarch64-apple-darwin
