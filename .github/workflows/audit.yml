@@ -1,0 +1,23 @@
+name: 🧪 Audit
+
+on:
+  push:
+    branches:
+      - feat/kyberlib
+  pull_request:
+    branches:
+      - feat/kyberlib
+  release:
+    types: [created]
+
+jobs:
+  dependencies:
+    name: Audit dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hecrj/setup-rust-action@v2
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+      - uses: actions/checkout@v4
+      - name: Audit dependencies
+        run: cargo audit
