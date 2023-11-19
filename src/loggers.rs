@@ -1,4 +1,4 @@
-// Copyright © 2023 LibMake. All rights reserved.
+// SPDX-FileCopyrightText: Copyright © 2023 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 // Standard library imports for formatting and I/O operations.

@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright © 2023 kyberlib. All rights reserved.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 OR MIT
 
 extern crate criterion;
 

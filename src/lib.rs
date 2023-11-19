@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright © 2023 kyberlib. All rights reserved.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 OR MIT
 //!
 //! # `kyberlib` 🦀
 //!
@@ -49,15 +49,13 @@
 //!
 //! The project is licensed under the terms of the MIT license.
 //!
-#![cfg_attr(feature = "bench", feature(test))]
-#![deny(dead_code)]
+#![forbid(unsafe_code)]
+#![forbid(unreachable_pub)]
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![forbid(unsafe_code)]
-#![warn(unreachable_pub)]
 #![doc(
-    html_favicon_url = "",
-    html_logo_url = "",
+    html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
+    html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
     html_root_url = "https://docs.rs/kyberlib"
 )]
 #![crate_name = "kyberlib"]
@@ -65,6 +63,9 @@
 
 /// The `loggers` module contains the loggers for the library.
 pub mod loggers;
+
+/// The `aes256` module contains the AES-256 implementation.
+pub mod aes256;
 
 /// The `macros` module contains functions for generating macros.
 pub mod macros;
