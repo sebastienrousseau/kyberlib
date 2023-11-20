@@ -1,36 +1,17 @@
 [package]
 authors = ["The kyberlib contributors <contact@kyberlib.com>"]
 build = "build.rs"
-categories = [
-    "algorithms",
-    "cryptography",
-    "encoding"
-]
-description = """
-    A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
-"""
+categories = ["algorithms", "cryptography", "wasm", "no-std"]
+description = "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography."
 documentation = "https://docs.rs/kyberlib"
-edition = "2021"
+edition = "2018"
 exclude = [
     "/.git/*",
     "/.github/*",
     "/.gitignore",
     "/.vscode/*"
-    ]
-homepage = "https://kyberlib.com"
-keywords = [
-    "post-quantum",
-    "kyber",
-    "kem",
-    "cryptography",
-    "security"
 ]
-license = "MIT OR Apache-2.0"
-name = "kyberlib"
-readme = "README.md"
-repository = "https://github.com/sebastienrousseau/kyberlib"
-rust-version = "1.71.1"
-version = "0.0.1"
+homepage = "https://kyberlib.com"
 include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
@@ -41,41 +22,90 @@ include = [
     "/src/**",
     "/xtask/**",
 ]
-
-[workspace]
-members = ["xtask"]
-
-# [[bench]]
-# name = "benchmark"
-# harness = false
-# path = "benches/criterion.rs"
-
-# [profile.bench]
-# debug = true
+keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
+license = "MIT OR Apache-2.0"
+name = "kyberlib"
+readme = "README.md"
+repository = "https://github.com/sebastienrousseau/kyberlib"
+version = "0.0.2"
 
 [dependencies]
-anyhow = "1.0.75"
-dtt = "0.0.4"
-openssl = { version = "0.10.59", features = ["vendored"] }
-serde = { version = "1.0.192", features = ["derive"] }
-serde_json = "1.0.108"
-serde_yaml = "0.9.27"
-toml = "0.8.8"
-vrd = "0.0.4"
+aes = { version = "0.8.3", optional = true }
+ctr = { version = "0.9.2", optional = true }
+rand_core = { version = "0.6.4",  default-features = false }
+sha2 = { version = "0.10.8", optional = true , default-features = false }
+wasm-bindgen = { version = "0.2.88", optional = true }
+
+# Optional dev-deps, see https://github.com/rust-lang/cargo/issues/1596
+criterion = { version = "0.5.1", features = ["html_reports"], optional = true }
+
+[dependencies.rand]
+version = "0.8.5"
+default-features = false
+features = ["getrandom"]
+optional = true
 
 [dev-dependencies]
-criterion = "0.5.1"
+rand = "0.8.5"
+
+[build-dependencies]
+cc = {version = "1.0.73", optional = true }
+nasm-rs = {version = "0.2.4", optional = true }
 
 [lib]
-crate-type = ["lib"]
+crate-type = ["cdylib", "rlib"]
 name = "kyberlib"
 path = "src/lib.rs"
 
+[[bench]]
+name = "api"
+harness = false
+
 [features]
-default = []
+### Security Levels ###
+# Defaults to "kyber768" if none selected
+# Will throw a compile-time error if more than one level is chosen
+default = ["kyber768"]
+# kyber512 = []
+kyber768 = []
+# kyber1024 = []
 
 [package.metadata.docs.rs]
 all-features = true
+
+### Export IND-CPA primitives
+# **WARNING** use with caution
+hazmat = []
+
+### Additional features ###
+# 90s mode uses AES256-CTR and SHA2 as primitives instead
+# Uses a bitslice implementation
+90s = ["sha2"]
+
+# Fixslice RustCrypto AES implementation offers some additional sidechannel
+# attack resistance. Suggest benchmarking for comparison.
+90s-fixslice = ["90s", "aes", "ctr"]
+
+# Use avx2 intrinsics on x86 architectures
+# Wont compile if the platform doesn't support it
+avx2 = ["cc"]
+
+# For compiling to wasm targets
+wasm = ["wasm-bindgen", "getrandom", "rand"]
+
+# Uses Netwide Assembler avx2 code instead of GAS, this offers increased
+# portability, you will need a nasm compiler installed.
+# Can be downloaded from https://www.nasm.us/
+nasm = ["nasm-rs", "avx2"]
+
+# Enable std library support
+std = []
+
+# For benchmarking
+benchmarking = ["criterion"]
+
+[workspace]
+members = ["xtask"]
 
 [profile.dev]
 codegen-units = 256
