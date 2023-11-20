@@ -215,11 +215,17 @@ additional terms or conditions.
 A big thank you to all the awesome contributors of [kyberlib][05] for their
 help and support.
 
+This repo is a fork of the innovative Rust implementation of the Kyber
+post-quantum KEM from [Argyle-Software/kyber][01]. We are deeply grateful for
+the inspiration and contribution of the original project, which has provided a
+solid foundation for our work and study. Thank you! You can find the original
+repo [here][01].
+
 A special thank you goes to the [Rust Reddit][12] community for
 providing a lot of useful suggestions on how to improve this project.
 
 [00]: https://kyberlib.com/
-[01]: http://opensource.org/licenses/Apache-2.0
+[01]: https://github.com/Argyle-Software/kyber
 [02]: http://opensource.org/licenses/MIT
 [03]: https://github.com/sebastienrousseau/kyberlib/kyberlib/issues
 [04]: https://github.com/sebastienrousseau/kyberlib/kyberlib/blob/main/CONTRIBUTING.md
