@@ -1,3 +1,6 @@
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 /// Error types for the failure modes in Kyber key exchange.
 #[derive(Debug, PartialEq)]
 pub enum KyberLibError {

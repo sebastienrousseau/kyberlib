@@ -1,3 +1,6 @@
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 #![allow(non_snake_case)]
 extern crate alloc;
 

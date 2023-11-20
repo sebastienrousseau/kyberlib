@@ -1,3 +1,6 @@
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::KyberLibError;
 use rand_core::{RngCore, CryptoRng};
 

@@ -1,3 +1,6 @@
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 //! # `KyberLib` 🦀
 //!
 //! `KyberLib` is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Cryptography, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices, and it avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
@@ -157,20 +160,34 @@ use reference::indcpa;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 
+/// API for the KyberLib library.
 pub mod api;
+/// Error types for the KyberLib library.
 pub mod error;
+/// Key encapsulation module for the KyberLib library.
 pub mod kem;
+/// Key exchange structs for the KyberLib library.
 pub mod kex;
+/// Logging utilities for debugging
+pub mod loggers;
+/// Parameters for the KyberLib library.
 pub mod params;
+/// Random number generators for the KyberLib library.
 pub mod rng;
+/// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
 
 pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
 pub use params::{
-    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_SECURITY_PARAMETER, KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
-    KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
+    KYBER_90S,
+    KYBER_CIPHERTEXT_BYTES,
+    KYBER_SECURITY_PARAMETER,
+    KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES,
+    KYBER_SHARED_SECRET_BYTES,
+    KYBER_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
 

@@ -1,3 +1,6 @@
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 // Constants and parameters used in the Kyber cryptographic scheme.
 
 /// Enables or disables 90's mode in the Kyber cryptographic scheme.
