@@ -36,17 +36,15 @@ rand_core = { version = "0.6.4",  default-features = false }
 sha2 = { version = "0.10.8", optional = true , default-features = false }
 wasm-bindgen = { version = "0.2.88", optional = true }
 
-# Optional dev-deps, see https://github.com/rust-lang/cargo/issues/1596
-criterion = { version = "0.5.1", features = ["html_reports"], optional = true }
+[dev-dependencies]
+criterion = "0.5.1"
+rand = "0.8.5"
 
 [dependencies.rand]
 version = "0.8.5"
 default-features = false
 features = ["getrandom"]
 optional = true
-
-[dev-dependencies]
-rand = "0.8.5"
 
 [build-dependencies]
 cc = {version = "1.0.73", optional = true }
@@ -57,9 +55,10 @@ crate-type = ["cdylib", "rlib"]
 name = "kyberlib"
 path = "src/lib.rs"
 
-[[bench]]
-name = "api"
-harness = false
+# [[bench]]
+# name = "bench"
+# harness = false
+# path = "benches/bench.rs"
 
 [features]
 ### Security Levels ###
@@ -100,9 +99,6 @@ nasm = ["nasm-rs", "avx2"]
 
 # Enable std library support
 std = []
-
-# For benchmarking
-benchmarking = ["criterion"]
 
 [workspace]
 members = ["xtask"]
