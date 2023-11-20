@@ -170,6 +170,8 @@ pub mod kem;
 pub mod kex;
 /// Logging utilities for debugging
 pub mod loggers;
+/// Macro utilities for the KyberLib library.
+pub mod macros;
 /// Parameters for the KyberLib library.
 pub mod params;
 /// Random number generators for the KyberLib library.
