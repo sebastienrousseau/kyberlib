@@ -9,7 +9,17 @@ use crate::{
     CryptoRng, RngCore,
 };
 
-/// Keypair generation with a provided RNG.
+/// Generate a key pair for Kyber encryption with a provided RNG.
+///
+/// This function generates a key pair consisting of a public key and a secret key for Kyber encryption.
+///
+/// # Arguments
+///
+/// * `rng` - The random number generator implementing the `RngCore` and `CryptoRng` traits.
+///
+/// # Errors
+///
+/// Returns a `KyberLibError` if an error occurs during key pair generation.
 ///
 /// ### Example
 /// ```
@@ -29,8 +39,18 @@ where
     Ok(Keypair { public, secret })
 }
 
-/// Encapsulates a public key returning the ciphertext to send
-/// and the shared secret
+/// Encapsulates a public key and returns the ciphertext to send and the shared secret.
+///
+/// This function encapsulates a public key and returns the ciphertext and the shared secret.
+///
+/// # Arguments
+///
+/// * `pk` - The public key as a slice of bytes.
+/// * `rng` - The random number generator implementing the `RngCore` and `CryptoRng` traits.
+///
+/// # Errors
+///
+/// Returns a `KyberLibError` if the input sizes are incorrect or if an error occurs during encapsulation.
 ///
 /// ### Example
 /// ```
@@ -54,8 +74,18 @@ where
     Ok((ct, ss))
 }
 
-/// Decapsulates ciphertext with a secret key, the result will contain
-/// a KyberLibError if decapsulation fails
+/// Decapsulates ciphertext with a secret key.
+///
+/// This function decapsulates ciphertext with a secret key and returns the shared secret.
+///
+/// # Arguments
+///
+/// * `ct` - The ciphertext as a slice of bytes.
+/// * `sk` - The secret key as a slice of bytes.
+///
+/// # Errors
+///
+/// Returns a `KyberLibError` if the input sizes are incorrect or if decapsulation fails.
 ///
 /// ### Example
 /// ```
@@ -82,12 +112,22 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 /// Byte lengths of the keys are determined by the security level chosen.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Keypair {
+    /// The public key.
     pub public: PublicKey,
+    /// The secret key.
     pub secret: SecretKey,
 }
 
 impl Keypair {
-    /// Securely generates a new keypair`
+    /// Securely generates a new keypair.
+    ///
+    /// This function generates a new Kyber key pair and returns it as a `Keypair` struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `rng` - The random number generator implementing the `RngCore` and `CryptoRng` traits.
+    ///
+    /// ### Example
     /// ```
     /// # use kyberlib::*;
     /// # fn main() -> Result<(), KyberLibError> {
@@ -105,24 +145,38 @@ impl Keypair {
 }
 
 struct DummyRng {}
+
 impl CryptoRng for DummyRng {}
+
 impl RngCore for DummyRng {
     fn next_u32(&mut self) -> u32 {
         panic!()
     }
+
     fn next_u64(&mut self) -> u64 {
         panic!()
     }
+
     fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), rand_core::Error> {
         panic!()
     }
+
     fn fill_bytes(&mut self, _dest: &mut [u8]) {
         panic!()
     }
 }
 
-/// Deterministically derive a keypair from a seed as specified
-/// in draft-schwabe-cfrg-kyber.
+/// Deterministically derive a keypair from a seed as specified in draft-schwabe-cfrg-kyber.
+///
+/// This function deterministically derives a key pair from a seed and returns it as a `Keypair` struct.
+///
+/// # Arguments
+///
+/// * `seed` - The seed as a slice of bytes.
+///
+/// # Errors
+///
+/// Returns a `KyberLibError` if the seed length is incorrect.
 pub fn derive(seed: &[u8]) -> Result<Keypair, KyberLibError> {
     let mut public = [0u8; KYBER_PUBLIC_KEY_BYTES];
     let mut secret = [0u8; KYBER_SECRET_KEY_BYTES];
@@ -139,7 +193,17 @@ pub fn derive(seed: &[u8]) -> Result<Keypair, KyberLibError> {
     Ok(Keypair { public, secret })
 }
 
-/// Extracts public key from private key.
+/// Extracts a public key from a private key.
+///
+/// This function extracts the public key from a private key.
+///
+/// # Arguments
+///
+/// * `sk` - The secret key as a slice of bytes.
+///
+/// # Returns
+///
+/// Returns the public key as a `PublicKey`.
 pub fn public(sk: &[u8]) -> PublicKey {
     let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
     pk.copy_from_slice(

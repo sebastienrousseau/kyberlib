@@ -15,17 +15,27 @@ use aes::cipher::{generic_array::GenericArray, KeyIvInit, StreamCipher};
 #[cfg(feature = "90s-fixslice")]
 type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
 
+/// Block size for AES256CTR in bytes.
 #[cfg(feature = "90s")]
 pub const AES256CTR_BLOCKBYTES: usize = 64;
 
+/// Block size for AES256CTR in bytes.
+#[cfg(not(feature = "90s"))]
+pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
+
+/// Block size for XOF (Extendable Output Function) in bytes.
 #[cfg(feature = "90s")]
 pub const XOF_BLOCKBYTES: usize = AES256CTR_BLOCKBYTES;
+
+/// Block size for XOF (Extendable Output Function) in bytes.
 #[cfg(not(feature = "90s"))]
 pub(crate) const XOF_BLOCKBYTES: usize = SHAKE128_RATE;
 
+/// Type alias for the XOF (Extendable Output Function) state.
 #[cfg(not(feature = "90s"))]
 pub(crate) type XofState = KeccakState;
 
+/// Type alias for the XOF (Extendable Output Function) state in 90s mode.
 #[cfg(feature = "90s")]
 pub type XofState = Aes256CtrCtx;
 

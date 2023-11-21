@@ -158,6 +158,7 @@ use reference::*;
 use reference::indcpa;
 
 #[cfg(feature = "wasm")]
+/// WebAssembly bindings for the KyberLib library.
 pub mod wasm;
 
 /// API for the KyberLib library.

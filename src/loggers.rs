@@ -39,11 +39,17 @@ impl From<core::fmt::Error> for CustomError {
 /// Enum representing different log formats.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd)]
 pub enum LogFormat {
+    /// Common Log Format (CLF)
     CLF,
+    /// JSON Format
     JSON,
+    /// Common Event Format (CEF)
     CEF,
+    /// Extended Log Format (ELF)
     ELF,
+    /// W3C Extended Log File Format
     W3C,
+    /// Graylog Extended Log Format (GELF)
     GELF,
 }
 
@@ -56,15 +62,25 @@ impl fmt::Display for LogFormat {
 /// Enum representing different levels of log messages.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd)]
 pub enum LogLevel {
+    /// All log levels
     ALL,
+    /// Debug log level
     DEBUG,
+    /// Log is disabled
     DISABLED,
+    /// Error log level
     ERROR,
+    /// Fatal error log level
     FATAL,
+    /// Informational log level
     INFO,
+    /// No log level
     NONE,
+    /// Trace log level
     TRACE,
+    /// Verbose log level
     VERBOSE,
+    /// Warning log level
     WARNING,
 }
 
@@ -77,11 +93,17 @@ impl fmt::Display for LogLevel {
 /// Represents a log message with various metadata.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Log<'a> {
+    /// Session identifier.
     pub session_id: &'a str,
+    /// Timestamp of the log entry.
     pub time: &'a str,
+    /// Log level.
     pub level: LogLevel,
+    /// Component generating the log.
     pub component: &'a str,
+    /// Log message description.
     pub description: &'a str,
+    /// Format of the log message.
     pub format: LogFormat,
 }
 
@@ -110,7 +132,7 @@ impl<'a> Log<'a> {
                     self.format
                 )?;
             }
-            // other format cases...
+            // Handle other format cases here...
             _ => return Err("Unsupported log format".into()),
         }
 
@@ -161,4 +183,5 @@ impl<'a> Default for Log<'a> {
         }
     }
 }
+
 

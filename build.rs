@@ -1,3 +1,6 @@
+//! This is the main function for the build script.
+//!
+//! Currently, it only instructs Cargo to re-run this build script if `build.rs` is changed.
 #[rustfmt::skip]
 fn main() {
     #[cfg(not(feature = "wasm"))]
@@ -18,7 +21,7 @@ fn main() {
                 nasm.include(ROOT);
 
                 for o in nasm.compile_objects().expect("
-Compiling NASM files: 
+Compiling NASM files:
 Ensure it is installed and in your path
 https://www.nasm.us/",
                 ) {
