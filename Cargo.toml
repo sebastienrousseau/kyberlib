@@ -31,15 +31,13 @@ version = "0.0.2"
 
 [dependencies]
 aes = { version = "0.8.3", optional = true }
-criterion = { version = "0.5.1", features = ["html_reports"], optional = true }
 ctr = { version = "0.9.2", optional = true }
-getrandom = {version = "0.2.11", features = ["js"], optional = true }
 rand_core = { version = "0.6.4",  default-features = false }
 sha2 = { version = "0.10.8", optional = true , default-features = false }
 wasm-bindgen = { version = "0.2.88", optional = true }
-zeroize = { version = "1.7.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
+criterion = "0.5.1"
 rand = "0.8.5"
 
 [dependencies.rand]
@@ -47,6 +45,8 @@ version = "0.8.5"
 default-features = false
 features = ["getrandom"]
 optional = true
+
+benchmarking = ["criterion"]
 
 [build-dependencies]
 cc = {version = "1.0.73", optional = true }
@@ -62,9 +62,6 @@ path = "src/lib.rs"
 # harness = false
 # path = "benches/bench.rs"
 
-[package.metadata.docs.rs]
-all-features = true
-
 [features]
 ### Security Levels ###
 # Defaults to "kyber768" if none selected
@@ -73,6 +70,9 @@ default = ["kyber768"]
 # kyber512 = []
 kyber768 = []
 # kyber1024 = []
+
+[package.metadata.docs.rs]
+all-features = true
 
 ### Export IND-CPA primitives
 # **WARNING** use with caution
@@ -101,9 +101,6 @@ nasm = ["nasm-rs", "avx2"]
 
 # Enable std library support
 std = []
-
-# For benchmarking
-benchmarking = ["criterion"]
 
 [workspace]
 members = ["xtask"]
