@@ -64,14 +64,22 @@ macro_rules! kyberlib_max {
 
 /// Shorthand macros to create `Log` instances with different log levels.
 ///
-/// # Example
+/// Example
 ///
-/// ```
-/// use kyberlib::{kyberlib_info, kyberlib_error, kyberlib_debug};
-/// use kyberlib::loggers::{LogLevel, LogFormat};
-///
-/// let info_log = kyberlib_info!("session_id", "time", "component", "description", LogFormat::Default);
-/// ```
+/// ```rust
+/// use kyberlib::loggers::LogFormat;  
+/// use kyberlib::kyberlib_info;
+/// use kyberlib::loggers::Log;
+/// use kyberlib::loggers::LogLevel;
+/// 
+/// let log = kyberlib_info!(  
+///    "session123",
+///    "2023-01-04T21:00:00",
+///    "app",
+///    "Message logged",    
+///    LogFormat::CLF
+/// );
+/// ``` 
 #[macro_export]
 macro_rules! kyberlib_info {
     ($session_id:expr, $time:expr, $component:expr, $desc:expr, $format:expr) => {
@@ -88,13 +96,21 @@ macro_rules! kyberlib_info {
 
 /// Shorthand macros to create `Log` instances with different log levels.
 ///
-/// # Example
-///
-/// ```
-/// use kyberlib::{kyberlib_info, kyberlib_error, kyberlib_debug};
-/// use kyberlib::loggers::{LogLevel, LogFormat};
-///
-/// let error_log = kyberlib_error!("session_id", "time", "component", "description", LogFormat::Default);
+/// Example  
+/// 
+/// ```rust
+/// use kyberlib::loggers::LogFormat;  
+/// use kyberlib::kyberlib_error;
+/// use kyberlib::loggers::Log;
+/// use kyberlib::loggers::LogLevel;
+///  
+/// let error_log = kyberlib_error!(
+///     "session123",  
+///     "2023-01-04T21:00:00",
+///     "app",
+///     "Connection failed",
+///     LogFormat::CLF
+/// );
 /// ```
 #[macro_export]
 macro_rules! kyberlib_error {
@@ -112,13 +128,21 @@ macro_rules! kyberlib_error {
 
 /// Shorthand macros to create `Log` instances with different log levels.
 ///
-/// # Example
+/// Example
 ///
 /// ```
-/// use kyberlib::{kyberlib_info, kyberlib_error, kyberlib_debug};
-/// use kyberlib::loggers::{LogLevel, LogFormat};
+/// use kyberlib::loggers::{LogLevel};
+/// use kyberlib::kyberlib_debug;
+/// use kyberlib::loggers::Log;
+/// use kyberlib::loggers::LogFormat;
 ///
-/// let debug_log = kyberlib_debug!("session_id", "time", "component", "description", LogFormat::Default);
+/// let log = kyberlib_debug!(
+///     "session123",
+///     "2023-01-04T21:00:00",  
+///     "app",
+///     "Message logged",
+///     LogFormat::CLF
+/// );
 /// ```
 #[macro_export]
 macro_rules! kyberlib_debug {
@@ -136,15 +160,21 @@ macro_rules! kyberlib_debug {
 
 /// Shorthand macro to create a `Log` with the given log level.
 ///
-/// # Example
+/// Example 
 ///
-/// ```
-/// use kyberlib::kyberlib_log;
+/// ```rust  
 /// use kyberlib::loggers::{LogLevel, LogFormat};
-///
-/// let log = kyberlib_log!("session_id", "time", "component", "description", LogFormat::Default, LogLevel::INFO);
+/// use kyberlib::kyberlib_log;
+///   
+/// let log = kyberlib_log!(    
+///    "session123",  
+///    "2023-01-04T21:00:00",
+///    "app",
+///    "Message logged",   
+///    LogFormat::CLF  
+/// );
 /// ```
-#[macro_export]
+#[macro_export] 
 macro_rules! kyberlib_log {
     ($session_id:expr, $time:expr, $component:expr, $description:expr, $format:expr) => {{
         use kyberlib::loggers::{Log, LogFormat, LogLevel};
