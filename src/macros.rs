@@ -67,19 +67,19 @@ macro_rules! kyberlib_max {
 /// Example
 ///
 /// ```rust
-/// use kyberlib::loggers::LogFormat;  
+/// use kyberlib::loggers::LogFormat;
 /// use kyberlib::kyberlib_info;
 /// use kyberlib::loggers::Log;
 /// use kyberlib::loggers::LogLevel;
-/// 
-/// let log = kyberlib_info!(  
+///
+/// let log = kyberlib_info!(
 ///    "session123",
 ///    "2023-01-04T21:00:00",
 ///    "app",
-///    "Message logged",    
+///    "Message logged",
 ///    LogFormat::CLF
 /// );
-/// ``` 
+/// ```
 #[macro_export]
 macro_rules! kyberlib_info {
     ($session_id:expr, $time:expr, $component:expr, $desc:expr, $format:expr) => {
@@ -96,16 +96,16 @@ macro_rules! kyberlib_info {
 
 /// Shorthand macros to create `Log` instances with different log levels.
 ///
-/// Example  
-/// 
+/// Example
+///
 /// ```rust
-/// use kyberlib::loggers::LogFormat;  
+/// use kyberlib::loggers::LogFormat;
 /// use kyberlib::kyberlib_error;
 /// use kyberlib::loggers::Log;
 /// use kyberlib::loggers::LogLevel;
-///  
+///
 /// let error_log = kyberlib_error!(
-///     "session123",  
+///     "session123",
 ///     "2023-01-04T21:00:00",
 ///     "app",
 ///     "Connection failed",
@@ -138,7 +138,7 @@ macro_rules! kyberlib_error {
 ///
 /// let log = kyberlib_debug!(
 ///     "session123",
-///     "2023-01-04T21:00:00",  
+///     "2023-01-04T21:00:00",
 ///     "app",
 ///     "Message logged",
 ///     LogFormat::CLF
@@ -160,21 +160,21 @@ macro_rules! kyberlib_debug {
 
 /// Shorthand macro to create a `Log` with the given log level.
 ///
-/// Example 
+/// Example
 ///
-/// ```rust  
+/// ```rust
 /// use kyberlib::loggers::{LogLevel, LogFormat};
 /// use kyberlib::kyberlib_log;
-///   
-/// let log = kyberlib_log!(    
-///    "session123",  
+///
+/// let log = kyberlib_log!(
+///    "session123",
 ///    "2023-01-04T21:00:00",
 ///    "app",
-///    "Message logged",   
-///    LogFormat::CLF  
+///    "Message logged",
+///    LogFormat::CLF
 /// );
 /// ```
-#[macro_export] 
+#[macro_export]
 macro_rules! kyberlib_log {
     ($session_id:expr, $time:expr, $component:expr, $description:expr, $format:expr) => {{
         use kyberlib::loggers::{Log, LogFormat, LogLevel};

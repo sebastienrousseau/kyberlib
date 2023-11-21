@@ -46,6 +46,8 @@ default-features = false
 features = ["getrandom"]
 optional = true
 
+benchmarking = ["criterion"]
+
 [build-dependencies]
 cc = {version = "1.0.73", optional = true }
 nasm-rs = {version = "0.2.4", optional = true }

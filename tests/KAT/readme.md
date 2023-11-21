@@ -1,4 +1,20 @@
-# Known Answer Tests
+<!-- markdownlint-disable MD033 MD041 -->
+
+<img
+src="https://kura.pro/kyberlib/images/logos/kyberlib.webp"
+alt="kyberlib's logo"
+height="261"
+width="261"
+align="right"
+/>
+
+<!-- markdownlint-enable MD033 MD041 -->
+
+# kyberlib
+
+A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
+
+## Known Answer Tests
 
 The test vectors need to be generated locally. Running [build_kats.sh](./build_kats.sh) will automate the process, otherwise follow the instructions below to clone the C reference repo, compile the test binaries, then generate and rename the files.
 

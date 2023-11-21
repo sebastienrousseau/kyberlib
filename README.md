@@ -12,7 +12,7 @@ align="right"
 
 # kyberlib
 
-A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography (CRYSTALS-Kyber is a finalist in the NIST Post-Quantum Cryptography Standardization Process).
+A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
 
 <!-- markdownlint-disable MD033 MD041 -->
 <center>

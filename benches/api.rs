@@ -1,4 +1,4 @@
-extern crate criterion;
+#![cfg(feature = "benchmarking")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use kyberlib::{*, kem::{generate_key_pair, encrypt_message}};
 

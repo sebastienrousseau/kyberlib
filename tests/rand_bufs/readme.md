@@ -1,4 +1,20 @@
-# Randbuf Generation
+<!-- markdownlint-disable MD033 MD041 -->
+
+<img
+src="https://kura.pro/kyberlib/images/logos/kyberlib.webp"
+alt="kyberlib's logo"
+height="261"
+width="261"
+align="right"
+/>
+
+<!-- markdownlint-enable MD033 MD041 -->
+
+# kyberlib
+
+A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
+
+## Randbuf Generation
 
 This program generates the deterministic rng output used in the intermediate stages of keypair generation and encoding from KAT seed values. 
 
