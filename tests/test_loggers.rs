@@ -3,130 +3,59 @@
 
 #[cfg(test)]
 mod tests {
+    use kyberlib::loggers::*;
+    use core::fmt;
+    use core::result::Result as CoreResult;
 
-    fn kyberlib_log_info(
-        level: LogLevel,
-        component: &str,
-        description: &str,
-        format: LogFormat,
-    ) {
-        let log =
-        kyberlib_log_info!(level, component, description, format);
-        assert_eq!(log.level, level);
-        assert_eq!(log.component, component);
-        assert_eq!(log.description, description);
-        assert_eq!(log.format, format);
+    // Assuming a maximum log message size, adjust as needed
+    const MAX_LOG_SIZE: usize = 1024;
+
+    struct CustomFile {
+        data: [u8; MAX_LOG_SIZE],
+        len: usize,
+    }
+
+    impl fmt::Write for CustomFile {
+        fn write_str(&mut self, s: &str) -> fmt::Result {
+            let bytes = s.as_bytes();
+            let bytes_len = bytes.len();
+            if self.len + bytes_len > MAX_LOG_SIZE {
+                return Err(fmt::Error); // Buffer overflow
+            }
+
+            self.data[self.len..self.len + bytes_len].copy_from_slice(bytes);
+            self.len += bytes_len;
+
+            Ok(())
         }
-
-    #[test]
-    fn test_macros() {
-        kyberlib_log_info(
-            LogLevel::ALL,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::DEBUG,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::DISABLED,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::ERROR,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::FATAL,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::INFO,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::NONE,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::TRACE,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::VERBOSE,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
-        kyberlib_log_info(
-            LogLevel::WARNING,
-            "component",
-            "description",
-            LogFormat::CLF,
-        );
     }
 
-    use kyberlib::{
-        loggers::{Log, LogFormat, LogLevel},
-        kyberlib_log_info,
-    };
-
-    #[test]
-    fn test_log_level_display() {
-        let level = LogLevel::INFO;
-        assert_eq!(format!("{level}"), "INFO");
+    impl CustomWrite for CustomFile {
+        fn custom_flush(&mut self) -> CoreResult<(), CustomError> {
+            Ok(())
+        }
     }
 
     #[test]
-    fn test_log_format_display() {
-        let format = LogFormat::JSON;
-        assert_eq!(format!("{format}"), "JSON\n");
-    }
-
-    #[test]
-    fn test_log_new() {
-        let log = Log::new(
+    fn test_log_info() {
+        let mut custom_file = CustomFile { data: [0; MAX_LOG_SIZE], len: 0 };
+        let log_entry = Log::new(
             "session123",
-            "2023-02-28T12:34:56Z",
-            LogLevel::WARNING,
-            "auth",
-            "Invalid credentials",
+            "2023-11-20T12:34:56",
+            LogLevel::INFO,
+            "component_name",
+            "This is a log message",
             LogFormat::CLF,
         );
 
-        assert_eq!(log.session_id, "session123");
-        assert_eq!(log.time, "2023-02-28T12:34:56Z");
-        assert_eq!(log.level, LogLevel::WARNING);
-        assert_eq!(log.component, "auth");
-        assert_eq!(log.description, "Invalid credentials");
-        assert_eq!(log.format, LogFormat::CLF);
-    }
+        assert!(log_entry.log(&mut custom_file).is_ok());
 
-    #[test]
-    fn test_log_default() {
-        let log = Log::default();
+        // Convert the written bytes to a string slice for checking
+        let logged_data = core::str::from_utf8(&custom_file.data[..custom_file.len])
+            .expect("Failed to convert to string");
 
-        assert!(log.session_id.is_empty());
-        assert!(log.time.is_empty());
-        assert_eq!(log.level, LogLevel::INFO);
-        assert!(log.component.is_empty());
-        assert!(log.description.is_empty());
-        assert_eq!(log.format, LogFormat::CLF);
+        // Here you can assert the contents of `logged_data`
+        // For example, checking if it contains certain substrings
+        assert!(logged_data.contains("This is a log message"));
     }
 }

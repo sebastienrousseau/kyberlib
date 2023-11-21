@@ -1,10 +1,44 @@
-// SPDX-FileCopyrightText: Copyright © 2023 kyberlib. All rights reserved.
-// SPDX-License-Identifier: MIT
-
 //! This is the main function for the build script.
 //!
 //! Currently, it only instructs Cargo to re-run this build script if `build.rs` is changed.
+#[rustfmt::skip]
 fn main() {
-    // Avoid unnecessary re-building.
-    println!("cargo:rerun-if-changed=build.rs");
+    #[cfg(not(feature = "wasm"))]
+    {
+        #[cfg(feature = "avx2")]
+        {
+            const FILES: [&str; 5] = ["basemul", "fq", "invntt", "ntt", "shuffle"];
+
+            #[cfg(feature = "nasm")]
+            {
+                const ROOT: &str = "src/avx2/nasm/";
+                let paths = FILES.iter().map(|file| format!("{}{}.asm", ROOT, file));
+
+                let mut nasm = nasm_rs::Build::new();
+                let mut linker = cc::Build::new();
+
+                nasm.files(paths);
+                nasm.include(ROOT);
+
+                for o in nasm.compile_objects().expect("
+Compiling NASM files:
+Ensure it is installed and in your path
+https://www.nasm.us/",
+                ) {
+                    linker.object(o);
+                }
+                linker.compile("kyberlib");
+            }
+
+            #[cfg(not(feature = "nasm"))]
+            {
+                const ROOT: &str = "src/avx2/";
+                let paths = FILES.iter().map(|file| format!("{}{}.S", ROOT, file));
+                cc::Build::new()
+                    .include(ROOT)
+                    .files(paths)
+                    .compile("kyberlib");
+            }
+        }
+    }
 }

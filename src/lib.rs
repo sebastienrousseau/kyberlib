@@ -1,117 +1,201 @@
-// SPDX-FileCopyrightText: Copyright © 2023 kyberlib. All rights reserved.
-// SPDX-License-Identifier: MIT
+// Copyright © 2023 KyberLib. All rights reserved.
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
+//! # `KyberLib` 🦀
 //!
-//! # `kyberlib` 🦀
+//! `KyberLib` is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Cryptography, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices, and it avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
 //!
-//! [![kyberlib](https://via.placeholder.com/1500x500.png/000000/FFFFFF?text=kyberlib)](https://kyberlib.com/ "kyberlib - A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography")
-//!
-//! A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography
-//!
-//! [![Crates.io](https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge&color=success&labelColor=27A006)](https://crates.io/crates/kyberlib "Crates.io")
-//! [![Lib.rs](https://img.shields.io/badge/lib.rs-v0.0.1-success.svg?style=for-the-badge&color=8A48FF&labelColor=6F36E4)](https://lib.rs/crates/kyberlib "Lib.rs")
-//! [![License](https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge&color=007EC6&labelColor=03589B)](MIT  "MIT")
-//! [![Rust](https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust)](https://www.rust-lang.org "Rust")
-//!
-//! ## Overview
-//!
-//! A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography
+//! [![KyberLib Logo](https://kura.pro/kyberlib/images/banners/banner-kyberlib.svg)](https://kyberlib.com "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography")
 //!
 //! ## Features
 //!
-//! - ...
-//! - ...
-//! - ...
+//! `KyberLib` offers various features to customize its behavior and security level:
+//!
+//! | Feature   | Description                                                                                                                                                                |
+//! |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+//! | `kyber512`  | Enables Kyber512 mode, providing a security level roughly equivalent to AES-128.                                                                                                |
+//! | `kyber1024` | Enables Kyber1024 mode, offering a security level roughly equivalent to AES-256.                   |
+//! | `90s`       | Activates 90's mode, which uses SHA2 and AES-CTR as a replacement for SHAKE. This may provide hardware speedups on certain architectures.                                                           |
+//! | `avx2`      | On x86_64 platforms, enables the optimized AVX2 version. This flag causes a compile error on other architectures. |
+//! | `wasm`      | Enables support for compiling to WASM targets. |
+//! | `nasm`      | Uses Netwide Assembler (NASM) AVX2 code instead of GNU Assembler (GAS) for portability. Requires a NASM compiler: <https://www.nasm.us/> |
+//! | `zeroize`   | Automatically zeroes out key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+//! | `std`       | Enables the standard library (std). |
 //!
 //! ## Usage
 //!
-//! Add the following to your `Cargo.toml` file:
+//! To optimize for x86 platforms, enable the `avx2` feature and set the following RUSTFLAGS:
 //!
-//! ```toml
-//! [dependencies]
-//! kyberlib = "0.0.1"
-//! serde = { version = "1.0", features = ["derive"] }
-//! serde_json = "1.0"
+//! ```shell
+//! export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 //! ```
 //!
-//! ## Examples
-//!
-//! Check out the examples folder for helpful snippets of code that
-//! demonstrate how to use the `kyberlib` library. You can also check out
-//! the [documentation](https://docs.rs/kyberlib) for more information on
-//! how to use the library.
+//! Import the library into your Rust project as follows:
 //!
 //! ```rust
-//!    use kyberlib::kyberlib;
-//!
+//! use kyberlib::*;
 //! ```
 //!
-//! ## License
+//! ### Key Encapsulation
 //!
-//! The project is licensed under the terms of the MIT license.
+//! Generate key pairs and encapsulate a shared secret between two parties:
 //!
-#![cfg_attr(feature = "bench", feature(test))]
+//! ```rust
+//! # use kyberlib::*;
+//! # fn main() -> Result<(), KyberLibError> {
+//! # let mut rng = rand::thread_rng();
+//!
+//! // Generate Keypair for Bob
+//! let keys_bob = keypair(&mut rng)?;
+//!
+//! // Alice encapsulates a shared secret using Bob's public key
+//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
+//!
+//! // Bob decapsulates the shared secret using the ciphertext sent by Alice
+//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+//!
+//! // Verify that both parties share the same secret
+//! assert_eq!(shared_secret_alice, shared_secret_bob);
+//! # Ok(()) }
+//! ```
+//!
+//! ### Unilaterally Authenticated Key Exchange
+//!
+//! Perform a unilaterally authenticated key exchange between two parties:
+//!
+//! ```rust
+//! # use kyberlib::*;
+//! # fn main() -> Result<(), KyberLibError> {
+//! let mut rng = rand::thread_rng();
+//!
+//! // Initialize the key exchange structs for Alice and Bob
+//! let mut alice = Uake::new();
+//! let mut bob = Uake::new();
+//!
+//! // Generate Keypairs for Alice and Bob
+//! let alice_keys = keypair(&mut rng)?;
+//! let bob_keys = keypair(&mut rng)?;
+//!
+//! // Alice initiates the key exchange
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+//!
+//! // Bob authenticates and responds
+//! let server_send = bob.server_receive(
+//!   client_init, &bob_keys.secret, &mut rng
+//! )?;
+//!
+//! // Alice confirms the server response and retrieves the shared secret
+//! alice.client_confirm(server_send)?;
+//!
+//! // Both Alice and Bob now have the same shared secret
+//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! # Ok(()) }
+//! ```
+//!
+//! ### Mutually Authenticated Key Exchange
+//!
+//! Perform a mutually authenticated key exchange between two parties:
+//!
+//! ```rust
+//! # use kyberlib::*;
+//! # fn main() -> Result<(), KyberLibError> {
+//! # let mut rng = rand::thread_rng();
+//! let mut alice = Ake::new();
+//! let mut bob = Ake::new();
+//!
+//! let alice_keys = keypair(&mut rng)?;
+//! let bob_keys = keypair(&mut rng)?;
+//!
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+//!
+//! let server_send = bob.server_receive(
+//!   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
+//! )?;
+//!
+//! alice.client_confirm(server_send, &alice_keys.secret)?;
+//!
+//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! # Ok(()) }
+//! ```
+//!
+//! ## Errors
+//!
+//! The [KyberLibError](enum.KyberLibError.html) enum handles errors with two variants:
+//!
+//! - **InvalidInput**: Occurs when one or more byte inputs to a function are incorrectly sized. This typically happens when two parties use different security levels while attempting to negotiate a key exchange.
+//! - **Decapsulation**: This error indicates that the ciphertext could not be authenticated, and the shared secret was not successfully decapsulated.
+//!
 #![deny(dead_code)]
 #![deny(missing_debug_implementations)]
-#![deny(missing_docs)]
 #![forbid(unsafe_code)]
 #![warn(unreachable_pub)]
 #![doc(
-    html_favicon_url = "",
-    html_logo_url = "",
+    html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
+    html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
     html_root_url = "https://docs.rs/kyberlib"
 )]
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
+#![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::many_single_char_names)]
 
-/// The `loggers` module contains the loggers for the library.
+// Prevent usage of mutually exclusive features
+#[cfg(all(feature = "kyber1024", feature = "kyber512"))]
+compile_error!("Only one security level can be specified");
+
+#[cfg(all(target_arch = "x86_64", feature = "avx2"))]
+mod avx2;
+#[cfg(all(target_arch = "x86_64", feature = "avx2"))]
+use avx2::*;
+
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
+mod reference;
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
+use reference::*;
+
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
+#[cfg(feature = "hazmat")]
+use reference::indcpa;
+
+#[cfg(feature = "wasm")]
+/// WebAssembly bindings for the KyberLib library.
+pub mod wasm;
+
+/// API for the KyberLib library.
+pub mod api;
+/// Error types for the KyberLib library.
+pub mod error;
+/// Key encapsulation module for the KyberLib library.
+pub mod kem;
+/// Key exchange structs for the KyberLib library.
+pub mod kex;
+/// Logging utilities for debugging
 pub mod loggers;
-
-/// The `macros` module contains functions for generating macros.
+/// Macro utilities for the KyberLib library.
 pub mod macros;
+/// Parameters for the KyberLib library.
+pub mod params;
+/// Random number generators for the KyberLib library.
+pub mod rng;
+/// Symmetric key encapsulation module for the KyberLib library.
+pub mod symmetric;
 
-use serde::{Deserialize, Serialize};
-use std::error::Error;
+pub use api::*;
+pub use error::KyberLibError;
+pub use kex::*;
+pub use params::{
+    KYBER_90S,
+    KYBER_CIPHERTEXT_BYTES,
+    KYBER_SECURITY_PARAMETER,
+    KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES,
+    KYBER_SHARED_SECRET_BYTES,
+    KYBER_SYM_BYTES,
+};
+pub use rand_core::{CryptoRng, RngCore};
 
-#[non_exhaustive]
-#[derive(
-    Clone,
-    Debug,
-    Deserialize,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-)]
-
-#[allow(non_camel_case_types)]
-/// kyberlib is a data structure that ...
-pub struct kyberlib {
-    // Add any data fields needed here
-}
-
-/// This is the main entry point for the kyberlib library.
-pub fn run() -> Result<(), Box<dyn Error>> {
-    // Add your code here
-    let name = "kyberlib";
-    println!("Hello, {}!", { name }.to_uppercase());
-    Ok(())
-}
-
-
-impl kyberlib {
-    /// Creates a new instance of kyberlib
-    pub fn new() -> Self {
-        Self {
-            // Initialize any data fields here
-        }
-    }
-}
-
-impl Default for kyberlib {
-    /// Creates a new instance of kyberlib with default values
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// Feature hack to expose private functions for the Known Answer Tests
+// and fuzzing. Will fail to compile if used outside `cargo test` or
+// the fuzz binaries.
+#[cfg(any(KYBER_SECURITY_PARAMETERat, fuzzing, feature = "benchmarking"))]
+pub use kem::*;
