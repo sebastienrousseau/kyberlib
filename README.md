@@ -99,7 +99,7 @@ To use the `kyberlib` library in your project, add the following to your
 
 ```toml
 [dependencies]
-kyberlib = "0.0.2"
+kyberlib = "0.0.3"
 ```
 
 Add the following to your `main.rs` file:
