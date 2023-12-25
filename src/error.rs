@@ -28,6 +28,3 @@ impl core::fmt::Display for KyberLibError {
         }
     }
 }
-
-#[cfg(feature = "std")]
-impl std::error::Error for KyberLibError {}

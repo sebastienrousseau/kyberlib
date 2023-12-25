@@ -137,14 +137,7 @@
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
 #![allow(clippy::many_single_char_names)]
-#[cfg(feature = "no-std")]
-#[panic_handler]
-fn panic_handler(info: &core::panic::PanicInfo) -> ! {
-    // Fallback to infinite loop if recovery fails
-    loop {}
-}
-
-
+#![no_std]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
