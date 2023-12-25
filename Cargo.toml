@@ -1,108 +1,58 @@
 [package]
-authors = ["The kyberlib contributors <contact@kyberlib.com>"]
-build = "build.rs"
-categories = ["algorithms", "cryptography", "wasm", "no-std"]
-description = "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography."
-documentation = "https://docs.rs/kyberlib"
-edition = "2021"
-exclude = [
-    "/.git/*",
-    "/.github/*",
-    "/.gitignore",
-    "/.vscode/*"
-]
-homepage = "https://kyberlib.com"
-include = [
-    "/CONTRIBUTING.md",
-    "/LICENSE-APACHE",
-    "/LICENSE-MIT",
-    "/build.rs",
-    "/Cargo.toml",
-    "/README.md",
-    "/src/**",
-    "/xtask/**",
-]
-keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
-license = "MIT OR Apache-2.0"
 name = "kyberlib"
-readme = "README.md"
-repository = "https://github.com/sebastienrousseau/kyberlib"
-rust-version = "1.71.1"
 version = "0.0.3"
-
-[dependencies]
-aes = { version = "0.8.3", optional = true }
-ctr = { version = "0.9.2", optional = true }
-rand_core = { version = "0.6.4",  default-features = false }
-sha2 = { version = "0.10.8", optional = true , default-features = false }
-wasm-bindgen = { version = "0.2.89", optional = true }
-
-[dev-dependencies]
-criterion = "0.5.1"
-rand = "0.8.5"
-
-[dependencies.rand]
-version = "0.8.5"
-default-features = false
-features = ["getrandom"]
-optional = true
-
-benchmarking = ["criterion"]
-
-[build-dependencies]
-cc = {version = "1.0.83", optional = true }
-nasm-rs = {version = "0.2.5", optional = true }
+authors = ["The kyberlib contributors <contact@kyberlib.com>"]
+edition = "2021"
+description = "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/sebastienrousseau/kyberlib"
+documentation = "https://docs.rs/kyberlib"
+homepage = "https://kyberlib.com"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "wasm", "no-std"]
+keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
+rust-version = "1.71.1"
+build = "build.rs"
+exclude = ["/.git/*", "/.github/*", "/.gitignore", "/.vscode/*"]
+include = ["/CONTRIBUTING.md", "/LICENSE-APACHE", "/LICENSE-MIT", "/build.rs", "/Cargo.toml", "/README.md", "/src/**", "/xtask/**"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 name = "kyberlib"
 path = "src/lib.rs"
 
-# [[bench]]
-# name = "bench"
-# harness = false
-# path = "benches/bench.rs"
+[dependencies]
+aes = { version = "0.8.3", optional = true }
+ctr = { version = "0.9.2", optional = true }
+criterion = { version = "0.5.1", optional = true }
+rand_core = { version = "0.6.4",  default-features = false }
+sha2 = { version = "0.10.8", optional = true , default-features = false }
+wasm-bindgen = { version = "0.2.89", optional = true }
+
+[dev-dependencies]
+rand = "0.8.5"
+
+[build-dependencies]
+cc = { version = "1.0.83", optional = true }
+nasm-rs = { version = "0.2.5", optional = true }
 
 [features]
-### Security Levels ###
-# Defaults to "kyber768" if none selected
-# Will throw a compile-time error if more than one level is chosen
-no-std = []
 default = ["kyber768"]
-# kyber512 = []
+no-std = []
+std = []
 kyber768 = []
+# kyber512 = []
 # kyber1024 = []
+benchmarking = ["criterion"]
+90s = ["sha2"]
+90s-fixslice = ["90s", "aes", "ctr"]
+avx2 = ["cc"]
+wasm = ["wasm-bindgen"]
+nasm = ["nasm-rs", "avx2"]
+hazmat = []
 
 [package.metadata.docs.rs]
 all-features = true
-
-### Export IND-CPA primitives
-# **WARNING** use with caution
-hazmat = []
-
-### Additional features ###
-# 90s mode uses AES256-CTR and SHA2 as primitives instead
-# Uses a bitslice implementation
-90s = ["sha2"]
-
-# Fixslice RustCrypto AES implementation offers some additional sidechannel
-# attack resistance. Suggest benchmarking for comparison.
-90s-fixslice = ["90s", "aes", "ctr"]
-
-# Use avx2 intrinsics on x86 architectures
-# Wont compile if the platform doesn't support it
-avx2 = ["cc"]
-
-# For compiling to wasm targets
-wasm = ["wasm-bindgen", "getrandom", "rand"]
-
-# Uses Netwide Assembler avx2 code instead of GAS, this offers increased
-# portability, you will need a nasm compiler installed.
-# Can be downloaded from https://www.nasm.us/
-nasm = ["nasm-rs", "avx2"]
-
-# Enable std library support
-std = []
 
 [workspace]
 members = ["xtask"]
