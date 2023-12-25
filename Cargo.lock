@@ -563,6 +563,7 @@ dependencies = [
  "cc",
  "criterion",
  "ctr",
+ "getrandom",
  "nasm-rs",
  "rand",
  "rand_core",
