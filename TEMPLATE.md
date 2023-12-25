@@ -42,13 +42,27 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography
 
 ## Features ✨
 
-- Feature 1
-- Feature 2
-- Feature 3
+### Core Features
 
-## Changelog 📚
+- **`no_std` compatible**: No dependence on the Rust standard library
+- **Avoid allocations**: Uses stack-based data structures only
+- **Configurable**: Features to enable different parameter sets
+- **Optimised x86_64**: Uses assembly for performance-critical code, including an optimised AVX2 version by default.
+- **Safe code**: Reference implementations have no `unsafe` blocks
+- **WebAssembly Support**: Can be compiled to WASM using wasm-bindgen.
 
--
+### Advanced Features
+
+- **Allocation-free Guarantee**: KyberLib guarantees all its core cryptography operations are free of heap allocations.
+- **Assembly Optimizations**: The x86_64 assembly implementations use AVX2 instructions for high performance.
+- **Security**: KyberLib contains no unsafe code in its public API surface.
+
+## Functionality 📚
+
+- **Key Generation**: Create public/private key pairs
+- **Encapsulation**: Encapsulate a shared secret with a public key
+- **Decapsulation**: Decapsulate a shared secret with a private key
+- **Key Exchange**: Perform authenticated key exchanges
 
 [0]: https://kyberlib.com/
 [2]: http://opensource.org/licenses/MIT
@@ -66,3 +80,5 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography
 [libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge 'Lib.rs badge'
 [license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License badge'
 [made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust badge'
+
+## Changelog 📚
