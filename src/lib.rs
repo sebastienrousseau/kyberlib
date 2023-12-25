@@ -136,8 +136,8 @@
 )]
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::many_single_char_names)]
-#![no_std]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
