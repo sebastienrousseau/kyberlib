@@ -67,6 +67,7 @@ path = "src/lib.rs"
 ### Security Levels ###
 # Defaults to "kyber768" if none selected
 # Will throw a compile-time error if more than one level is chosen
+no-std = []
 default = ["kyber768"]
 # kyber512 = []
 kyber768 = []

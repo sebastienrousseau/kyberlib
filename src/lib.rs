@@ -136,8 +136,8 @@
 )]
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
-#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::many_single_char_names)]
+#[cfg_attr(feature = "no-std", no_std)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
@@ -193,6 +193,13 @@ pub use params::{
     KYBER_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
+
+#[cfg(feature = "no-std")]
+#[panic_handler]
+fn panic_handler(info: &core::panic::PanicInfo) -> ! {
+    // Fallback to infinite loop if recovery fails
+    loop {}
+}
 
 // Feature hack to expose private functions for the Known Answer Tests
 // and fuzzing. Will fail to compile if used outside `cargo test` or
