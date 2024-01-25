@@ -50,7 +50,7 @@ benchmarking = ["criterion"]
 
 [build-dependencies]
 cc = {version = "1.0.83", optional = true }
-nasm-rs = {version = "0.2.5", optional = true }
+nasm-rs = {version = "0.3.0", optional = true }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
