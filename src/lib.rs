@@ -174,6 +174,9 @@ pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
 
+/// WebAssembly bindings for the KyberLib library.
+pub mod wasm;
+
 pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;

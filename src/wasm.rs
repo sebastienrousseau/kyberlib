@@ -7,6 +7,7 @@ extern crate alloc;
 use super::*;
 use crate::params::*;
 use alloc::boxed::Box;
+use rand::rngs::OsRng;
 use wasm_bindgen::prelude::*;
 
 /// Generate a key pair for Kyber encryption.
@@ -16,7 +17,7 @@ use wasm_bindgen::prelude::*;
 /// Returns a `JsError` if an error occurs during key pair generation.
 #[wasm_bindgen]
 pub fn keypair() -> Result<Keys, JsError> {
-    let mut rng = rand::rngs::OsRng {};
+    let mut rng = OsRng {};
     match api::keypair(&mut rng) {
         Ok(keys) => Ok(Keys {
             pubkey: Box::new(keys.public),
@@ -44,7 +45,7 @@ pub fn encapsulate(pk: Box<[u8]>) -> Result<Kex, JsValue> {
         return Err(JsValue::null());
     }
 
-    let mut rng = rand::rngs::OsRng {};
+    let mut rng = OsRng {};
     match api::encapsulate(&pk, &mut rng) {
         Ok(kex) => Ok(Kex {
             ciphertext: Box::new(kex.0),
