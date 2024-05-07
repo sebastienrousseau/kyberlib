@@ -2,8 +2,8 @@
 
 mod load;
 
-use load::*;
 use kyberlib::*;
+use load::*;
 
 // Generate KAT keypairs from seeds.
 #[test]

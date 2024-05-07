@@ -140,8 +140,7 @@ pub(crate) fn poly_tobytes(r: &mut [u8], a: Poly) {
 ///  - const [u8] a: input byte array (of KYBER_POLYBYTES bytes)
 pub(crate) fn poly_frombytes(r: &mut Poly, a: &[u8]) {
     for i in 0..(KYBER_N / 2) {
-        r.coeffs[2 * i] =
-            ((a[3 * i]) as u16 | ((a[3 * i + 1] as u16) << 8) & 0xFFF) as i16;
+        r.coeffs[2 * i] = ((a[3 * i]) as u16 | ((a[3 * i + 1] as u16) << 8) & 0xFFF) as i16;
         r.coeffs[2 * i + 1] =
             ((a[3 * i + 1] >> 4) as u16 | ((a[3 * i + 2] as u16) << 4) & 0xFFF) as i16;
     }

@@ -13,7 +13,6 @@ pub enum KyberLibError {
 
     /// Error trying to fill random bytes (i.e., external (hardware) RNG modules can fail).
     RandomBytesGeneration,
-
 }
 
 impl core::fmt::Display for KyberLibError {
@@ -24,7 +23,9 @@ impl core::fmt::Display for KyberLibError {
                 f,
                 "Decapsulation Failure, unable to obtain shared secret from ciphertext"
             ),
-            KyberLibError::RandomBytesGeneration => write!(f, "Random bytes generation function failed"),
+            KyberLibError::RandomBytesGeneration => {
+                write!(f, "Random bytes generation function failed")
+            }
         }
     }
 }

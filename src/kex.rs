@@ -14,7 +14,13 @@ pub const AKE_INIT_BYTES: usize = KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTE
 pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXT_BYTES;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
-pub type Encapsulated = Result<([u8; KYBER_CIPHERTEXT_BYTES], [u8; KYBER_SHARED_SECRET_BYTES]), KyberLibError>;
+pub type Encapsulated = Result<
+    (
+        [u8; KYBER_CIPHERTEXT_BYTES],
+        [u8; KYBER_SHARED_SECRET_BYTES],
+    ),
+    KyberLibError,
+>;
 /// Decapsulated ciphertext
 pub type Decapsulated = Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
 /// Kyber public key

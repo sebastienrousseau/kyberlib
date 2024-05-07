@@ -60,7 +60,8 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
                 for (k, item) in t.iter_mut().enumerate() {
                     *item = a.vec[i].coeffs[4 * j + k] as u16;
                     *item = item.wrapping_add((((*item as i16) >> 15) & KYBER_Q as i16) as u16);
-                    *item = (((((*item as u32) << 10) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 0x3ff) as u16;
+                    *item = (((((*item as u32) << 10) + KYBER_Q as u32 / 2) / KYBER_Q as u32)
+                        & 0x3ff) as u16;
                 }
                 r[idx] = (t[0]) as u8;
                 r[idx + 1] = ((t[0] >> 8) | (t[1] << 2)) as u8;

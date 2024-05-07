@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::KyberLibError;
-use rand_core::{RngCore, CryptoRng};
+use rand_core::{CryptoRng, RngCore};
 
 /// Fills a buffer `x` with `len` bytes of random data.
 ///

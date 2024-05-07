@@ -1,7 +1,9 @@
 // Copyright © 2023 KyberLib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use core::convert::From;
 use core::fmt;
+use core::fmt::Error;
 use core::result::Result as CoreResult;
 
 /// A trait for custom write operations, extending the core `fmt::Write` trait.
@@ -24,15 +26,17 @@ impl fmt::Display for CustomError {
     }
 }
 
-impl core::convert::From<&'static str> for CustomError {
+impl From<&'static str> for CustomError {
     fn from(message: &'static str) -> Self {
         CustomError { message }
     }
 }
 
-impl From<core::fmt::Error> for CustomError {
-    fn from(_: core::fmt::Error) -> Self {
-        CustomError { message: "Formatting error" }
+impl From<Error> for CustomError {
+    fn from(_: Error) -> Self {
+        CustomError {
+            message: "Formatting error",
+        }
     }
 }
 
@@ -171,7 +175,7 @@ impl<'a> Log<'a> {
     }
 }
 
-impl<'a> Default for Log<'a> {
+impl Default for Log<'_> {
     fn default() -> Self {
         Self {
             session_id: "",
@@ -183,5 +187,3 @@ impl<'a> Default for Log<'a> {
         }
     }
 }
-
-

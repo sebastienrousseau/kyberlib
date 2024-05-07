@@ -5,7 +5,8 @@
 mod tests {
     use kyberlib::loggers::Log;
     use kyberlib::{
-        kyberlib_assert, kyberlib_debug, kyberlib_error, kyberlib_info, kyberlib_max, kyberlib_min,kyberlib_log,
+        kyberlib_assert, kyberlib_debug, kyberlib_error, kyberlib_info, kyberlib_log, kyberlib_max,
+        kyberlib_min,
         loggers::{LogFormat, LogLevel},
     };
 

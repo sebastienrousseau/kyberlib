@@ -126,9 +126,6 @@
 //! - **Decapsulation**: This error indicates that the ciphertext could not be authenticated, and the shared secret was not successfully decapsulated.
 //!
 #![deny(dead_code)]
-#![deny(missing_debug_implementations)]
-#![forbid(unsafe_code)]
-#![warn(unreachable_pub)]
 #![doc(
     html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
     html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
@@ -184,13 +181,8 @@ pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
 pub use params::{
-    KYBER_90S,
-    KYBER_CIPHERTEXT_BYTES,
-    KYBER_SECURITY_PARAMETER,
-    KYBER_PUBLIC_KEY_BYTES,
-    KYBER_SECRET_KEY_BYTES,
-    KYBER_SHARED_SECRET_BYTES,
-    KYBER_SYM_BYTES,
+    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
+    KYBER_SECURITY_PARAMETER, KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
 

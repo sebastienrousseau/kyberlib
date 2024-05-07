@@ -3,9 +3,9 @@
 
 #[cfg(test)]
 mod tests {
-    use kyberlib::loggers::*;
     use core::fmt;
     use core::result::Result as CoreResult;
+    use kyberlib::loggers::*;
 
     // Assuming a maximum log message size, adjust as needed
     const MAX_LOG_SIZE: usize = 1024;
@@ -38,7 +38,10 @@ mod tests {
 
     #[test]
     fn test_log_info() {
-        let mut custom_file = CustomFile { data: [0; MAX_LOG_SIZE], len: 0 };
+        let mut custom_file = CustomFile {
+            data: [0; MAX_LOG_SIZE],
+            len: 0,
+        };
         let log_entry = Log::new(
             "session123",
             "2023-11-20T12:34:56",

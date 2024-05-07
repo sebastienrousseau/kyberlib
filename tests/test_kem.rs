@@ -1,6 +1,6 @@
 use kyberlib::*;
 mod utils;
-use utils::*;
+use utils::FailingRng;
 
 #[test]
 fn keypair_encap_decap() {

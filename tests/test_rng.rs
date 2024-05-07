@@ -4,8 +4,6 @@
 #[cfg(test)]
 mod tests {
 
-    #![cfg(test)]
-
     use kyberlib::rng::randombytes;
     use rand_core::OsRng;
 

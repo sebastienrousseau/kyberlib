@@ -1,6 +1,9 @@
 #![cfg(feature = "benchmarking")]
 use criterion::{criterion_group, criterion_main, Criterion};
-use kyberlib::{*, kem::{generate_key_pair, encrypt_message}};
+use kyberlib::{
+    kem::{encrypt_message, generate_key_pair},
+    *,
+};
 
 // Benchmarking key generation
 pub fn keypair(c: &mut Criterion) {
