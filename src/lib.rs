@@ -125,7 +125,6 @@
 //! - **InvalidInput**: Occurs when one or more byte inputs to a function are incorrectly sized. This typically happens when two parties use different security levels while attempting to negotiate a key exchange.
 //! - **Decapsulation**: This error indicates that the ciphertext could not be authenticated, and the shared secret was not successfully decapsulated.
 //!
-#![deny(dead_code)]
 #![doc(
     html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
     html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
@@ -134,7 +133,6 @@
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(clippy::many_single_char_names)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
