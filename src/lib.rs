@@ -164,8 +164,7 @@ pub mod error;
 pub mod kem;
 /// Key exchange structs for the KyberLib library.
 pub mod kex;
-/// Logging utilities for debugging
-pub mod loggers;
+
 /// Macro utilities for the KyberLib library.
 pub mod macros;
 /// Parameters for the KyberLib library.

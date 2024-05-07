@@ -3,12 +3,8 @@
 
 #[cfg(test)]
 mod tests {
-    use kyberlib::loggers::Log;
-    use kyberlib::{
-        kyberlib_assert, kyberlib_debug, kyberlib_error, kyberlib_info, kyberlib_log, kyberlib_max,
-        kyberlib_min,
-        loggers::{LogFormat, LogLevel},
-    };
+    use kyberlib::{kyberlib_assert, kyberlib_max, kyberlib_min};
+    use rlg::{log::Log, log_format::LogFormat, log_level::LogLevel};
 
     #[test]
     fn test_kyberlib_assert() {
@@ -29,12 +25,13 @@ mod tests {
 
     #[test]
     fn test_kyberlib_info() {
-        let log = kyberlib_info!(
-            "session123",
-            "2023-11-20T12:34:56",
-            "component",
-            "description",
-            LogFormat::CLF
+        let log = Log::new(
+            "12345",
+            "2023-01-01T12:00:00Z",
+            &LogLevel::INFO,
+            "MyComponent",
+            "This is a sample log message",
+            &LogFormat::JSON,
         );
 
         assert_eq!(log.level, LogLevel::INFO);
@@ -42,12 +39,13 @@ mod tests {
 
     #[test]
     fn test_kyberlib_error() {
-        let log = kyberlib_error!(
-            "session456",
-            "2023-11-20T13:45:23",
-            "component",
-            "description",
-            LogFormat::CLF
+        let log = Log::new(
+            "12345",
+            "2023-01-01T12:00:00Z",
+            &LogLevel::ERROR,
+            "MyComponent",
+            "This is a sample log message",
+            &LogFormat::JSON,
         );
 
         assert_eq!(log.level, LogLevel::ERROR);
@@ -55,12 +53,13 @@ mod tests {
 
     #[test]
     fn test_kyberlib_debug() {
-        let log = kyberlib_debug!(
-            "session789",
-            "2023-11-20T14:56:34",
-            "component",
-            "description",
-            LogFormat::CLF
+        let log = Log::new(
+            "12345",
+            "2023-01-01T12:00:00Z",
+            &LogLevel::DEBUG,
+            "MyComponent",
+            "This is a sample log message",
+            &LogFormat::JSON,
         );
 
         assert_eq!(log.level, LogLevel::DEBUG);
@@ -68,18 +67,19 @@ mod tests {
 
     #[test]
     fn test_kyberlib_log() {
-        let log = kyberlib_log!(
-            "session123",
+        let log = Log::new(
+            "12345",
             "2023-02-28T12:34:56",
-            "mycomponent",
+            &LogLevel::INFO,
+            "MyComponent",
             "Hello world",
-            LogFormat::CLF
+            &LogFormat::JSON,
         );
 
-        assert_eq!(log.session_id, "session123");
+        assert_eq!(log.session_id, "12345");
         assert_eq!(log.time, "2023-02-28T12:34:56");
-        assert_eq!(log.component, "mycomponent");
+        assert_eq!(log.component, "MyComponent");
         assert_eq!(log.description, "Hello world");
-        assert_eq!(log.format, LogFormat::CLF);
+        assert_eq!(log.format, LogFormat::JSON);
     }
 }
