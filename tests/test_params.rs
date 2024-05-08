@@ -52,7 +52,10 @@ mod tests {
     #[test]
     fn test_kyber_polyvecbytes() {
         // Test KYBER_POLYVECBYTES
-        assert_eq!(KYBER_POLYVECBYTES, KYBER_SECURITY_PARAMETER * KYBER_POLYBYTES);
+        assert_eq!(
+            KYBER_POLYVECBYTES,
+            KYBER_SECURITY_PARAMETER * KYBER_POLYBYTES
+        );
     }
 
     #[cfg(not(feature = "kyber1024"))]
@@ -73,7 +76,10 @@ mod tests {
     #[test]
     fn test_kyber_secret_key_bytes() {
         // Test KYBER_SECRET_KEY_BYTES
-        assert_eq!(KYBER_SECRET_KEY_BYTES, KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYM_BYTES);
+        assert_eq!(
+            KYBER_SECRET_KEY_BYTES,
+            KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYM_BYTES
+        );
     }
 
     #[test]
@@ -121,7 +127,10 @@ mod tests {
     #[test]
     fn test_kyber_indcpa_publickeybytes() {
         // Test KYBER_INDCPA_PUBLICKEYBYTES
-        assert_eq!(KYBER_INDCPA_PUBLICKEYBYTES, KYBER_POLYVECBYTES + KYBER_SYM_BYTES);
+        assert_eq!(
+            KYBER_INDCPA_PUBLICKEYBYTES,
+            KYBER_POLYVECBYTES + KYBER_SYM_BYTES
+        );
     }
 
     #[test]
@@ -133,7 +142,10 @@ mod tests {
     #[test]
     fn test_kyber_indcpa_bytes() {
         // Test KYBER_INDCPA_BYTES
-        assert_eq!(KYBER_INDCPA_BYTES, KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES);
+        assert_eq!(
+            KYBER_INDCPA_BYTES,
+            KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES
+        );
     }
 
     // Test Kyber parameters related to keys and ciphertext
