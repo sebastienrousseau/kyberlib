@@ -118,6 +118,25 @@
 //! # Ok(()) }
 //! ```
 //!
+//! ## Macros
+//!
+//! The KyberLib crate provides several macros to simplify common cryptographic operations:
+//!
+//! - `kyberlib_assert!`: Asserts that a given expression is true. Panics if the assertion fails.
+//! - `kyberlib_min!`: Returns the minimum of the given values.
+//! - `kyberlib_max!`: Returns the maximum of the given values.
+//! - `kyberlib_generate_key_pair!`: Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
+//! - `kyberlib_encrypt_message!`: Generates cipher text and a shared secret for a given public key.
+//! - `kyberlib_decrypt_message!`: Generates a shared secret for a given cipher text and private key.
+//! - `kyberlib_uake_client_init!`: Initiates a Unilaterally Authenticated Key Exchange.
+//! - `kyberlib_uake_server_receive!`: Handles the output of a `kyberlib_uake_client_init()` request.
+//! - `kyberlib_uake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
+//! - `kyberlib_ake_client_init!`: Initiates a Mutually Authenticated Key Exchange.
+//! - `kyberlib_ake_server_receive!`: Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+//! - `kyberlib_ake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+//!
+//! See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/macros/index.html) for more details and usage examples.
+//!
 //! ## Errors
 //!
 //! The [KyberLibError](enum.KyberLibError.html) enum handles errors with two variants:

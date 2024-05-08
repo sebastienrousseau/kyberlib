@@ -66,12 +66,13 @@ pub struct Uake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
     /// Sent when initiating a key exchange
-    send_a: UakeSendInit,
+    pub send_a: UakeSendInit,
     /// Response to a key exchange initiation
-    send_b: UakeSendResponse,
-    // Ephemeral keys
-    temp_key: TempKey,
-    eska: Eska,
+    pub send_b: UakeSendResponse,
+    /// Ephemeral keys for the key exchange
+    pub temp_key: TempKey,
+    /// Ephemeral secret key
+    pub eska: Eska,
 }
 
 impl Default for Uake {
@@ -208,12 +209,13 @@ pub struct Ake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
     /// Sent when initiating a key exchange
-    send_a: AkeSendInit,
+    pub send_a: AkeSendInit,
     /// Response to a key exchange initiation
-    send_b: AkeSendResponse,
-    // Ephemeral keys
-    temp_key: TempKey,
-    eska: Eska,
+    pub send_b: AkeSendResponse,
+    /// Ephemeral keys for the key exchange
+    pub temp_key: TempKey,
+    /// Ephemeral secret key
+    pub eska: Eska,
 }
 
 impl Default for Ake {

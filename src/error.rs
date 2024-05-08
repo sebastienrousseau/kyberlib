@@ -8,6 +8,9 @@ pub enum KyberLibError {
     /// two parties using different security levels while trying to negotiate a key exchange.
     InvalidInput,
 
+    /// Error when generating keys
+    InvalidKey,
+
     /// The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
     Decapsulation,
 
@@ -25,6 +28,9 @@ impl core::fmt::Display for KyberLibError {
             ),
             KyberLibError::RandomBytesGeneration => {
                 write!(f, "Random bytes generation function failed")
+            }
+            KyberLibError::InvalidKey => {
+                write!(f, "The secret and public key given does not match.")
             }
         }
     }

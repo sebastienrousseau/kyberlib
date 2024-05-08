@@ -39,6 +39,52 @@ where
     Ok(Keypair { public, secret })
 }
 
+/// Verify that given secret and public key matches and put them in
+/// the KeyPair structure after zeroize them if asked.
+/// ### Example
+/// ```
+/// # use kyberlib::*;
+/// # fn main() -> Result<(), KyberLibError> {
+/// let mut rng = rand::thread_rng();
+/// let keys = keypair(&mut rng)?;
+/// let mut public = keys.public;
+/// let mut secret = keys.secret;
+/// let _ = keypairfrom(&mut public, &mut secret, &mut rng)?;
+/// # Ok(())}
+/// ```
+pub fn keypairfrom<R>(
+    public: &mut [u8; KYBER_PUBLIC_KEY_BYTES],
+    secret: &mut [u8; KYBER_SECRET_KEY_BYTES],
+    rng: &mut R,
+) -> Result<Keypair, KyberLibError>
+where
+    R: RngCore + CryptoRng,
+{
+    //Try to encapsulate and decapsule to verify secret key matches public key
+    let (ciphertext, shared_secret) = encapsulate(public, rng)?;
+    let expected_shared_secret = decapsulate(&ciphertext, secret)?;
+    //If it does match, return a KeyPair
+    if expected_shared_secret == shared_secret {
+        let public2 = *public;
+        let secret2 = *secret;
+        let key = Keypair {
+            public: public2,
+            secret: secret2,
+        };
+        #[cfg(feature = "zeroize")]
+        {
+            public.zeroize();
+            secret.zeroize();
+            public2.zeroize();
+            secret2.zeroize();
+        }
+        Ok(key)
+    } else {
+        //Else return an error
+        Err(KyberLibError::InvalidKey)
+    }
+}
+
 /// Encapsulates a public key and returns the ciphertext to send and the shared secret.
 ///
 /// This function encapsulates a public key and returns the ciphertext and the shared secret.

@@ -111,10 +111,121 @@ macro_rules! kyberlib_encrypt_message {
 ///
 /// On failure, `ss` will contain a pseudo-random value.
 #[macro_export]
+#[doc = "Macro to decrypt a message using the Kyber key encapsulation mechanism."]
 macro_rules! kyberlib_decrypt_message {
     ($ss:expr, $ct:expr, $sk:expr) => {
         kyberlib::kem::decrypt_message($ss, $ct, $sk)
     };
 }
 
+/// Initiates a Unilaterally Authenticated Key Exchange.
+///
+/// # Arguments
+///
+/// * `pubkey` - Input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when initiating a unilateral key exchange (UakeSendInit).
+#[macro_export]
+#[doc = "Macro to initiate a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_client_init {
+    ($pubkey:expr, $rng:expr) => {
+        kyberlib::kex::Uake::new().client_init($pubkey, $rng)
+    };
+}
 
+/// Handles the output of a `kyberlib_uake_client_init()` request.
+///
+/// # Arguments
+///
+/// * `send_a` - The bytes received from the `kyberlib_uake_client_init()` request.
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when responding to a unilateral key exchange (UakeSendResponse).
+#[macro_export]
+#[doc = "Macro to handle the output of a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_server_receive {
+    ($send_a:expr, $secretkey:expr, $rng:expr) => {
+        kyberlib::kex::Uake::new().server_receive($send_a, $secretkey, $rng)
+    };
+}
+
+/// Decapsulates and authenticates the shared secret from the output of
+/// `kyberlib_uake_server_receive()`.
+///
+/// # Arguments
+///
+/// * `send_b` - The bytes received from the `kyberlib_uake_server_receive()` request.
+///
+/// # Returns
+///
+/// Nothing (the shared secret is stored in the `Uake` struct).
+#[macro_export]
+#[doc = "Macro to decapsulate and authenticate the shared secret from a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_client_confirm {
+    ($send_b:expr) => {
+        kyberlib::kex::Uake::new().client_confirm($send_b)
+    };
+}
+
+/// Initiates a Mutually Authenticated Key Exchange.
+///
+/// # Arguments
+///
+/// * `pubkey` - Input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when initiating a mutual key exchange (AkeSendInit).
+#[macro_export]
+#[doc = "Macro to initiate a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_client_init {
+    ($pubkey:expr, $rng:expr) => {
+        kyberlib::kex::Ake::new().client_init($pubkey, $rng)
+    };
+}
+
+/// Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+///
+/// # Arguments
+///
+/// * `ake_send_a` - The bytes received from the `kyberlib_ake_client_init()` request.
+/// * `pubkey` - The public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when responding to a mutual key exchange (AkeSendResponse).
+#[macro_export]
+#[doc = "Macro to handle the output of a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_server_receive {
+    ($ake_send_a:expr, $pubkey:expr, $secretkey:expr, $rng:expr) => {
+        kyberlib::kex::Ake::new().server_receive($ake_send_a, $pubkey, $secretkey, $rng)
+    };
+}
+
+/// Decapsulates and authenticates the shared secret from the output of
+/// `kyberlib_ake_server_receive()`.
+///
+/// # Arguments
+///
+/// * `send_b` - The bytes received from the `kyberlib_ake_server_receive()` request.
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+///
+/// # Returns
+///
+/// Nothing (the shared secret is stored in the `Ake` struct).
+#[macro_export]
+#[doc = "Macro to decapsulate and authenticate the shared secret from a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_client_confirm {
+    ($send_b:expr, $secretkey:expr) => {
+        kyberlib::kex::Ake::new().client_confirm($send_b, $secretkey)
+    };
+}
