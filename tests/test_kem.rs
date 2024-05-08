@@ -1,6 +1,7 @@
 use kyberlib::*;
 mod utils;
-use utils::*;
+use kyberlib::keypairfrom;
+use utils::FailingRng;
 
 #[test]
 fn keypair_encap_decap() {
@@ -9,6 +10,14 @@ fn keypair_encap_decap() {
     let (ct, ss1) = encapsulate(&keys.public, &mut rng).unwrap();
     let ss2 = decapsulate(&ct, &keys.secret).unwrap();
     assert_eq!(ss1, ss2);
+}
+
+#[test]
+fn keypair_import_fake() {
+    let mut rng = rand::thread_rng();
+    let mut keys = keypair(&mut rng).unwrap();
+    let key = keypairfrom(&mut keys.public, &mut keys.secret, &mut rng).unwrap();
+    assert_eq!(keys.public, key.public);
 }
 
 #[test]

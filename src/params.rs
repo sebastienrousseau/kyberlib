@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 // Constants and parameters used in the Kyber cryptographic scheme.
@@ -54,7 +54,8 @@ pub const KYBER_Q: usize = 3329;
 ///
 /// - It is computed as the sum of IND-CPA secret key and public key sizes, along with twice the size of symmetric keys.
 /// - This size is crucial for memory allocation during key generation and storage.
-pub const KYBER_SECRET_KEY_BYTES: usize = KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYM_BYTES;
+pub const KYBER_SECRET_KEY_BYTES: usize =
+    KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYM_BYTES;
 
 /// The security parameter for Kyber, affecting the overall security level.
 ///

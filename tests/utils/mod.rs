@@ -1,6 +1,6 @@
 use rand_core::{CryptoRng, Error, RngCore};
 
-pub struct FailingRng(u64);
+pub(crate) struct FailingRng(u64);
 
 #[allow(clippy::derivable_impls)]
 impl Default for FailingRng {

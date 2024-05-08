@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 //! # KyberLib Macros
@@ -62,130 +62,170 @@ macro_rules! kyberlib_max {
     }};
 }
 
-/// Shorthand macros to create `Log` instances with different log levels.
+/// Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
 ///
-/// Example
+/// # Arguments
 ///
-/// ```rust
-/// use kyberlib::loggers::LogFormat;
-/// use kyberlib::kyberlib_info;
-/// use kyberlib::loggers::Log;
-/// use kyberlib::loggers::LogLevel;
+/// * `pk` - Output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `sk` - Output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+/// * `_rng` - Random number generator implementing RngCore + CryptoRng.
+/// * `_seed` - Optional seed for key generation.
 ///
-/// let log = kyberlib_info!(
-///    "session123",
-///    "2023-01-04T21:00:00",
-///    "app",
-///    "Message logged",
-///    LogFormat::CLF
-/// );
-/// ```
+/// # Errors
+///
+/// Returns a `KyberLibError` on failure.
 #[macro_export]
-macro_rules! kyberlib_info {
-    ($session_id:expr, $time:expr, $component:expr, $desc:expr, $format:expr) => {
-        Log::new(
-            $session_id,
-            $time,
-            LogLevel::INFO,
-            $component,
-            $desc,
-            $format,
-        )
+macro_rules! kyberlib_generate_key_pair {
+    ($pk:expr, $sk:expr, $rng:expr, $seed:expr) => {
+        kyberlib::kem::generate_key_pair($pk, $sk, $rng, $seed)
     };
 }
 
-/// Shorthand macros to create `Log` instances with different log levels.
+/// Generates cipher text and a shared secret for a given public key.
 ///
-/// Example
+/// # Arguments
 ///
-/// ```rust
-/// use kyberlib::loggers::LogFormat;
-/// use kyberlib::kyberlib_error;
-/// use kyberlib::loggers::Log;
-/// use kyberlib::loggers::LogLevel;
+/// * `ct` - Output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes).
+/// * `ss` - Output shared secret (an already allocated array of CRYPTO_BYTES bytes).
+/// * `pk` - Input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `_rng` - Random number generator implementing RngCore + CryptoRng.
+/// * `_seed` - Optional seed for random number generation.
 ///
-/// let error_log = kyberlib_error!(
-///     "session123",
-///     "2023-01-04T21:00:00",
-///     "app",
-///     "Connection failed",
-///     LogFormat::CLF
-/// );
-/// ```
+/// # Errors
+///
+/// Returns a `KyberLibError` on failure.
 #[macro_export]
-macro_rules! kyberlib_error {
-    ($session_id:expr, $time:expr, $component:expr, $desc:expr, $format:expr) => {
-        Log::new(
-            $session_id,
-            $time,
-            LogLevel::ERROR,
-            $component,
-            $desc,
-            $format,
-        )
+macro_rules! kyberlib_encrypt_message {
+    ($ct:expr, $ss:expr, $pk:expr, $rng:expr, $seed:expr) => {
+        kyberlib::kem::encrypt_message($ct, $ss, $pk, $rng, $seed)
     };
 }
 
-/// Shorthand macros to create `Log` instances with different log levels.
+/// Generates a shared secret for a given cipher text and private key.
 ///
-/// Example
+/// # Arguments
 ///
-/// ```
-/// use kyberlib::loggers::{LogLevel};
-/// use kyberlib::kyberlib_debug;
-/// use kyberlib::loggers::Log;
-/// use kyberlib::loggers::LogFormat;
+/// * `ss` - Output shared secret (an already allocated array of CRYPTO_BYTES bytes).
+/// * `ct` - Input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes).
+/// * `sk` - Input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
 ///
-/// let log = kyberlib_debug!(
-///     "session123",
-///     "2023-01-04T21:00:00",
-///     "app",
-///     "Message logged",
-///     LogFormat::CLF
-/// );
-/// ```
+/// On failure, `ss` will contain a pseudo-random value.
 #[macro_export]
-macro_rules! kyberlib_debug {
-    ($session_id:expr, $time:expr, $component:expr, $desc:expr, $format:expr) => {
-        Log::new(
-            $session_id,
-            $time,
-            LogLevel::DEBUG,
-            $component,
-            $desc,
-            $format,
-        )
+#[doc = "Macro to decrypt a message using the Kyber key encapsulation mechanism."]
+macro_rules! kyberlib_decrypt_message {
+    ($ss:expr, $ct:expr, $sk:expr) => {
+        kyberlib::kem::decrypt_message($ss, $ct, $sk)
     };
 }
 
-/// Shorthand macro to create a `Log` with the given log level.
+/// Initiates a Unilaterally Authenticated Key Exchange.
 ///
-/// Example
+/// # Arguments
 ///
-/// ```rust
-/// use kyberlib::loggers::{LogLevel, LogFormat};
-/// use kyberlib::kyberlib_log;
+/// * `pubkey` - Input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
 ///
-/// let log = kyberlib_log!(
-///    "session123",
-///    "2023-01-04T21:00:00",
-///    "app",
-///    "Message logged",
-///    LogFormat::CLF
-/// );
-/// ```
+/// # Returns
+///
+/// The bytes to send when initiating a unilateral key exchange (UakeSendInit).
 #[macro_export]
-macro_rules! kyberlib_log {
-    ($session_id:expr, $time:expr, $component:expr, $description:expr, $format:expr) => {{
-        use kyberlib::loggers::{Log, LogFormat, LogLevel};
+#[doc = "Macro to initiate a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_client_init {
+    ($pubkey:expr, $rng:expr) => {
+        kyberlib::kex::Uake::new().client_init($pubkey, $rng)
+    };
+}
 
-        Log::new(
-            $session_id,
-            $time,
-            LogLevel::INFO,
-            $component,
-            $description,
-            $format,
-        )
-    }};
+/// Handles the output of a `kyberlib_uake_client_init()` request.
+///
+/// # Arguments
+///
+/// * `send_a` - The bytes received from the `kyberlib_uake_client_init()` request.
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when responding to a unilateral key exchange (UakeSendResponse).
+#[macro_export]
+#[doc = "Macro to handle the output of a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_server_receive {
+    ($send_a:expr, $secretkey:expr, $rng:expr) => {
+        kyberlib::kex::Uake::new().server_receive($send_a, $secretkey, $rng)
+    };
+}
+
+/// Decapsulates and authenticates the shared secret from the output of
+/// `kyberlib_uake_server_receive()`.
+///
+/// # Arguments
+///
+/// * `send_b` - The bytes received from the `kyberlib_uake_server_receive()` request.
+///
+/// # Returns
+///
+/// Nothing (the shared secret is stored in the `Uake` struct).
+#[macro_export]
+#[doc = "Macro to decapsulate and authenticate the shared secret from a Unilaterally Authenticated Key Exchange."]
+macro_rules! kyberlib_uake_client_confirm {
+    ($send_b:expr) => {
+        kyberlib::kex::Uake::new().client_confirm($send_b)
+    };
+}
+
+/// Initiates a Mutually Authenticated Key Exchange.
+///
+/// # Arguments
+///
+/// * `pubkey` - Input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when initiating a mutual key exchange (AkeSendInit).
+#[macro_export]
+#[doc = "Macro to initiate a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_client_init {
+    ($pubkey:expr, $rng:expr) => {
+        kyberlib::kex::Ake::new().client_init($pubkey, $rng)
+    };
+}
+
+/// Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+///
+/// # Arguments
+///
+/// * `ake_send_a` - The bytes received from the `kyberlib_ake_client_init()` request.
+/// * `pubkey` - The public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes).
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+/// * `rng` - Random number generator implementing RngCore + CryptoRng.
+///
+/// # Returns
+///
+/// The bytes to send when responding to a mutual key exchange (AkeSendResponse).
+#[macro_export]
+#[doc = "Macro to handle the output of a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_server_receive {
+    ($ake_send_a:expr, $pubkey:expr, $secretkey:expr, $rng:expr) => {
+        kyberlib::kex::Ake::new().server_receive($ake_send_a, $pubkey, $secretkey, $rng)
+    };
+}
+
+/// Decapsulates and authenticates the shared secret from the output of
+/// `kyberlib_ake_server_receive()`.
+///
+/// # Arguments
+///
+/// * `send_b` - The bytes received from the `kyberlib_ake_server_receive()` request.
+/// * `secretkey` - The secret key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes).
+///
+/// # Returns
+///
+/// Nothing (the shared secret is stored in the `Ake` struct).
+#[macro_export]
+#[doc = "Macro to decapsulate and authenticate the shared secret from a Mutually Authenticated Key Exchange."]
+macro_rules! kyberlib_ake_client_confirm {
+    ($send_b:expr, $secretkey:expr) => {
+        kyberlib::kex::Ake::new().client_confirm($send_b, $secretkey)
+    };
 }

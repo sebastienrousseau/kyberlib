@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 //! # `KyberLib` 🦀
@@ -118,6 +118,25 @@
 //! # Ok(()) }
 //! ```
 //!
+//! ## Macros
+//!
+//! The KyberLib crate provides several macros to simplify common cryptographic operations:
+//!
+//! - `kyberlib_assert!`: Asserts that a given expression is true. Panics if the assertion fails.
+//! - `kyberlib_min!`: Returns the minimum of the given values.
+//! - `kyberlib_max!`: Returns the maximum of the given values.
+//! - `kyberlib_generate_key_pair!`: Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
+//! - `kyberlib_encrypt_message!`: Generates cipher text and a shared secret for a given public key.
+//! - `kyberlib_decrypt_message!`: Generates a shared secret for a given cipher text and private key.
+//! - `kyberlib_uake_client_init!`: Initiates a Unilaterally Authenticated Key Exchange.
+//! - `kyberlib_uake_server_receive!`: Handles the output of a `kyberlib_uake_client_init()` request.
+//! - `kyberlib_uake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
+//! - `kyberlib_ake_client_init!`: Initiates a Mutually Authenticated Key Exchange.
+//! - `kyberlib_ake_server_receive!`: Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+//! - `kyberlib_ake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+//!
+//! See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/macros/index.html) for more details and usage examples.
+//!
 //! ## Errors
 //!
 //! The [KyberLibError](enum.KyberLibError.html) enum handles errors with two variants:
@@ -125,10 +144,6 @@
 //! - **InvalidInput**: Occurs when one or more byte inputs to a function are incorrectly sized. This typically happens when two parties use different security levels while attempting to negotiate a key exchange.
 //! - **Decapsulation**: This error indicates that the ciphertext could not be authenticated, and the shared secret was not successfully decapsulated.
 //!
-#![deny(dead_code)]
-#![deny(missing_debug_implementations)]
-#![forbid(unsafe_code)]
-#![warn(unreachable_pub)]
 #![doc(
     html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
     html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
@@ -137,7 +152,6 @@
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(clippy::many_single_char_names)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
@@ -149,7 +163,8 @@ mod avx2;
 use avx2::*;
 
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
-mod reference;
+/// Reference implementation for the KyberLib library.
+pub mod reference;
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 use reference::*;
 
@@ -169,28 +184,26 @@ pub mod error;
 pub mod kem;
 /// Key exchange structs for the KyberLib library.
 pub mod kex;
-/// Logging utilities for debugging
-pub mod loggers;
+
 /// Macro utilities for the KyberLib library.
 pub mod macros;
 /// Parameters for the KyberLib library.
 pub mod params;
+
 /// Random number generators for the KyberLib library.
 pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
 
+/// WebAssembly bindings for the KyberLib library.
+pub mod wasm;
+
 pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
 pub use params::{
-    KYBER_90S,
-    KYBER_CIPHERTEXT_BYTES,
-    KYBER_SECURITY_PARAMETER,
-    KYBER_PUBLIC_KEY_BYTES,
-    KYBER_SECRET_KEY_BYTES,
-    KYBER_SHARED_SECRET_BYTES,
-    KYBER_SYM_BYTES,
+    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
+    KYBER_SECURITY_PARAMETER, KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
 

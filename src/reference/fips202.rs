@@ -3,10 +3,10 @@
 use crate::symmetric::KeccakState;
 
 pub(crate) const SHAKE128_RATE: usize = 168;
-const SHAKE256_RATE: usize = 136;
-const SHA3_256_RATE: usize = 136;
-const SHA3_512_RATE: usize = 72;
-const NROUNDS: usize = 24;
+pub(crate) const SHAKE256_RATE: usize = 136;
+pub(crate) const SHA3_256_RATE: usize = 136;
+pub(crate) const SHA3_512_RATE: usize = 72;
+pub(crate) const NROUNDS: usize = 24;
 
 fn rol(a: u64, offset: u64) -> u64 {
     (a << offset) ^ (a >> (64 - offset))

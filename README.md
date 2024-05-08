@@ -66,8 +66,6 @@ KyberLib is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Crypt
 
 See [Documentation][08] for full API details.
 
-![Divider][01]
-
 ## Getting Started 🚀
 
 It takes just a few minutes to get up and running with `kyberlib`.
@@ -90,8 +88,6 @@ using the following command:
 cargo install kyberlib
 ```
 
-![Divider][01]
-
 ## Usage 📖
 
 To use the `kyberlib` library in your project, add the following to your
@@ -99,7 +95,7 @@ To use the `kyberlib` library in your project, add the following to your
 
 ```toml
 [dependencies]
-kyberlib = "0.0.3"
+kyberlib = "0.0.4"
 ```
 
 Add the following to your `main.rs` file:
@@ -181,6 +177,25 @@ alice.client_confirm(server_response, &alice_keys.secret)?;
 assert_eq!(alice.shared_secret, bob.shared_secret);
 ```
 
+## Macros
+
+The KyberLib crate provides several macros to simplify common cryptographic operations:
+
+- `kyberlib_assert!`: Asserts that a given expression is true. Panics if the assertion fails.
+- `kyberlib_min!`: Returns the minimum of the given values.
+- `kyberlib_max!`: Returns the maximum of the given values.
+- `kyberlib_generate_key_pair!`: Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
+- `kyberlib_encrypt_message!`: Generates cipher text and a shared secret for a given public key.
+- `kyberlib_decrypt_message!`: Generates a shared secret for a given cipher text and private key. 
+- `kyberlib_uake_client_init!`: Initiates a Unilaterally Authenticated Key Exchange.
+- `kyberlib_uake_server_receive!`: Handles the output of a `kyberlib_uake_client_init()` request.
+- `kyberlib_uake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
+- `kyberlib_ake_client_init!`: Initiates a Mutually Authenticated Key Exchange.
+- `kyberlib_ake_server_receive!`: Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+- `kyberlib_ake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+
+See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/macros/index.html) for more details and usage examples.
+
 ## Errors
 
 The KyberLibError enum has two variants:
@@ -188,8 +203,6 @@ The KyberLibError enum has two variants:
 - **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
 - **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
 - **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
-
-![Divider][01]
 
 ## Examples
 
@@ -229,47 +242,9 @@ Run the following command in your terminal from the project root directory.
 cargo run --example uake
 ```
 
-![Divider][01]
-
 ### Platform support
 
-`kyberlib` is supported and tested on the following platforms:
-
-### Tier 1 platforms 🏆
-
-| | Operating System | Target | Description |
-| --- | --- | --- | --- |
-| ✅ | Linux   | aarch64-unknown-linux-gnu | 64-bit Linux systems on ARM architecture |
-| ✅ | Windows | i686-pc-windows-gnu | 32-bit Windows systems using the GNU toolchain |
-| ✅ | Windows | i686-pc-windows-msvc | 32-bit Windows systems using the Microsoft Visual C toolchain |
-| ✅ | Linux   | i686-unknown-linux-gnu | 32-bit Linux systems (kernel 3.2+, glibc 2.17+) |
-| ✅ | macOS   | x86_64-apple-darwin | 64-bit macOS systems (10.7 Lion or later) |
-| ✅ | Windows | x86_64-pc-windows-gnu | 64-bit Windows systems using the GNU toolchain |
-| ✅ | Windows | x86_64-pc-windows-msvc | 64-bit Windows systems using the Microsoft Visual C toolchain |
-| ✅ | Linux   | x86_64-unknown-linux-gnu | 64-bit Linux systems (kernel 2.6.32+, glibc 2.11+) |
-
-### Tier 2 platforms 🥈
-
-| | Operating System | Target | Description |
-| --- | --- | --- | --- |
-| ✅ | Linux   | aarch64-apple-darwin | 64-bit macOS on Apple Silicon |
-| ✅ | Windows | aarch64-pc-windows-msvc | 64-bit Windows on ARM architecture using the Microsoft Visual C toolchain |
-| ✅ | Linux   | aarch64-unknown-linux-musl | 64-bit Linux on ARM architecture with musl libc |
-| ✅ | Linux   | arm-unknown-linux-gnueabi | ARMv6 Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | arm-unknown-linux-gnueabihf | ARMv7 Linux systems, hardfloat (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | armv7-unknown-linux-gnueabihf | ARMv7 Linux systems, hardfloat (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | powerpc-unknown-linux-gnu | PowerPC Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | powerpc64-unknown-linux-gnu | PowerPC64 Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | powerpc64le-unknown-linux-gnu | PowerPC64le Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | riscv64gc-unknown-linux-gnu | RISC-V Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | s390x-unknown-linux-gnu | s390x Linux systems (kernel 3.2, glibc 2.17) |
-| ✅ | Linux   | x86_64-unknown-freebsd | 64-bit FreeBSD systems on x86-64 architecture |
-| ✅ | Linux   | x86_64-unknown-linux-musl | 64-bit Linux systems (kernel 2.6.32+, musl libc) |
-
-The [GitHub Actions][10] shows the platforms in which the `kyberlib`
-library tests are run.
-
-![Divider][01]
+`kyberlib` is supported and tested on MacOS, Linux, and Windows. The [GitHub Actions][10] shows the platforms in which the `kyberlib` library tests are run.
 
 ### Documentation
 
@@ -281,14 +256,10 @@ library tests are run.
 For transparency into our release cycle and in striving to maintain
 backward compatibility, `kyberlib` follows [semantic versioning][06].
 
-![Divider][01]
-
 ## License 📝
 
 The project is licensed under the terms of Apache License, Version 2.0 and the
 MIT license.
-
-![Divider][01]
 
 ## Contribution 🤝
 
@@ -302,8 +273,6 @@ Unless you explicitly state otherwise, any contribution intentionally
 submitted for inclusion in the work by you, as defined in the
 Apache-2.0 license, shall be dual licensed as above, without any
 additional terms or conditions.
-
-![Divider][01]
 
 ## Acknowledgements 💙
 

@@ -1,10 +1,8 @@
-// Copyright © 2023 kyberlib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 #[cfg(test)]
 mod tests {
-
-    #![cfg(test)]
 
     use kyberlib::rng::randombytes;
     use rand_core::OsRng;

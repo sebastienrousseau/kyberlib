@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
@@ -14,7 +14,13 @@ pub const AKE_INIT_BYTES: usize = KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTE
 pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXT_BYTES;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
-pub type Encapsulated = Result<([u8; KYBER_CIPHERTEXT_BYTES], [u8; KYBER_SHARED_SECRET_BYTES]), KyberLibError>;
+pub type Encapsulated = Result<
+    (
+        [u8; KYBER_CIPHERTEXT_BYTES],
+        [u8; KYBER_SHARED_SECRET_BYTES],
+    ),
+    KyberLibError,
+>;
 /// Decapsulated ciphertext
 pub type Decapsulated = Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
 /// Kyber public key
@@ -60,12 +66,13 @@ pub struct Uake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
     /// Sent when initiating a key exchange
-    send_a: UakeSendInit,
+    pub send_a: UakeSendInit,
     /// Response to a key exchange initiation
-    send_b: UakeSendResponse,
-    // Ephemeral keys
-    temp_key: TempKey,
-    eska: Eska,
+    pub send_b: UakeSendResponse,
+    /// Ephemeral keys for the key exchange
+    pub temp_key: TempKey,
+    /// Ephemeral secret key
+    pub eska: Eska,
 }
 
 impl Default for Uake {
@@ -202,12 +209,13 @@ pub struct Ake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
     /// Sent when initiating a key exchange
-    send_a: AkeSendInit,
+    pub send_a: AkeSendInit,
     /// Response to a key exchange initiation
-    send_b: AkeSendResponse,
-    // Ephemeral keys
-    temp_key: TempKey,
-    eska: Eska,
+    pub send_b: AkeSendResponse,
+    /// Ephemeral keys for the key exchange
+    pub temp_key: TempKey,
+    /// Ephemeral secret key
+    pub eska: Eska,
 }
 
 impl Default for Ake {

@@ -26,7 +26,9 @@ fn uake_invalid_client_init_ciphertext() {
     let bob_keys = keypair(&mut rng).unwrap();
     let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[KYBER_PUBLIC_KEY_BYTES..][..4].copy_from_slice(&[255u8; 4]);
-    assert!(bob.server_receive(client_init, &bob_keys.secret, &mut rng).is_ok());
+    assert!(bob
+        .server_receive(client_init, &bob_keys.secret, &mut rng)
+        .is_ok());
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
@@ -75,7 +77,9 @@ fn ake_valid() {
     let server_send = bob
         .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
         .unwrap();
-    alice.client_confirm(server_send, &alice_keys.secret).unwrap();
+    alice
+        .client_confirm(server_send, &alice_keys.secret)
+        .unwrap();
     assert_eq!(alice.shared_secret, bob.shared_secret);
 }
 
@@ -88,7 +92,9 @@ fn ake_invalid_client_init_ciphertext() {
     let bob_keys = keypair(&mut rng).unwrap();
     let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[KYBER_PUBLIC_KEY_BYTES..][..4].copy_from_slice(&[255u8; 4]);
-    assert!(bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng).is_ok());
+    assert!(bob
+        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .is_ok());
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
@@ -104,7 +110,9 @@ fn ake_invalid_client_init_publickey() {
     let server_send = bob
         .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
         .unwrap();
-    assert!(alice.client_confirm(server_send, &alice_keys.secret).is_ok());
+    assert!(alice
+        .client_confirm(server_send, &alice_keys.secret)
+        .is_ok());
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
@@ -120,7 +128,9 @@ fn ake_invalid_server_send_first_ciphertext() {
         .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
         .unwrap();
     server_send[..4].copy_from_slice(&[255u8; 4]);
-    assert!(alice.client_confirm(server_send, &alice_keys.secret).is_ok());
+    assert!(alice
+        .client_confirm(server_send, &alice_keys.secret)
+        .is_ok());
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
