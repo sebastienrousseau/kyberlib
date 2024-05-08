@@ -144,7 +144,7 @@ mod avx2;
 use avx2::*;
 
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
-mod reference;
+pub mod reference;
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 use reference::*;
 
@@ -169,6 +169,7 @@ pub mod kex;
 pub mod macros;
 /// Parameters for the KyberLib library.
 pub mod params;
+
 /// Random number generators for the KyberLib library.
 pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
