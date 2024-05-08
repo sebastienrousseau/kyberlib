@@ -17,10 +17,13 @@ include = [
     "/CONTRIBUTING.md",
     "/LICENSE-APACHE",
     "/LICENSE-MIT",
+    "/benches/**",
     "/build.rs",
     "/Cargo.toml",
+    "/examples/**",
     "/README.md",
     "/src/**",
+    "/tests/**",
 ]
 keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
 license = "MIT OR Apache-2.0"
