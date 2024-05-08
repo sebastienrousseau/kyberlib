@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 // Constants and parameters used in the Kyber cryptographic scheme.

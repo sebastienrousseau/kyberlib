@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 //! # `KyberLib` 🦀
@@ -144,6 +144,7 @@ mod avx2;
 use avx2::*;
 
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
+/// Reference implementation for the KyberLib library.
 pub mod reference;
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 use reference::*;

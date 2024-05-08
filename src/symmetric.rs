@@ -1,4 +1,4 @@
-// Copyright © 2023 KyberLib. All rights reserved.
+// Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 #![allow(dead_code)]
@@ -42,7 +42,9 @@ pub type XofState = Aes256CtrCtx;
 /// Keccak state for absorbing data
 #[derive(Copy, Clone, Debug, Default)]
 pub struct KeccakState {
+    /// State array for Keccak
     pub s: [u64; 25],
+    /// Position in the state array
     pub pos: usize,
 }
 
