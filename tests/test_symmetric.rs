@@ -58,8 +58,8 @@ mod tests {
         kyber_shake128_squeezeblocks(&mut out, nblocks, &mut state);
         let outlen = out.len();
         let mut idx = 0;
-        for i in 0..outlen {
-            assert_ne!(out[i], 0);
+        for &byte in out.iter() {
+            assert_ne!(byte, 0);
             idx += 1;
         }
         assert_eq!(idx, outlen);
