@@ -8,6 +8,8 @@ use crate::{
     params::*,
     CryptoRng, RngCore,
 };
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Generate a key pair for Kyber encryption with a provided RNG.
 ///
@@ -157,6 +159,7 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 ///
 /// Byte lengths of the keys are determined by the security level chosen.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Keypair {
     /// The public key.
     pub public: PublicKey,
@@ -187,6 +190,37 @@ impl Keypair {
     /// ```
     pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Keypair, KyberLibError> {
         keypair(rng)
+    }
+
+    /// Imports a keypair from existing public and secret key arrays.
+    ///
+    /// This function imports a keypair from existing public and secret key arrays and returns it as a `Keypair` struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `public` - A mutable reference to a `[u8; KYBER_PUBLIC_KEY_BYTES]` array representing the public key.
+    /// * `secret` - A mutable reference to a `[u8; KYBER_SECRET_KEY_BYTES]` array representing the secret key.
+    /// * `rng` - The random number generator implementing the `RngCore` and `CryptoRng` traits.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use kyberlib::*;
+    /// # fn main() -> Result<(), KyberLibError> {
+    /// let mut rng = rand::thread_rng();
+    /// let keys = keypair(&mut rng)?;
+    /// let mut public_key = keys.public;
+    /// let mut secret_key = keys.secret;
+    /// let keys = Keypair::import(&mut public_key, &mut secret_key, &mut rng)?;
+    /// let _ = Keypair::import(&mut public_key, &mut secret_key, &mut rng)?;
+    /// # Ok(()) }
+    /// ```
+    pub fn import<R: CryptoRng + RngCore>(
+        public: &mut [u8; KYBER_PUBLIC_KEY_BYTES],
+        secret: &mut [u8; KYBER_SECRET_KEY_BYTES],
+        rng: &mut R,
+    ) -> Result<Keypair, KyberLibError> {
+        keypairfrom(public, secret, rng)
     }
 }
 
