@@ -30,7 +30,7 @@ license = "MIT OR Apache-2.0"
 name = "kyberlib"
 readme = "README.md"
 repository = "https://github.com/sebastienrousseau/kyberlib"
-version = "0.0.4"
+version = "0.0.5"
 
 [dependencies]
 aes = { version = "0.8.4", optional = true }

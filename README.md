@@ -18,17 +18,9 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
 <center>
 <!-- markdownlint-enable MD033 MD041 -->
 
-[![Made With Rust][made-with-rust-badge]][05]
-[![Crates.io][crates-badge]][07]
-[![Lib.rs][libs-badge]][09]
-[![Docs.rs][docs-badge]][08]
-[![License][license-badge]][02]
+[![Made With Love][made-with-rust]][05] [![Crates.io][crates-badge]][07] [![Lib.rs][libs-badge]][09] [![Docs.rs][docs-badge]][08] [![License][license-badge]][02] [![Codecov][codecov-badge]][15]
 
-• [Website][00]
-• [Documentation][08]
-• [Report Bug][03]
-• [Request Feature][03]
-• [Contributing Guidelines][04]
+• [Website][00] • [Documentation][08] • [Report Bug][03] • [Request Feature][03] • [Contributing Guidelines][04]
 
 <!-- markdownlint-disable MD033 MD041 -->
 </center>
@@ -73,7 +65,7 @@ It takes just a few minutes to get up and running with `kyberlib`.
 ### Requirements
 
 The minimum supported Rust toolchain version is currently Rust
-**1.56.0** or later (stable).
+**1.60** or later (stable).
 
 ### Installation
 
@@ -95,7 +87,7 @@ To use the `kyberlib` library in your project, add the following to your
 
 ```toml
 [dependencies]
-kyberlib = "0.0.4"
+kyberlib = "0.0.5"
 ```
 
 Add the following to your `main.rs` file:
@@ -303,10 +295,12 @@ providing a lot of useful suggestions on how to improve this project.
 [12]: https://www.reddit.com/r/rust/ "Reddit"
 [13]: https://www.rust-lang.org/learn/get-started "Rust"
 [14]: https://github.com/Argyle-Software/kyber "Kyber from Argyle-Software"
+[15]: https://codecov.io/gh/sebastienrousseau/kyberlib "Codecov"
 
-[crates-badge]: https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge 'Crates.io badge'
+[crates-badge]: https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge 'Crates.io'
+[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/kyberlib?style=for-the-badge&token=oEisyTucB5 'Codecov'
 [divider]: https://kura.pro/common/images/elements/divider.svg "divider"
-[docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs badge'
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge 'Lib.rs badge'
-[license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License badge'
-[made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust badge'
+[docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs'
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.5-orange.svg?style=for-the-badge 'Lib.rs'
+[license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License'
+[made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'
