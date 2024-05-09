@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 /// Error types for the failure modes in Kyber key exchange.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum KyberLibError {
     /// One or more inputs to a function are incorrectly sized. A likely cause of this is
     /// two parties using different security levels while trying to negotiate a key exchange.

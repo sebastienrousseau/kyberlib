@@ -184,7 +184,7 @@ impl Kex {
 
 /// Represents Kyber parameters.
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Params {
     /// The size of public key bytes.
     #[wasm_bindgen(readonly)]

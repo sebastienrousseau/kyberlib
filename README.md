@@ -244,7 +244,7 @@ cargo run --example uake
 
 ### Platform support
 
-`kyberlib` is supported and tested on MacOS, Linux, and Windows. The [GitHub Actions][10] shows the platforms in which the `kyberlib` library tests are run.
+`kyberlib` supports a variety of CPU architectures. It is supported and tested on MacOS, Linux, and Windows.
 
 ### Documentation
 
@@ -258,8 +258,10 @@ backward compatibility, `kyberlib` follows [semantic versioning][06].
 
 ## License 📝
 
-The project is licensed under the terms of Apache License, Version 2.0 and the
-MIT license.
+KyberLib is distributed under the terms of both the MIT license and the
+Apache License (Version 2.0).
+
+See [LICENSE-APACHE][01] and [LICENSE-MIT][02] for details.
 
 ## Contribution 🤝
 
@@ -289,7 +291,8 @@ A special thank you goes to the [Rust Reddit][12] community for
 providing a lot of useful suggestions on how to improve this project.
 
 [00]: https://kyberlib.com/ "KyberLib, A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography"
-[02]: http://opensource.org/licenses/MIT "KyberLib license"
+[01]: http://opensource.org/licenses/Apache-2.0 "Apache License, Version 2.0"
+[02]: http://opensource.org/licenses/MIT "MIT License"
 [03]: https://github.com/sebastienrousseau/kyberlib/kyberlib/issues "KyberLib Issues"
 [04]: https://github.com/sebastienrousseau/kyberlib/kyberlib/blob/main/CONTRIBUTING.md "KyberLib Contributing Guidelines"
 [05]: https://github.com/sebastienrousseau/kyberlib/kyberlib/graphs/contributors "KyberLib Contributors"
@@ -297,7 +300,6 @@ providing a lot of useful suggestions on how to improve this project.
 [07]: https://crates.io/crates/kyberlib "KyberLib on Crates.io"
 [08]: https://docs.rs/kyberlib "KyberLib on Docs.rs"
 [09]: https://lib.rs/crates/kyberlib "KyberLib on Lib.rs"
-[10]: https://github.com/sebastienrousseau/kyberlib/kyberlib/actions "KyberLib on GitHub Actions"
 [11]: https://www.rust-lang.org/policies/code-of-conduct "KyberLib Code of Conduct"
 [12]: https://www.reddit.com/r/rust/ "Reddit"
 [13]: https://www.rust-lang.org/learn/get-started "Rust"
