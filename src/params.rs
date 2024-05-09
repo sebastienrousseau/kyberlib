@@ -23,7 +23,7 @@ pub const KYBER_ETA1: usize =
 /// - It determines the noise distribution's width in the encryption process.
 pub const KYBER_ETA2: usize = 2;
 
-// Size of the hashes and seeds
+/// Size of the hashes and seeds
 pub const KYBER_SYM_BYTES: usize = 32;
 
 /// The parameter N, representing the degree of the polynomial used in Kyber.

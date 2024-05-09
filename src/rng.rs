@@ -44,6 +44,10 @@ pub fn randombytes<R>(
 where
     R: RngCore + CryptoRng,
 {
+    if len > x.len() {
+        return Err(KyberLibError::InvalidLength);
+    }
+
     rng.try_fill_bytes(&mut x[..len])
         .map_err(|_| KyberLibError::RandomBytesGeneration)
 }

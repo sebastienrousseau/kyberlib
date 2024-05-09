@@ -11,6 +11,9 @@ pub enum KyberLibError {
     /// Error when generating keys
     InvalidKey,
 
+    /// The length of the input buffer is invalid.
+    InvalidLength,
+
     /// The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
     Decapsulation,
 
@@ -31,6 +34,9 @@ impl core::fmt::Display for KyberLibError {
             }
             KyberLibError::InvalidKey => {
                 write!(f, "The secret and public key given does not match.")
+            },
+            KyberLibError::InvalidLength => {
+                write!(f, "The length of the input buffer is invalid.")
             }
         }
     }
