@@ -30,7 +30,7 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
 
 ## Overview 📖
 
-KyberLib is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Cryptography, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices and avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
+KyberLib is a robust Rust library designed for **CRYSTALS-Kyber Post-Quantum Cryptography**, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices and avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
 
 ## Features ✨
 
@@ -105,6 +105,8 @@ For optimisations on x86 platforms enable the `avx2` feature and the following R
 export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 ```
 
+## Crate Features 📦
+
 ### Key Encapsulation
 
 ```rust
@@ -169,32 +171,38 @@ alice.client_confirm(server_response, &alice_keys.secret)?;
 assert_eq!(alice.shared_secret, bob.shared_secret);
 ```
 
-## Macros
+## Macros 🦀
 
 The KyberLib crate provides several macros to simplify common cryptographic operations:
 
-- `kyberlib_assert!`: Asserts that a given expression is true. Panics if the assertion fails.
-- `kyberlib_min!`: Returns the minimum of the given values.
-- `kyberlib_max!`: Returns the maximum of the given values.
-- `kyberlib_generate_key_pair!`: Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
-- `kyberlib_encrypt_message!`: Generates cipher text and a shared secret for a given public key.
-- `kyberlib_decrypt_message!`: Generates a shared secret for a given cipher text and private key. 
-- `kyberlib_uake_client_init!`: Initiates a Unilaterally Authenticated Key Exchange.
-- `kyberlib_uake_server_receive!`: Handles the output of a `kyberlib_uake_client_init()` request.
-- `kyberlib_uake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
-- `kyberlib_ake_client_init!`: Initiates a Mutually Authenticated Key Exchange.
-- `kyberlib_ake_server_receive!`: Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
-- `kyberlib_ake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+- [`kyberlib_generate_key_pair!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_generate_key_pair.html): Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
 
-See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/macros/index.html) for more details and usage examples.
+- [`kyberlib_encrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_encrypt_message.html): Generates cipher text and a shared secret for a given public key.
+
+- [`kyberlib_decrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_decrypt_message.html): Generates a shared secret for a given cipher text and private key.
+
+- [`kyberlib_uake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_init.html): Initiates a Unilaterally Authenticated Key Exchange.
+
+- [`kyberlib_uake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles the output of a `kyberlib_uake_client_init()` request.
+
+- [`kyberlib_uake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
+
+- [`kyberlib_ake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_init.html): Initiates a Mutually Authenticated Key Exchange.
+
+- [`kyberlib_ake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+
+- [`kyberlib_ake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+
+See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/index.html#macros) for more details and usage examples.
 
 ## Errors
 
 The KyberLibError enum has two variants:
 
 - **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
+- **InvalidKey** - Error when generating keys.
 - **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
-- **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
+- **RandomBytesGeneration** - Error trying to fill random bytes (i.e., external (hardware) RNG modules can fail).
 
 ## Examples
 
@@ -281,7 +289,6 @@ A special thank you goes to the [Rust Reddit][12] community for
 providing a lot of useful suggestions on how to improve this project.
 
 [00]: https://kyberlib.com/ "KyberLib, A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography"
-[01]: https://kura.pro/common/images/elements/divider.svg "Divider"
 [02]: http://opensource.org/licenses/MIT "KyberLib license"
 [03]: https://github.com/sebastienrousseau/kyberlib/kyberlib/issues "KyberLib Issues"
 [04]: https://github.com/sebastienrousseau/kyberlib/kyberlib/blob/main/CONTRIBUTING.md "KyberLib Contributing Guidelines"
