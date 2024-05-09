@@ -147,8 +147,8 @@ mod tests {
             vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1].into_boxed_slice();
 
         // Call Kex::new() with the invalid public key and expect a panic
-        std::panic::catch_unwind(|| {
-            Kex::new(invalid_pk);
+        let _ = std::panic::catch_unwind(|| {
+            let _ = Kex::new(invalid_pk);
         })
         .unwrap_err();
     }
