@@ -8,6 +8,7 @@ use crate::{
     params::*,
     CryptoRng, RngCore,
 };
+use pqc_core::zero;
 #[cfg(feature = "zeroize")]
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
@@ -38,7 +39,9 @@ where
     let mut public = [0u8; KYBER_PUBLIC_KEY_BYTES];
     let mut secret = [0u8; KYBER_SECRET_KEY_BYTES];
     generate_key_pair(&mut public, &mut secret, rng, None)?;
-    Ok(Keypair { public, secret })
+    let keys = Keypair { public, secret };
+    zero!(secret);
+    Ok(keys)
 }
 
 /// Verify that given secret and public key matches and put them in
@@ -62,7 +65,7 @@ pub fn keypairfrom<R>(
 where
     R: RngCore + CryptoRng,
 {
-    //Try to encapsulate and decapsule to verify secret key matches public key
+    //Try to encapsulate and decapsulate to verify secret key matches public key
     let (ciphertext, shared_secret) = encapsulate(public, rng)?;
     let expected_shared_secret = decapsulate(&ciphertext, secret)?;
     //If it does match, return a KeyPair
@@ -142,12 +145,14 @@ where
 /// let mut rng = rand::thread_rng();
 /// let keys = keypair(&mut rng)?;
 /// let (ct, ss1) = encapsulate(&keys.public, &mut rng)?;
-/// let ss2 = decapsulate(&ct, &keys.secret)?;
+/// let ss2 = decapsulate(&ct, keys.expose_secret())?;
 /// assert_eq!(ss1, ss2);
 /// #  Ok(())}
 /// ```
 pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
-    if ct.len() != KYBER_CIPHERTEXT_BYTES || sk.len() != KYBER_SECRET_KEY_BYTES {
+    if ct.len() != KYBER_CIPHERTEXT_BYTES
+        || sk.len() != KYBER_SECRET_KEY_BYTES
+    {
         return Err(KyberLibError::InvalidInput);
     }
     let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
@@ -188,8 +193,25 @@ impl Keypair {
     /// # assert!(empty_keys != keys);
     /// # Ok(()) }
     /// ```
-    pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Keypair, KyberLibError> {
+    pub fn generate<R: CryptoRng + RngCore>(
+        rng: &mut R,
+    ) -> Result<Keypair, KyberLibError> {
         keypair(rng)
+    }
+
+    /// Explicitly exposes the secret key
+    ///```
+    /// use kyberlib::*;
+    ///
+    /// let mut rng = rand::thread_rng();
+    /// let keys = Keypair::generate(&mut rng);
+    /// let binding = keys.expect("Exposed secret key");
+    /// let secret = binding.expose_secret();
+    /// assert!(secret.len() == KYBER_SECRET_KEY_BYTES);
+    /// assert!(secret.len() != 0);
+    /// ```
+    pub fn expose_secret(&self) -> &SecretKey {
+        &self.secret
     }
 
     /// Imports a keypair from existing public and secret key arrays.
@@ -237,7 +259,10 @@ impl RngCore for DummyRng {
         panic!()
     }
 
-    fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), rand_core::Error> {
+    fn try_fill_bytes(
+        &mut self,
+        _dest: &mut [u8],
+    ) -> Result<(), rand_core::Error> {
         panic!()
     }
 
@@ -285,9 +310,11 @@ pub fn derive(seed: &[u8]) -> Result<Keypair, KyberLibError> {
 ///
 /// Returns the public key as a `PublicKey`.
 pub fn public(sk: &[u8]) -> PublicKey {
-    let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
+    let mut pk = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
     pk.copy_from_slice(
-        &sk[KYBER_INDCPA_SECRETKEYBYTES..KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES],
+        &sk[KYBER_INDCPA_SECRET_KEY_BYTES
+            ..KYBER_INDCPA_SECRET_KEY_BYTES
+                + KYBER_INDCPA_PUBLIC_KEY_BYTES],
     );
     pk
 }

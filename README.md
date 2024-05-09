@@ -18,17 +18,9 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
 <center>
 <!-- markdownlint-enable MD033 MD041 -->
 
-[![Made With Rust][made-with-rust-badge]][05]
-[![Crates.io][crates-badge]][07]
-[![Lib.rs][libs-badge]][09]
-[![Docs.rs][docs-badge]][08]
-[![License][license-badge]][02]
+[![Made With Love][made-with-rust]][05] [![Crates.io][crates-badge]][07] [![Lib.rs][libs-badge]][09] [![Docs.rs][docs-badge]][08] [![License][license-badge]][02] [![Codecov][codecov-badge]][15]
 
-• [Website][00]
-• [Documentation][08]
-• [Report Bug][03]
-• [Request Feature][03]
-• [Contributing Guidelines][04]
+• [Website][00] • [Documentation][08] • [Report Bug][03] • [Request Feature][03] • [Contributing Guidelines][04]
 
 <!-- markdownlint-disable MD033 MD041 -->
 </center>
@@ -38,7 +30,7 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography.
 
 ## Overview 📖
 
-KyberLib is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Cryptography, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices and avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
+KyberLib is a robust Rust library designed for **CRYSTALS-Kyber Post-Quantum Cryptography**, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices and avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
 
 ## Features ✨
 
@@ -73,7 +65,7 @@ It takes just a few minutes to get up and running with `kyberlib`.
 ### Requirements
 
 The minimum supported Rust toolchain version is currently Rust
-**1.56.0** or later (stable).
+**1.60** or later (stable).
 
 ### Installation
 
@@ -95,7 +87,7 @@ To use the `kyberlib` library in your project, add the following to your
 
 ```toml
 [dependencies]
-kyberlib = "0.0.4"
+kyberlib = "0.0.5"
 ```
 
 Add the following to your `main.rs` file:
@@ -112,6 +104,8 @@ For optimisations on x86 platforms enable the `avx2` feature and the following R
 ```shell
 export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 ```
+
+## Crate Features 📦
 
 ### Key Encapsulation
 
@@ -177,32 +171,38 @@ alice.client_confirm(server_response, &alice_keys.secret)?;
 assert_eq!(alice.shared_secret, bob.shared_secret);
 ```
 
-## Macros
+## Macros 🦀
 
 The KyberLib crate provides several macros to simplify common cryptographic operations:
 
-- `kyberlib_assert!`: Asserts that a given expression is true. Panics if the assertion fails.
-- `kyberlib_min!`: Returns the minimum of the given values.
-- `kyberlib_max!`: Returns the maximum of the given values.
-- `kyberlib_generate_key_pair!`: Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
-- `kyberlib_encrypt_message!`: Generates cipher text and a shared secret for a given public key.
-- `kyberlib_decrypt_message!`: Generates a shared secret for a given cipher text and private key. 
-- `kyberlib_uake_client_init!`: Initiates a Unilaterally Authenticated Key Exchange.
-- `kyberlib_uake_server_receive!`: Handles the output of a `kyberlib_uake_client_init()` request.
-- `kyberlib_uake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
-- `kyberlib_ake_client_init!`: Initiates a Mutually Authenticated Key Exchange.
-- `kyberlib_ake_server_receive!`: Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
-- `kyberlib_ake_client_confirm!`: Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+- [`kyberlib_generate_key_pair!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_generate_key_pair.html): Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
 
-See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/macros/index.html) for more details and usage examples.
+- [`kyberlib_encrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_encrypt_message.html): Generates cipher text and a shared secret for a given public key.
+
+- [`kyberlib_decrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_decrypt_message.html): Generates a shared secret for a given cipher text and private key.
+
+- [`kyberlib_uake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_init.html): Initiates a Unilaterally Authenticated Key Exchange.
+
+- [`kyberlib_uake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles the output of a `kyberlib_uake_client_init()` request.
+
+- [`kyberlib_uake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
+
+- [`kyberlib_ake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_init.html): Initiates a Mutually Authenticated Key Exchange.
+
+- [`kyberlib_ake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
+
+- [`kyberlib_ake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
+
+See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/index.html#macros) for more details and usage examples.
 
 ## Errors
 
 The KyberLibError enum has two variants:
 
 - **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
+- **InvalidKey** - Error when generating keys.
 - **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
-- **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
+- **RandomBytesGeneration** - Error trying to fill random bytes (i.e., external (hardware) RNG modules can fail).
 
 ## Examples
 
@@ -244,7 +244,7 @@ cargo run --example uake
 
 ### Platform support
 
-`kyberlib` is supported and tested on MacOS, Linux, and Windows. The [GitHub Actions][10] shows the platforms in which the `kyberlib` library tests are run.
+`kyberlib` supports a variety of CPU architectures. It is supported and tested on MacOS, Linux, and Windows.
 
 ### Documentation
 
@@ -258,8 +258,10 @@ backward compatibility, `kyberlib` follows [semantic versioning][06].
 
 ## License 📝
 
-The project is licensed under the terms of Apache License, Version 2.0 and the
-MIT license.
+KyberLib is distributed under the terms of both the MIT license and the
+Apache License (Version 2.0).
+
+See [LICENSE-APACHE][01] and [LICENSE-MIT][02] for details.
 
 ## Contribution 🤝
 
@@ -289,8 +291,8 @@ A special thank you goes to the [Rust Reddit][12] community for
 providing a lot of useful suggestions on how to improve this project.
 
 [00]: https://kyberlib.com/ "KyberLib, A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography"
-[01]: https://kura.pro/common/images/elements/divider.svg "Divider"
-[02]: http://opensource.org/licenses/MIT "KyberLib license"
+[01]: http://opensource.org/licenses/Apache-2.0 "Apache License, Version 2.0"
+[02]: http://opensource.org/licenses/MIT "MIT License"
 [03]: https://github.com/sebastienrousseau/kyberlib/kyberlib/issues "KyberLib Issues"
 [04]: https://github.com/sebastienrousseau/kyberlib/kyberlib/blob/main/CONTRIBUTING.md "KyberLib Contributing Guidelines"
 [05]: https://github.com/sebastienrousseau/kyberlib/kyberlib/graphs/contributors "KyberLib Contributors"
@@ -298,15 +300,16 @@ providing a lot of useful suggestions on how to improve this project.
 [07]: https://crates.io/crates/kyberlib "KyberLib on Crates.io"
 [08]: https://docs.rs/kyberlib "KyberLib on Docs.rs"
 [09]: https://lib.rs/crates/kyberlib "KyberLib on Lib.rs"
-[10]: https://github.com/sebastienrousseau/kyberlib/kyberlib/actions "KyberLib on GitHub Actions"
 [11]: https://www.rust-lang.org/policies/code-of-conduct "KyberLib Code of Conduct"
 [12]: https://www.reddit.com/r/rust/ "Reddit"
 [13]: https://www.rust-lang.org/learn/get-started "Rust"
 [14]: https://github.com/Argyle-Software/kyber "Kyber from Argyle-Software"
+[15]: https://codecov.io/gh/sebastienrousseau/kyberlib "Codecov"
 
-[crates-badge]: https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge 'Crates.io badge'
+[crates-badge]: https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge 'Crates.io'
+[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/kyberlib?style=for-the-badge&token=oEisyTucB5 'Codecov'
 [divider]: https://kura.pro/common/images/elements/divider.svg "divider"
-[docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs badge'
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.1-orange.svg?style=for-the-badge 'Lib.rs badge'
-[license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License badge'
-[made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust badge'
+[docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs'
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.5-orange.svg?style=for-the-badge 'Lib.rs'
+[license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License'
+[made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

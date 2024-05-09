@@ -66,8 +66,13 @@ pub fn encapsulate(pk: Box<[u8]>) -> Result<Kex, JsValue> {
 ///
 /// Returns a `JsValue` that is `null()` if the input sizes are incorrect or if an error occurs during decapsulation.
 #[wasm_bindgen]
-pub fn decapsulate(ct: Box<[u8]>, sk: Box<[u8]>) -> Result<Box<[u8]>, JsValue> {
-    if ct.len() != KYBER_CIPHERTEXT_BYTES || sk.len() != KYBER_SECRET_KEY_BYTES {
+pub fn decapsulate(
+    ct: Box<[u8]>,
+    sk: Box<[u8]>,
+) -> Result<Box<[u8]>, JsValue> {
+    if ct.len() != KYBER_CIPHERTEXT_BYTES
+        || sk.len() != KYBER_SECRET_KEY_BYTES
+    {
         return Err(JsValue::null());
     }
 
@@ -179,7 +184,7 @@ impl Kex {
 
 /// Represents Kyber parameters.
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Params {
     /// The size of public key bytes.
     #[wasm_bindgen(readonly)]

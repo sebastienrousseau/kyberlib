@@ -48,7 +48,10 @@ impl Default for Aes256CtrCtx {
 }
 
 fn br_dec32le(src: &[u8]) -> u32 {
-    src[0] as u32 | (src[1] as u32) << 8 | (src[2] as u32) << 16 | (src[3] as u32) << 24
+    src[0] as u32
+        | (src[1] as u32) << 8
+        | (src[2] as u32) << 16
+        | (src[3] as u32) << 24
 }
 
 fn br_range_dec32le(v: &mut [u32], mut num: usize, src: &[u8]) {
@@ -92,8 +95,27 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64]) {
     // to cryptology" (https://eprint.iacr.org/2009/191.pdf).
     // Note that variables x(input) and s(output) are numbered
     // in "reverse" order (x0 is the high bit, x7 is the low bit).
-    let (x0, x1, x2, x3, x4, x5, x6, x7): (u64, u64, u64, u64, u64, u64, u64, u64);
-    let (y1, y2, y3, y4, y5, y6, y7, y8, y9): (u64, u64, u64, u64, u64, u64, u64, u64, u64);
+    let (x0, x1, x2, x3, x4, x5, x6, x7): (
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+    );
+    let (y1, y2, y3, y4, y5, y6, y7, y8, y9): (
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+    );
     let (y10, y11, y12, y13, y14, y15, y16, y17, y18, y19): (
         u64,
         u64,
@@ -119,7 +141,16 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64]) {
         u64,
         u64,
     );
-    let (z10, z11, z12, z13, z14, z15, z16, z17): (u64, u64, u64, u64, u64, u64, u64, u64);
+    let (z10, z11, z12, z13, z14, z15, z16, z17): (
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+    );
     let (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9): (
         u64,
         u64,
@@ -192,8 +223,26 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64]) {
         u64,
         u64,
     );
-    let (t60, t61, t62, t63, t64, t65, t66, t67): (u64, u64, u64, u64, u64, u64, u64, u64);
-    let (s0, s1, s2, s3, s4, s5, s6, s7): (u64, u64, u64, u64, u64, u64, u64, u64);
+    let (t60, t61, t62, t63, t64, t65, t66, t67): (
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+    );
+    let (s0, s1, s2, s3, s4, s5, s6, s7): (
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+        u64,
+    );
 
     x0 = q[7];
     x1 = q[6];
@@ -430,7 +479,8 @@ fn sub_word(x: u32) -> u32 {
     q[0] as u32
 }
 
-const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
+const RCON: [u32; 10] =
+    [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 
 fn br_aes_ct64_keysched(comp_skey: &mut [u64], key: &[u8]) {
     let (mut j, mut k) = (0usize, 0usize);
@@ -578,7 +628,11 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64]) {
     let mut q = [0u64; 8];
     let (q0, q1) = q.split_at_mut(4);
     for i in 0..4 {
-        br_aes_ct64_interleave_in(&mut q0[i], &mut q1[i], &w[(i << 2)..]);
+        br_aes_ct64_interleave_in(
+            &mut q0[i],
+            &mut q1[i],
+            &w[(i << 2)..],
+        );
     }
     br_aes_ct64_ortho(&mut q);
 
@@ -613,7 +667,13 @@ fn br_aes_ct64_ctr_init(sk_exp: &mut [u64], key: &[u8]) {
 }
 
 #[cfg(not(feature = "90s-fixslice"))]
-fn br_aes_ct64_ctr_run(sk_exp: &mut [u64], iv: &[u8], cc: u32, data: &mut [u8], mut len: usize) {
+fn br_aes_ct64_ctr_run(
+    sk_exp: &mut [u64],
+    iv: &[u8],
+    cc: u32,
+    data: &mut [u8],
+    mut len: usize,
+) {
     let mut ivw = [0u32; 16];
     br_range_dec32le(&mut ivw, 3, iv);
     let mut slice = [0u32; 3];
@@ -649,7 +709,12 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut [u64], iv: &[u8], cc: u32, data: &mut [u8], 
 ///  - const [u8] key:   32-byte key
 ///  - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
 #[cfg(not(feature = "90s-fixslice"))]
-pub(crate) fn aes256ctr_prf(output: &mut [u8], outlen: usize, key: &[u8], nonce: u8) {
+pub(crate) fn aes256ctr_prf(
+    output: &mut [u8],
+    outlen: usize,
+    key: &[u8],
+    nonce: u8,
+) {
     let mut sk_exp = [0u64; 120];
     let mut pad_nonce = [0u8; 12];
     pad_nonce[0] = nonce;
@@ -666,7 +731,11 @@ pub(crate) fn aes256ctr_prf(output: &mut [u8], outlen: usize, key: &[u8], nonce:
 /// Arguments:   - aes256xof_ctx *s:  state to "absorb" key and IV into
 ///  - const [u8] key:  32-byte key
 ///  - [u8]  nonce:   additional bytes to "absorb"
-pub(crate) fn aes256ctr_init(s: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
+pub(crate) fn aes256ctr_init(
+    s: &mut Aes256CtrCtx,
+    key: &[u8],
+    nonce: [u8; 12],
+) {
     br_aes_ct64_ctr_init(&mut s.sk_exp, key);
 
     br_range_dec32le(&mut s.ivw, 3, &nonce);
@@ -681,7 +750,11 @@ pub(crate) fn aes256ctr_init(s: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) 
     s.ivw[15] = br_swap32(3);
 }
 
-pub(crate) fn aes256ctr_squeezeblocks(out: &mut [u8], mut nblocks: usize, s: &mut Aes256CtrCtx) {
+pub(crate) fn aes256ctr_squeezeblocks(
+    out: &mut [u8],
+    mut nblocks: usize,
+    s: &mut Aes256CtrCtx,
+) {
     let mut idx = 0;
     while nblocks > 0 {
         aes_ctr4x(&mut out[idx..], &mut s.ivw, &s.sk_exp);

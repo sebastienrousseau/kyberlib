@@ -440,13 +440,14 @@ dependencies = [
 
 [[package]]
 name = "kyberlib"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "aes",
  "cc",
  "criterion",
  "ctr",
  "nasm-rs",
+ "pqc_core",
  "rand",
  "rand_core",
  "rlg 0.0.4",
@@ -454,6 +455,7 @@ dependencies = [
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-test",
+ "zeroize",
 ]
 
 [[package]]
@@ -630,6 +632,15 @@ name = "ppv-lite86"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
+
+[[package]]
+name = "pqc_core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f480b84be33bffb34e615ae7a350602d9caa77a9450d6b9488d6fb3d5fd4cc1"
+dependencies = [
+ "zeroize",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -1303,3 +1314,23 @@ name = "windows_x86_64_msvc"
 version = "0.52.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bec47e5bfd1bff0eeaf6d8b485cc1074891a197ab4225d504cb7a1ab88b02bf0"
+
+[[package]]
+name = "zeroize"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "525b4ec142c6b68a2d10f01f7bbf6755599ca3f81ea53b8431b7dd348f5fdb2d"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]

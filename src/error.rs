@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 /// Error types for the failure modes in Kyber key exchange.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum KyberLibError {
     /// One or more inputs to a function are incorrectly sized. A likely cause of this is
     /// two parties using different security levels while trying to negotiate a key exchange.
@@ -10,6 +10,9 @@ pub enum KyberLibError {
 
     /// Error when generating keys
     InvalidKey,
+
+    /// The length of the input buffer is invalid.
+    InvalidLength,
 
     /// The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
     Decapsulation,
@@ -31,6 +34,9 @@ impl core::fmt::Display for KyberLibError {
             }
             KyberLibError::InvalidKey => {
                 write!(f, "The secret and public key given does not match.")
+            },
+            KyberLibError::InvalidLength => {
+                write!(f, "The length of the input buffer is invalid.")
             }
         }
     }

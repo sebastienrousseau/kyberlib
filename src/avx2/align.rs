@@ -11,7 +11,8 @@ use core::arch::x86_64::*;
 #[repr(C, align(32))]
 pub union GenMatrixBuf {
     pub coeffs: [u8; REJ_UNIFORM_AVX_NBLOCKS * SHAKE128_RATE],
-    pub vec: [__m256i; (REJ_UNIFORM_AVX_NBLOCKS * SHAKE128_RATE + 31) / 32],
+    pub vec:
+        [__m256i; (REJ_UNIFORM_AVX_NBLOCKS * SHAKE128_RATE + 31) / 32],
 }
 
 impl GenMatrixBuf {
@@ -26,7 +27,8 @@ impl GenMatrixBuf {
 #[repr(C)]
 pub union GenMatrixBuf90s {
     pub coeffs: [u8; REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES],
-    pub vec: [__m256i; (REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES + 31) / 32],
+    pub vec:
+        [__m256i; (REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES + 31) / 32],
 }
 
 #[cfg(feature = "90s")]
@@ -51,15 +53,22 @@ impl GenMatrixBuf90s {
 
 #[repr(C)]
 pub union IndcpaBuf {
-    pub coeffs: [u8; (KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES * XOF_BLOCKBYTES + 32],
-    pub vec:
-        [__m256i; ((KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES * XOF_BLOCKBYTES + 32 + 31) / 32],
+    pub coeffs: [u8; (KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES
+        * XOF_BLOCKBYTES
+        + 32],
+    pub vec: [__m256i;
+        ((KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES * XOF_BLOCKBYTES
+            + 32
+            + 31)
+            / 32],
 }
 
 impl IndcpaBuf {
     pub fn new() -> Self {
         Self {
-            coeffs: [0u8; (KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES * XOF_BLOCKBYTES + 32],
+            coeffs: [0u8; (KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES
+                * XOF_BLOCKBYTES
+                + 32],
         }
     }
 }

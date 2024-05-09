@@ -111,11 +111,23 @@ pub unsafe fn keccakx4_squeezeblocks256(
         f1600_x4(s);
         for i in 0..(r / 8) {
             t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
-            _mm_storel_pd(out[0].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64, t);
-            _mm_storeh_pd(out[1].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64, t);
+            _mm_storel_pd(
+                out[0].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64,
+                t,
+            );
+            _mm_storeh_pd(
+                out[1].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64,
+                t,
+            );
             t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i], 1));
-            _mm_storel_pd(out[2].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64, t);
-            _mm_storeh_pd(out[3].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64, t);
+            _mm_storel_pd(
+                out[2].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64,
+                t,
+            );
+            _mm_storeh_pd(
+                out[3].coeffs[idx + 8 * i..].as_mut_ptr() as *mut f64,
+                t,
+            );
         }
         idx += r;
         nblocks -= 1;
@@ -130,7 +142,16 @@ pub unsafe fn shake128x4_absorb_once(
     in3: &[u8],
     inlen: usize,
 ) {
-    keccakx4_absorb_once(&mut state.s, SHAKE128_RATE, in0, in1, in2, in3, inlen, 0x1F)
+    keccakx4_absorb_once(
+        &mut state.s,
+        SHAKE128_RATE,
+        in0,
+        in1,
+        in2,
+        in3,
+        inlen,
+        0x1F,
+    )
 }
 
 pub unsafe fn shake128x4_squeezeblocks(
@@ -138,7 +159,12 @@ pub unsafe fn shake128x4_squeezeblocks(
     nblocks: usize,
     state: &mut Keccakx4State,
 ) {
-    keccakx4_squeezeblocks128(out, nblocks, SHAKE128_RATE, &mut state.s);
+    keccakx4_squeezeblocks128(
+        out,
+        nblocks,
+        SHAKE128_RATE,
+        &mut state.s,
+    );
 }
 
 pub unsafe fn shake256x4_absorb_once(
@@ -149,7 +175,16 @@ pub unsafe fn shake256x4_absorb_once(
     in3: &[u8],
     inlen: usize,
 ) {
-    keccakx4_absorb_once(&mut state.s, SHAKE256_RATE, in0, in1, in2, in3, inlen, 0x1F)
+    keccakx4_absorb_once(
+        &mut state.s,
+        SHAKE256_RATE,
+        in0,
+        in1,
+        in2,
+        in3,
+        inlen,
+        0x1F,
+    )
 }
 
 pub unsafe fn shake256x4_squeezeblocks(
@@ -157,5 +192,10 @@ pub unsafe fn shake256x4_squeezeblocks(
     nblocks: usize,
     state: &mut Keccakx4State,
 ) {
-    keccakx4_squeezeblocks256(out, nblocks, SHAKE256_RATE, &mut state.s);
+    keccakx4_squeezeblocks256(
+        out,
+        nblocks,
+        SHAKE256_RATE,
+        &mut state.s,
+    );
 }

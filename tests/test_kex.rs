@@ -9,7 +9,8 @@ fn uake_valid() {
     let mut alice = Uake::new();
     let mut bob = Uake::new();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let server_send = bob
         .server_receive(client_init, &bob_keys.secret, &mut rng)
         .unwrap();
@@ -24,8 +25,10 @@ fn uake_invalid_client_init_ciphertext() {
     let mut alice = Uake::new();
     let mut bob = Uake::new();
     let bob_keys = keypair(&mut rng).unwrap();
-    let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
-    client_init[KYBER_PUBLIC_KEY_BYTES..][..4].copy_from_slice(&[255u8; 4]);
+    let mut client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    client_init[KYBER_PUBLIC_KEY_BYTES..][..4]
+        .copy_from_slice(&[255u8; 4]);
     assert!(bob
         .server_receive(client_init, &bob_keys.secret, &mut rng)
         .is_ok());
@@ -39,7 +42,8 @@ fn uake_invalid_client_init_publickey() {
     let mut alice = Uake::new();
     let mut bob = Uake::new();
     let bob_keys = keypair(&mut rng).unwrap();
-    let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let mut client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[..4].copy_from_slice(&[255u8; 4]);
     let server_send = bob
         .server_receive(client_init, &bob_keys.secret, &mut rng)
@@ -55,7 +59,8 @@ fn uake_invalid_server_send_ciphertext() {
     let mut alice = Uake::new();
     let mut bob = Uake::new();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let mut server_send = bob
         .server_receive(client_init, &bob_keys.secret, &mut rng)
         .unwrap();
@@ -73,9 +78,15 @@ fn ake_valid() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let server_send = bob
-        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng,
+        )
         .unwrap();
     alice
         .client_confirm(server_send, &alice_keys.secret)
@@ -90,10 +101,17 @@ fn ake_invalid_client_init_ciphertext() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
-    client_init[KYBER_PUBLIC_KEY_BYTES..][..4].copy_from_slice(&[255u8; 4]);
+    let mut client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    client_init[KYBER_PUBLIC_KEY_BYTES..][..4]
+        .copy_from_slice(&[255u8; 4]);
     assert!(bob
-        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng
+        )
         .is_ok());
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
@@ -105,10 +123,16 @@ fn ake_invalid_client_init_publickey() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let mut client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[..4].copy_from_slice(&[255u8; 4]);
     let server_send = bob
-        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng,
+        )
         .unwrap();
     assert!(alice
         .client_confirm(server_send, &alice_keys.secret)
@@ -123,9 +147,15 @@ fn ake_invalid_server_send_first_ciphertext() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let mut server_send = bob
-        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng,
+        )
         .unwrap();
     server_send[..4].copy_from_slice(&[255u8; 4]);
     assert!(alice
@@ -141,11 +171,18 @@ fn ake_invalid_server_send_second_ciphertext() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let mut server_send = bob
-        .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+        .server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng,
+        )
         .unwrap();
-    server_send[KYBER_CIPHERTEXT_BYTES..][..4].copy_from_slice(&[255u8; 4]);
+    server_send[KYBER_CIPHERTEXT_BYTES..][..4]
+        .copy_from_slice(&[255u8; 4]);
     // assert!(alice.client_confirm(server_send, &alice_keys.secret).is_err());
 }
 
@@ -153,7 +190,10 @@ fn ake_invalid_server_send_second_ciphertext() {
 #[test]
 fn ake_uake_failed_randombytes_keypair() {
     let mut rng = FailingRng::default();
-    assert_eq!(keypair(&mut rng), Err(KyberLibError::RandomBytesGeneration));
+    assert_eq!(
+        keypair(&mut rng),
+        Err(KyberLibError::RandomBytesGeneration)
+    );
 }
 
 // Rng function fails on Alice's client init function
@@ -176,7 +216,8 @@ fn uake_failed_randombytes_server_receive() {
     let mut alice = Uake::new();
     let mut bob = Uake::new();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let mut rng = FailingRng::default();
     assert_eq!(
         bob.server_receive(client_init, &bob_keys.secret, &mut rng),
@@ -203,10 +244,16 @@ fn ake_failed_randombytes_server_receive() {
     let mut bob = Ake::new();
     let alice_keys = keypair(&mut rng).unwrap();
     let bob_keys = keypair(&mut rng).unwrap();
-    let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+    let client_init =
+        alice.client_init(&bob_keys.public, &mut rng).unwrap();
     let mut rng = FailingRng::default();
     assert_eq!(
-        bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng),
+        bob.server_receive(
+            client_init,
+            &alice_keys.public,
+            &bob_keys.secret,
+            &mut rng
+        ),
         Err(KyberLibError::RandomBytesGeneration)
     )
 }

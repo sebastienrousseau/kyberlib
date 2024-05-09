@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
 
-    use kyberlib::rng::randombytes;
+    use kyberlib::{rng::randombytes, KyberLibError};
     use rand_core::OsRng;
 
     #[test]
@@ -112,5 +112,95 @@ mod tests {
         assert!(result1.is_ok());
         assert!(result2.is_ok());
         assert_ne!(&buffer1[..], &buffer2[..]);
+    }
+
+    #[test]
+    fn test_randombytes_partial_fill() {
+        // Test filling a partial buffer
+        let mut buffer = [0u8; 32];
+        let partial_len = 16;
+
+        // Use OsRng as the RNG
+        let mut rng = OsRng;
+
+        // Call randombytes to partially fill the buffer
+        let result = randombytes(&mut buffer, partial_len, &mut rng);
+
+        // Check if the result is Ok, indicating successful random byte generation
+        assert!(result.is_ok());
+        // Check that the buffer length is unchanged
+        assert_eq!(buffer.len(), 32);
+        // Check that the first 16 bytes are filled with random data
+        assert_ne!(&buffer[..partial_len], &[0u8; 16]);
+    }
+
+    #[test]
+    fn test_randombytes_error_handling() {
+        // Test with a buffer of size 32
+        let mut buffer = [0u8; 32];
+        let buffer_len = buffer.len();
+
+        // Use OsRng as the RNG
+        let mut rng = OsRng;
+
+        // Call randombytes with a valid length
+        let result = randombytes(&mut buffer, buffer_len, &mut rng);
+
+        // Check if the result is ok
+        assert!(result.is_ok());
+
+        // Call randombytes with an invalid length
+        let result = randombytes(&mut buffer, buffer_len + 1, &mut rng);
+
+        // Check if the result is an error
+        assert!(matches!(result, Err(KyberLibError::InvalidLength)));
+    }
+
+    #[test]
+    fn test_randombytes_out_of_bounds() {
+        // Test with a buffer of size 32
+        let mut buffer = [0u8; 32];
+        let buffer_len = buffer.len();
+
+        // Use OsRng as the RNG
+        let mut rng = OsRng;
+
+        // Call randombytes with an out-of-bounds length
+        let result = randombytes(&mut buffer, buffer_len + 1, &mut rng);
+
+        // Check if the result is an InvalidLength error
+        assert!(matches!(result, Err(KyberLibError::InvalidLength)));
+    }
+
+    #[test]
+    fn test_randombytes_invalid_rng() {
+        // Test with a buffer of size 32
+        let mut buffer = [0u8; 32];
+        let buffer_len = buffer.len();
+
+        // Use OsRng as the RNG
+        let mut rng = OsRng;
+
+        // Call randombytes with a valid RNG
+        let result = randombytes(&mut buffer, buffer_len, &mut rng);
+
+        // Check if the result is ok
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_randombytes_invalid_length() {
+        // Test with a buffer of size 32
+        let mut buffer = [0u8; 32];
+        let invalid_len = 33;
+
+        // Use OsRng as the RNG
+        let mut rng = OsRng;
+
+        // Call randombytes with an invalid length
+        let result = randombytes(&mut buffer, invalid_len, &mut rng);
+
+        // Check if the result is an InvalidLength error
+        assert!(matches!(result, Err(KyberLibError::InvalidLength)));
     }
 }

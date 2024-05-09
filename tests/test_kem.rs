@@ -16,7 +16,8 @@ fn keypair_encap_decap() {
 fn keypair_import_fake() {
     let mut rng = rand::thread_rng();
     let mut keys = keypair(&mut rng).unwrap();
-    let key = keypairfrom(&mut keys.public, &mut keys.secret, &mut rng).unwrap();
+    let key = keypairfrom(&mut keys.public, &mut keys.secret, &mut rng)
+        .unwrap();
     assert_eq!(keys.public, key.public);
 }
 
@@ -32,28 +33,39 @@ fn keypair_encap_decap_invalid_ciphertext() {
 #[test]
 fn keypair_encap_pk_wrong_size() {
     let mut rng = rand::thread_rng();
-    let pk: [u8; KYBER_PUBLIC_KEY_BYTES + 3] = [1u8; KYBER_PUBLIC_KEY_BYTES + 3];
-    assert_eq!(encapsulate(&pk, &mut rng), Err(KyberLibError::InvalidInput));
+    let pk: [u8; KYBER_PUBLIC_KEY_BYTES + 3] =
+        [1u8; KYBER_PUBLIC_KEY_BYTES + 3];
+    assert_eq!(
+        encapsulate(&pk, &mut rng),
+        Err(KyberLibError::InvalidInput)
+    );
 }
 
 #[test]
 fn keypair_decap_ct_wrong_size() {
-    let ct: [u8; KYBER_CIPHERTEXT_BYTES + 3] = [1u8; KYBER_CIPHERTEXT_BYTES + 3];
-    let sk: [u8; KYBER_SECRET_KEY_BYTES] = [1u8; KYBER_SECRET_KEY_BYTES];
+    let ct: [u8; KYBER_CIPHERTEXT_BYTES + 3] =
+        [1u8; KYBER_CIPHERTEXT_BYTES + 3];
+    let sk: [u8; KYBER_SECRET_KEY_BYTES] =
+        [1u8; KYBER_SECRET_KEY_BYTES];
     assert_eq!(decapsulate(&ct, &sk), Err(KyberLibError::InvalidInput));
 }
 
 #[test]
 fn keypair_decap_sk_wrong_size() {
-    let ct: [u8; KYBER_CIPHERTEXT_BYTES] = [1u8; KYBER_CIPHERTEXT_BYTES];
-    let sk: [u8; KYBER_SECRET_KEY_BYTES + 3] = [1u8; KYBER_SECRET_KEY_BYTES + 3];
+    let ct: [u8; KYBER_CIPHERTEXT_BYTES] =
+        [1u8; KYBER_CIPHERTEXT_BYTES];
+    let sk: [u8; KYBER_SECRET_KEY_BYTES + 3] =
+        [1u8; KYBER_SECRET_KEY_BYTES + 3];
     assert_eq!(decapsulate(&ct, &sk), Err(KyberLibError::InvalidInput));
 }
 
 #[test]
 fn keypair_failed_randombytes() {
     let mut rng = FailingRng::default();
-    assert_eq!(keypair(&mut rng), Err(KyberLibError::RandomBytesGeneration));
+    assert_eq!(
+        keypair(&mut rng),
+        Err(KyberLibError::RandomBytesGeneration)
+    );
 }
 
 #[test]
