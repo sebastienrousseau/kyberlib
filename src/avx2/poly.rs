@@ -193,11 +193,11 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8]) {
 }
 
 pub fn poly_tobytes(r: &mut [u8], a: Poly) {
-    let mut buf = [0u8; KYBER_POLYBYTES];
+    let mut buf = [0u8; KYBER_POLY_BYTES];
     unsafe {
         ntttobytes_avx(buf.as_mut_ptr(), &a.coeffs, &QDATA.coeffs);
     }
-    r[..KYBER_POLYBYTES].copy_from_slice(&buf[..]);
+    r[..KYBER_POLY_BYTES].copy_from_slice(&buf[..]);
 }
 
 pub unsafe fn poly_frommsg(r: &mut Poly, msg: &[u8]) {

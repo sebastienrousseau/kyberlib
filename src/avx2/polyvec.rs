@@ -190,13 +190,13 @@ pub unsafe fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
 
 pub fn polyvec_tobytes(r: &mut [u8], a: &Polyvec) {
     for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_tobytes(&mut r[i * KYBER_POLYBYTES..], a.vec[i]);
+        poly_tobytes(&mut r[i * KYBER_POLY_BYTES..], a.vec[i]);
     }
 }
 
 pub unsafe fn polyvec_frombytes(r: &mut Polyvec, a: &[u8]) {
     for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_frombytes(&mut r.vec[i], &a[i * KYBER_POLYBYTES..]);
+        poly_frombytes(&mut r.vec[i], &a[i * KYBER_POLY_BYTES..]);
     }
 }
 

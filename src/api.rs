@@ -310,11 +310,11 @@ pub fn derive(seed: &[u8]) -> Result<Keypair, KyberLibError> {
 ///
 /// Returns the public key as a `PublicKey`.
 pub fn public(sk: &[u8]) -> PublicKey {
-    let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
+    let mut pk = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
     pk.copy_from_slice(
-        &sk[KYBER_INDCPA_SECRETKEYBYTES
-            ..KYBER_INDCPA_SECRETKEYBYTES
-                + KYBER_INDCPA_PUBLICKEYBYTES],
+        &sk[KYBER_INDCPA_SECRET_KEY_BYTES
+            ..KYBER_INDCPA_SECRET_KEY_BYTES
+                + KYBER_INDCPA_PUBLIC_KEY_BYTES],
     );
     pk
 }

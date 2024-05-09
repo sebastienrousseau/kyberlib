@@ -23,29 +23,32 @@ pub const KYBER_ETA1: usize =
 /// - It determines the noise distribution's width in the encryption process.
 pub const KYBER_ETA2: usize = 2;
 
+// Size of the hashes and seeds
+pub const KYBER_SYM_BYTES: usize = 32;
+
 /// The parameter N, representing the degree of the polynomial used in Kyber.
 ///
 /// - This constant is a fundamental part of the scheme's structure.
 pub const KYBER_N: usize = 256;
 
 /// The size in bytes of the polynomials used in Kyber, derived from the parameter N.
-pub const KYBER_POLYBYTES: usize = 384;
+pub const KYBER_POLY_BYTES: usize = 384;
 
 /// Compressed byte size of the polynomial for Kyber variants except Kyber1024.
 ///
 /// - Determines how data is compacted when not using Kyber1024.
 #[cfg(not(feature = "kyber1024"))]
-pub const KYBER_POLYCOMPRESSEDBYTES: usize = 128;
+pub const KYBER_POLY_COMPRESSED_BYTES: usize = 128;
 
-/// The byte size of the vector of polynomials in Kyber, calculated from the security parameter and KYBER_POLYBYTES.
-pub const KYBER_POLYVECBYTES: usize =
-    KYBER_SECURITY_PARAMETER * KYBER_POLYBYTES;
+/// The byte size of the vector of polynomials in Kyber, calculated from the security parameter and KYBER_POLY_BYTES.
+pub const KYBER_POLYVEC_BYTES: usize =
+    KYBER_SECURITY_PARAMETER * KYBER_POLY_BYTES;
 
 /// Compressed byte size of the polynomial vector for Kyber variants except Kyber1024.
 ///
 /// - This setting affects data compression in non-Kyber1024 configurations.
 #[cfg(not(feature = "kyber1024"))]
-pub const KYBER_POLYVECCOMPRESSEDBYTES: usize =
+pub const KYBER_POLYVEC_COMPRESSED_BYTES: usize =
     KYBER_SECURITY_PARAMETER * 320;
 
 /// The modulus Q used in the Kyber scheme.
@@ -57,8 +60,8 @@ pub const KYBER_Q: usize = 3329;
 ///
 /// - It is computed as the sum of IND-CPA secret key and public key sizes, along with twice the size of symmetric keys.
 /// - This size is crucial for memory allocation during key generation and storage.
-pub const KYBER_SECRET_KEY_BYTES: usize = KYBER_INDCPA_SECRETKEYBYTES
-    + KYBER_INDCPA_PUBLICKEYBYTES
+pub const KYBER_SECRET_KEY_BYTES: usize = KYBER_INDCPA_SECRET_KEY_BYTES
+    + KYBER_INDCPA_PUBLIC_KEY_BYTES
     + 2 * KYBER_SYM_BYTES;
 
 /// The security parameter for Kyber, affecting the overall security level.
@@ -84,45 +87,40 @@ pub const KYBER_SECURITY_PARAMETER: usize =
 /// - This size is pivotal for ensuring the security and efficiency of the cryptographic process.
 pub const KYBER_SHARED_SECRET_BYTES: usize = 32;
 
-/// The size in bytes of symmetric keys, hash values, and RNG seeds in Kyber.
-///
-/// - This constant is critical for maintaining the integrity and compatibility of cryptographic operations within the scheme.
-pub const KYBER_SYM_BYTES: usize = 32;
-
 /// Compressed byte size of the polynomial for Kyber1024.
 ///
 /// - It determines the efficiency of data compression in Kyber1024.
 #[cfg(feature = "kyber1024")]
-pub const KYBER_POLYCOMPRESSEDBYTES: usize = 160;
+pub const KYBER_POLY_COMPRESSED_BYTES: usize = 160;
 
 /// Compressed byte size of the polynomial vector for Kyber1024.
 ///
 /// - Affects how polynomial vector data is compressed in the Kyber1024 variant.
 #[cfg(feature = "kyber1024")]
-pub const KYBER_POLYVECCOMPRESSEDBYTES: usize =
+pub const KYBER_POLYVEC_COMPRESSED_BYTES: usize =
     KYBER_SECURITY_PARAMETER * 352;
 
 /// Byte size of the IND-CPA public key in Kyber.
 ///
 /// - This constant is used to allocate memory for storing and transmitting public keys.
-pub const KYBER_INDCPA_PUBLICKEYBYTES: usize =
-    KYBER_POLYVECBYTES + KYBER_SYM_BYTES;
+pub const KYBER_INDCPA_PUBLIC_KEY_BYTES: usize =
+    KYBER_POLYVEC_BYTES + KYBER_SYM_BYTES;
 
 /// Byte size of the IND-CPA secret key in Kyber.
 ///
 /// - This size is essential for understanding the memory requirements for secure key storage.
-pub const KYBER_INDCPA_SECRETKEYBYTES: usize = KYBER_POLYVECBYTES;
+pub const KYBER_INDCPA_SECRET_KEY_BYTES: usize = KYBER_POLYVEC_BYTES;
 
 /// Total byte size of the IND-CPA data in Kyber.
 ///
 /// - It includes the sizes of compressed polynomial vectors and compressed polynomials.
 pub const KYBER_INDCPA_BYTES: usize =
-    KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES;
+    KYBER_POLYVEC_COMPRESSED_BYTES + KYBER_POLY_COMPRESSED_BYTES;
 
 /// Size in bytes of a public key in Kyber KEM.
 ///
 /// - This size is vital for memory allocation when handling public keys.
-pub const KYBER_PUBLIC_KEY_BYTES: usize = KYBER_INDCPA_PUBLICKEYBYTES;
+pub const KYBER_PUBLIC_KEY_BYTES: usize = KYBER_INDCPA_PUBLIC_KEY_BYTES;
 
 /// Size in bytes of a ciphertext in Kyber KEM.
 ///

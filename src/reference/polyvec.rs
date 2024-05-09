@@ -20,7 +20,7 @@ impl Polyvec {
 ///
 /// Description: Compress and serialize vector of polynomials
 ///
-/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
+/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVEC_COMPRESSED_BYTES)
 ///  - const Polyvec a: input vector of polynomials
 pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
     #[cfg(feature = "kyber1024")]
@@ -89,7 +89,7 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
 ///  approximate inverse of polyvec_compress
 ///
 /// Arguments:   - Polyvec r:   output vector of polynomials
-///  - [u8] a: input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
+///  - [u8] a: input byte array (of length KYBER_POLYVEC_COMPRESSED_BYTES)
 pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
     #[cfg(feature = "kyber1024")]
     {
@@ -156,11 +156,11 @@ pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
 ///
 /// Description: Serialize vector of polynomials
 ///
-/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECBYTES)
+/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVEC_BYTES)
 ///  - const Polyvec a: input vector of polynomials
 pub(crate) fn polyvec_tobytes(r: &mut [u8], a: &Polyvec) {
     for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_tobytes(&mut r[i * KYBER_POLYBYTES..], a.vec[i]);
+        poly_tobytes(&mut r[i * KYBER_POLY_BYTES..], a.vec[i]);
     }
 }
 
@@ -170,10 +170,10 @@ pub(crate) fn polyvec_tobytes(r: &mut [u8], a: &Polyvec) {
 ///  inverse of polyvec_tobytes
 ///
 /// Arguments:   - [u8] r: output byte array
-///  - const Polyvec a: input vector of polynomials (of length KYBER_POLYVECBYTES)
+///  - const Polyvec a: input vector of polynomials (of length KYBER_POLYVEC_BYTES)
 pub(crate) fn polyvec_frombytes(r: &mut Polyvec, a: &[u8]) {
     for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_frombytes(&mut r.vec[i], &a[i * KYBER_POLYBYTES..]);
+        poly_frombytes(&mut r.vec[i], &a[i * KYBER_POLY_BYTES..]);
     }
 }
 

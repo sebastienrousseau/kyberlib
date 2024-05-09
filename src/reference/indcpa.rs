@@ -4,6 +4,13 @@ use crate::{
     KyberLibError, RngCore,
 };
 
+#[cfg(feature = "hazmat")]
+/// This module provides public constants related to the Kyber IND-CPA scheme.
+pub use crate::params::{
+    KYBER_INDCPA_BYTES, KYBER_INDCPA_PUBLIC_KEY_BYTES,
+    KYBER_INDCPA_SECRET_KEY_BYTES,
+};
+
 /// Name:  pack_pk
 ///
 /// Description: Serialize the public key as concatenation of the
@@ -14,9 +21,9 @@ use crate::{
 ///  const poly *pk:  the input public-key polynomial
 ///  const [u8] seed: the input public seed
 fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
-    const END: usize = KYBER_SYM_BYTES + KYBER_POLYVECBYTES;
+    const END: usize = KYBER_SYM_BYTES + KYBER_POLYVEC_BYTES;
     polyvec_tobytes(r, pk);
-    r[KYBER_POLYVECBYTES..END]
+    r[KYBER_POLYVEC_BYTES..END]
         .copy_from_slice(&seed[..KYBER_SYM_BYTES]);
 }
 
@@ -29,10 +36,10 @@ fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
 ///  - [u8] seed:   output seed to generate matrix A
 ///  - const [u8] packedpk: input serialized public key
 fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
-    const END: usize = KYBER_SYM_BYTES + KYBER_POLYVECBYTES;
+    const END: usize = KYBER_SYM_BYTES + KYBER_POLYVEC_BYTES;
     polyvec_frombytes(pk, packedpk);
     seed[..KYBER_SYM_BYTES]
-        .copy_from_slice(&packedpk[KYBER_POLYVECBYTES..END]);
+        .copy_from_slice(&packedpk[KYBER_POLYVEC_BYTES..END]);
 }
 
 /// Name:  pack_sk
@@ -66,7 +73,7 @@ fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8]) {
 ///  const [u8] seed: the input polynomial v
 fn pack_ciphertext(r: &mut [u8], b: &mut Polyvec, v: Poly) {
     polyvec_compress(r, *b);
-    poly_compress(&mut r[KYBER_POLYVECCOMPRESSEDBYTES..], v);
+    poly_compress(&mut r[KYBER_POLYVEC_COMPRESSED_BYTES..], v);
 }
 
 /// Name:  unpack_ciphertext
@@ -79,7 +86,7 @@ fn pack_ciphertext(r: &mut [u8], b: &mut Polyvec, v: Poly) {
 ///  - const [u8] c:   input serialized ciphertext
 fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8]) {
     polyvec_decompress(b, c);
-    poly_decompress(v, &c[KYBER_POLYVECCOMPRESSEDBYTES..]);
+    poly_decompress(v, &c[KYBER_POLYVEC_COMPRESSED_BYTES..]);
 }
 
 /// Name:  rej_uniform
@@ -190,8 +197,8 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
 // Description: Generates public and private key for the CPA-secure
 //  public-key encryption scheme underlying Kyber
 //
-// Arguments: - [u8] pk: output public key (length KYBER_INDCPA_PUBLICKEYBYTES)
-//  - [u8] sk: output private key (length KYBER_INDCPA_SECRETKEYBYTES)
+// Arguments: - [u8] pk: output public key (length KYBER_INDCPA_PUBLIC_KEY_BYTES)
+//  - [u8] sk: output private key (length KYBER_INDCPA_SECRET_KEY_BYTES)
 pub(crate) fn indcpa_keypair<R>(
     pk: &mut [u8],
     sk: &mut [u8],
@@ -250,11 +257,12 @@ where
 /// Description: Encryption function of the CPA-secure
 ///  public-key encryption scheme underlying Kyber.
 ///
-/// Arguments: - [u8] c:  output ciphertext (length KYBER_INDCPA_BYTES)
-///  - const [u8] m:  input message (length KYBER_SYM_BYTES)
-///  - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLICKEYBYTES)
+/// Arguments:
+///  - const [u8] c:    output ciphertext (length KYBER_INDCPA_BYTES)
+///  - const [u8] m:    input message (length KYBER_SYM_BYTES)
+///  - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLIC_KEY_BYTES)
 ///  - const [u8] coin: input random coins used as seed (length KYBER_SYM_BYTES)
-///      to deterministically generate all randomness
+///    to deterministically generate all randomness
 pub(crate) fn indcpa_enc(
     c: &mut [u8],
     m: &[u8],
@@ -313,9 +321,10 @@ pub(crate) fn indcpa_enc(
 /// Description: Decryption function of the CPA-secure
 ///  public-key encryption scheme underlying Kyber.
 ///
-/// Arguments:   - [u8] m:  output decrypted message (of length KYBER_SYM_BYTES)
-///  - const [u8] c:  input ciphertext (of length KYBER_INDCPA_BYTES)
-///  - const [u8] sk: input secret key (of length KYBER_INDCPA_SECRETKEYBYTES)
+/// Arguments:
+///  - const [u8] m:    output decrypted message (of length KYBER_SYM_BYTES)
+///  - const [u8] c:    input ciphertext (of length KYBER_INDCPA_BYTES)
+///  - const [u8] sk:   input secret key (of length KYBER_INDCPA_SECRET_KEY_BYTES)
 pub(crate) fn indcpa_dec(m: &mut [u8], c: &[u8], sk: &[u8]) {
     let (mut b, mut skpv) = (Polyvec::new(), Polyvec::new());
     let (mut v, mut mp) = (Poly::new(), Poly::new());

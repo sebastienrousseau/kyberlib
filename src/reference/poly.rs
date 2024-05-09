@@ -26,14 +26,14 @@ impl Poly {
 ///
 /// Description: Compression and subsequent serialization of a polynomial
 ///
-/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYCOMPRESSEDBYTES bytes)
+/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLY_COMPRESSED_BYTES bytes)
 ///  - const poly *a:  input polynomial
 pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
     let mut t = [0u8; 8];
     let mut k = 0usize;
     let mut u: i16;
 
-    match KYBER_POLYCOMPRESSEDBYTES {
+    match KYBER_POLY_COMPRESSED_BYTES {
         128 => {
             #[allow(clippy::needless_range_loop)]
             for i in 0..KYBER_N / 8 {
@@ -72,7 +72,7 @@ pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
             }
         }
         _ => panic!(
-            "KYBER_POLYCOMPRESSEDBYTES needs to be one of (128, 160)"
+            "KYBER_POLY_COMPRESSED_BYTES needs to be one of (128, 160)"
         ),
     }
 }
@@ -83,9 +83,9 @@ pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
 ///  approximate inverse of poly_compress
 ///
 /// Arguments:   - poly *r:  output polynomial
-///  - const [u8] a: input byte array (of length KYBER_POLYCOMPRESSEDBYTES bytes)
+///  - const [u8] a: input byte array (of length KYBER_POLY_COMPRESSED_BYTES bytes)
 pub(crate) fn poly_decompress(r: &mut Poly, a: &[u8]) {
-    match KYBER_POLYCOMPRESSEDBYTES {
+    match KYBER_POLY_COMPRESSED_BYTES {
         128 => {
             for (idx, i) in (0..KYBER_N / 2).enumerate() {
                 r.coeffs[2 * i] = ((((a[idx] & 15) as usize * KYBER_Q)
@@ -118,7 +118,7 @@ pub(crate) fn poly_decompress(r: &mut Poly, a: &[u8]) {
             }
         }
         _ => panic!(
-            "KYBER_POLYCOMPRESSEDBYTES needs to be either (128, 160)"
+            "KYBER_POLY_COMPRESSED_BYTES needs to be either (128, 160)"
         ),
     }
 }
@@ -127,7 +127,7 @@ pub(crate) fn poly_decompress(r: &mut Poly, a: &[u8]) {
 ///
 /// Description: Serialization of a polynomial
 ///
-/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYBYTES bytes)
+/// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLY_BYTES bytes)
 ///  - const poly *a:  input polynomial
 pub(crate) fn poly_tobytes(r: &mut [u8], a: Poly) {
     let (mut t0, mut t1);
@@ -150,7 +150,7 @@ pub(crate) fn poly_tobytes(r: &mut [u8], a: Poly) {
 ///  inverse of poly_tobytes
 ///
 /// Arguments:   - poly *r:  output polynomial
-///  - const [u8] a: input byte array (of KYBER_POLYBYTES bytes)
+///  - const [u8] a: input byte array (of KYBER_POLY_BYTES bytes)
 pub(crate) fn poly_frombytes(r: &mut Poly, a: &[u8]) {
     for i in 0..(KYBER_N / 2) {
         r.coeffs[2 * i] = ((a[3 * i]) as u16
@@ -288,9 +288,10 @@ pub(crate) fn poly_add(r: &mut Poly, b: &Poly) {
 ///
 /// Description: Subtract two polynomials; no modular reduction is performed
 ///
-/// Arguments: - poly *r:   output polynomial
-///  - const poly *a: first input polynomial
-///  - const poly *b: second input polynomial
+/// Arguments:
+///  - poly *r:         output polynomial
+///  - const poly *a:   first input polynomial
+///  - const poly *b:   second input polynomial
 pub(crate) fn poly_sub(r: &mut Poly, a: &Poly) {
     #[allow(clippy::needless_range_loop)]
     for i in 0..KYBER_N {

@@ -170,7 +170,7 @@ use reference::*;
 
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 #[cfg(feature = "hazmat")]
-use reference::indcpa;
+pub use reference::indcpa;
 
 #[cfg(feature = "wasm")]
 /// WebAssembly bindings for the KyberLib library.

@@ -37,33 +37,33 @@ mod tests {
     }
 
     #[test]
-    fn test_kyber_polybytes() {
-        // Test KYBER_POLYBYTES
-        assert_eq!(KYBER_POLYBYTES, 384);
+    fn test_kyber_poly_bytes() {
+        // Test KYBER_POLY_BYTES
+        assert_eq!(KYBER_POLY_BYTES, 384);
     }
 
     #[cfg(not(feature = "kyber1024"))]
     #[test]
-    fn test_kyber_polycompressedbytes() {
-        // Test KYBER_POLYCOMPRESSEDBYTES for non-kyber1024
-        assert_eq!(KYBER_POLYCOMPRESSEDBYTES, 128);
+    fn test_kyber_poly_compressed_bytes() {
+        // Test KYBER_POLY_COMPRESSED_BYTES for non-kyber1024
+        assert_eq!(KYBER_POLY_COMPRESSED_BYTES, 128);
     }
 
     #[test]
-    fn test_kyber_polyvecbytes() {
-        // Test KYBER_POLYVECBYTES
+    fn test_kyber_polyvec_bytes() {
+        // Test KYBER_POLYVEC_BYTES
         assert_eq!(
-            KYBER_POLYVECBYTES,
-            KYBER_SECURITY_PARAMETER * KYBER_POLYBYTES
+            KYBER_POLYVEC_BYTES,
+            KYBER_SECURITY_PARAMETER * KYBER_POLY_BYTES
         );
     }
 
     #[cfg(not(feature = "kyber1024"))]
     #[test]
-    fn test_kyber_polyveccompressedbytes() {
-        // Test KYBER_POLYVECCOMPRESSEDBYTES for non-kyber1024
+    fn test_kyber_polyvec_compressed_bytes() {
+        // Test KYBER_POLYVEC_COMPRESSED_BYTES for non-kyber1024
         assert_eq!(
-            KYBER_POLYVECCOMPRESSEDBYTES,
+            KYBER_POLYVEC_COMPRESSED_BYTES,
             KYBER_SECURITY_PARAMETER * 320
         );
     }
@@ -81,8 +81,8 @@ mod tests {
         // Test KYBER_SECRET_KEY_BYTES
         assert_eq!(
             KYBER_SECRET_KEY_BYTES,
-            KYBER_INDCPA_SECRETKEYBYTES
-                + KYBER_INDCPA_PUBLICKEYBYTES
+            KYBER_INDCPA_SECRET_KEY_BYTES
+                + KYBER_INDCPA_PUBLIC_KEY_BYTES
                 + 2 * KYBER_SYM_BYTES
         );
     }
@@ -115,17 +115,17 @@ mod tests {
 
     #[cfg(feature = "kyber1024")]
     #[test]
-    fn test_kyber_polycompressedbytes_kyber1024() {
-        // Test KYBER_POLYCOMPRESSEDBYTES for kyber1024
-        assert_eq!(KYBER_POLYCOMPRESSEDBYTES, 160);
+    fn test_KYBER_POLY_COMPRESSED_BYTES_kyber1024() {
+        // Test KYBER_POLY_COMPRESSED_BYTES for kyber1024
+        assert_eq!(KYBER_POLY_COMPRESSED_BYTES, 160);
     }
 
     #[cfg(feature = "kyber1024")]
     #[test]
-    fn test_kyber_polyveccompressedbytes_kyber1024() {
-        // Test KYBER_POLYVECCOMPRESSEDBYTES for kyber1024
+    fn test_KYBER_POLYVEC_COMPRESSED_BYTES_kyber1024() {
+        // Test KYBER_POLYVEC_COMPRESSED_BYTES for kyber1024
         assert_eq!(
-            KYBER_POLYVECCOMPRESSEDBYTES,
+            KYBER_POLYVEC_COMPRESSED_BYTES,
             KYBER_SECURITY_PARAMETER * 352
         );
     }
@@ -133,18 +133,18 @@ mod tests {
     // Test Kyber parameters related to indcpa
 
     #[test]
-    fn test_kyber_indcpa_publickeybytes() {
-        // Test KYBER_INDCPA_PUBLICKEYBYTES
+    fn test_kyber_indcpa_public_key_bytes() {
+        // Test KYBER_INDCPA_PUBLIC_KEY_BYTES
         assert_eq!(
-            KYBER_INDCPA_PUBLICKEYBYTES,
-            KYBER_POLYVECBYTES + KYBER_SYM_BYTES
+            KYBER_INDCPA_PUBLIC_KEY_BYTES,
+            KYBER_POLYVEC_BYTES + KYBER_SYM_BYTES
         );
     }
 
     #[test]
-    fn test_kyber_indcpa_secretkeybytes() {
-        // Test KYBER_INDCPA_SECRETKEYBYTES
-        assert_eq!(KYBER_INDCPA_SECRETKEYBYTES, KYBER_POLYVECBYTES);
+    fn test_kyber_indcpa_secret_key_bytes() {
+        // Test KYBER_INDCPA_SECRET_KEY_BYTES
+        assert_eq!(KYBER_INDCPA_SECRET_KEY_BYTES, KYBER_POLYVEC_BYTES);
     }
 
     #[test]
@@ -152,7 +152,8 @@ mod tests {
         // Test KYBER_INDCPA_BYTES
         assert_eq!(
             KYBER_INDCPA_BYTES,
-            KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES
+            KYBER_POLYVEC_COMPRESSED_BYTES
+                + KYBER_POLY_COMPRESSED_BYTES
         );
     }
 
@@ -161,7 +162,10 @@ mod tests {
     #[test]
     fn test_kyber_public_key_bytes() {
         // Test KYBER_PUBLIC_KEY_BYTES
-        assert_eq!(KYBER_PUBLIC_KEY_BYTES, KYBER_INDCPA_PUBLICKEYBYTES);
+        assert_eq!(
+            KYBER_PUBLIC_KEY_BYTES,
+            KYBER_INDCPA_PUBLIC_KEY_BYTES
+        );
     }
 
     #[test]
