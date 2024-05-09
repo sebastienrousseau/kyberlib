@@ -36,8 +36,13 @@ fn encaps() {
         let encap_buf = Some(&buf1[..]);
         let mut ct = [0u8; KYBER_CIPHERTEXT_BYTES];
         let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        encrypt_message(&mut ct, &mut ss, &pk, &mut _rng, encap_buf).unwrap();
-        assert_eq!(&ss[..], &known_ss[..], "Shared secret KAT mismatch");
+        encrypt_message(&mut ct, &mut ss, &pk, &mut _rng, encap_buf)
+            .unwrap();
+        assert_eq!(
+            &ss[..],
+            &known_ss[..],
+            "Shared secret KAT mismatch"
+        );
     }
 }
 
@@ -73,6 +78,9 @@ pub fn encode_hex(bytes: &[u8]) -> String {
 pub fn decode_hex(s: &str) -> Vec<u8> {
     (0..s.len())
         .step_by(2)
-        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("Hex string decoding"))
+        .map(|i| {
+            u8::from_str_radix(&s[i..i + 2], 16)
+                .expect("Hex string decoding")
+        })
         .collect::<Vec<u8>>()
 }

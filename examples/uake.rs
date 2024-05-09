@@ -36,7 +36,8 @@ fn main() -> Result<(), KyberLibError> {
 
     // Bob receives the request and authenticates Alice, sends
     // encapsulated shared secret back
-    let server_send = bob.server_receive(client_send, &bob_keys.secret, &mut rng)?;
+    let server_send =
+        bob.server_receive(client_send, &bob_keys.secret, &mut rng)?;
 
     // Alice authenticates and decapsulates
     alice.client_confirm(server_send)?;

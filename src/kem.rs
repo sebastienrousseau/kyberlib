@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{
-    error::KyberLibError, indcpa::*, params::*, rng::randombytes, symmetric::*, verify::*,
+    error::KyberLibError, indcpa::*, params::*, rng::randombytes,
+    symmetric::*, verify::*,
 };
 use rand_core::{CryptoRng, RngCore};
 
@@ -27,13 +28,16 @@ pub fn generate_key_pair<R>(
 where
     R: RngCore + CryptoRng,
 {
-    const PK_START: usize = KYBER_SECRET_KEY_BYTES - (2 * KYBER_SYM_BYTES);
+    const PK_START: usize =
+        KYBER_SECRET_KEY_BYTES - (2 * KYBER_SYM_BYTES);
     const SK_START: usize = KYBER_SECRET_KEY_BYTES - KYBER_SYM_BYTES;
-    const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
+    const END: usize =
+        KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
 
     indcpa_keypair(pk, sk, _seed, _rng)?;
 
-    sk[KYBER_INDCPA_SECRETKEYBYTES..END].copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
+    sk[KYBER_INDCPA_SECRETKEYBYTES..END]
+        .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
     hash_h(&mut sk[PK_START..], pk, KYBER_PUBLIC_KEY_BYTES);
 
     if let Some(s) = _seed {
@@ -113,7 +117,10 @@ pub fn decrypt_message(ss: &mut [u8], ct: &[u8], sk: &[u8]) {
     let mut cmp = [0u8; KYBER_CIPHERTEXT_BYTES];
     let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
 
-    pk.copy_from_slice(&sk[KYBER_INDCPA_SECRETKEYBYTES..][..KYBER_INDCPA_PUBLICKEYBYTES]);
+    pk.copy_from_slice(
+        &sk[KYBER_INDCPA_SECRETKEYBYTES..]
+            [..KYBER_INDCPA_PUBLICKEYBYTES],
+    );
 
     indcpa_dec(&mut buf, ct, sk);
 

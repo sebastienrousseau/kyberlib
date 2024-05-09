@@ -12,7 +12,10 @@ use kyberlib::KyberLibError;
 #[test]
 fn test_kyber_lib_error_display() {
     let error = KyberLibError::InvalidInput;
-    assert_eq!(error.to_string(), "Function input is of incorrect length");
+    assert_eq!(
+        error.to_string(),
+        "Function input is of incorrect length"
+    );
 
     let error = KyberLibError::Decapsulation;
     assert_eq!(
@@ -21,5 +24,8 @@ fn test_kyber_lib_error_display() {
     );
 
     let error = KyberLibError::RandomBytesGeneration;
-    assert_eq!(error.to_string(), "Random bytes generation function failed");
+    assert_eq!(
+        error.to_string(),
+        "Random bytes generation function failed"
+    );
 }

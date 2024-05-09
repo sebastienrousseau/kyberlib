@@ -25,11 +25,13 @@ pub unsafe fn poly_compress10(r: &mut [u8], a: &Poly) {
     let off = _mm256_set1_epi16(15);
     let shift1 = _mm256_set1_epi16(1 << 12);
     let mask = _mm256_set1_epi16(1023);
-    let shift2 = _mm256_set1_epi64x(((1024u64 << 48) + (1u64 << 32) + (1024 << 16) + 1) as i64);
+    let shift2 = _mm256_set1_epi64x(
+        ((1024u64 << 48) + (1u64 << 32) + (1024 << 16) + 1) as i64,
+    );
     let sllvdidx = _mm256_set1_epi64x(12);
     let shufbidx = _mm256_set_epi8(
-        8, 4, 3, 2, 1, 0, -1, -1, -1, -1, -1, -1, 12, 11, 10, 9, -1, -1, -1, -1, -1, -1, 12, 11,
-        10, 9, 8, 4, 3, 2, 1, 0,
+        8, 4, 3, 2, 1, 0, -1, -1, -1, -1, -1, -1, 12, 11, 10, 9, -1,
+        -1, -1, -1, -1, -1, 12, 11, 10, 9, 8, 4, 3, 2, 1, 0,
     );
 
     for i in 0..(KYBER_N / 16) {
@@ -52,16 +54,21 @@ pub unsafe fn poly_compress10(r: &mut [u8], a: &Poly) {
         t1 = _mm256_extracti128_si256(f0, 1);
         t0 = _mm_blend_epi16(t0, t1, 0xE0);
         _mm_storeu_si128(r[20 * i..].as_mut_ptr() as *mut __m128i, t0);
-        _mm_storeu_si128(r[20 * i + 16..].as_mut_ptr() as *mut __m128i, t1);
+        _mm_storeu_si128(
+            r[20 * i + 16..].as_mut_ptr() as *mut __m128i,
+            t1,
+        );
     }
 }
 
 pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8]) {
     let mut f;
-    let q = _mm256_set1_epi32(((KYBER_Q as i32) << 16) + 4 * KYBER_Q as i32);
+    let q = _mm256_set1_epi32(
+        ((KYBER_Q as i32) << 16) + 4 * KYBER_Q as i32,
+    );
     let shufbidx = _mm256_set_epi8(
-        11, 10, 10, 9, 9, 8, 8, 7, 6, 5, 5, 4, 4, 3, 3, 2, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3, 2, 2,
-        1, 1, 0,
+        11, 10, 10, 9, 9, 8, 8, 7, 6, 5, 5, 4, 4, 3, 3, 2, 9, 8, 8, 7,
+        7, 6, 6, 5, 4, 3, 3, 2, 2, 1, 1, 0,
     );
     let sllvdidx = _mm256_set1_epi64x(4);
     let mask = _mm256_set1_epi32((32736 << 16) + 8184);
@@ -85,12 +92,14 @@ pub unsafe fn poly_compress11(r: &mut [u8], a: &Poly) {
     let off = _mm256_set1_epi16(36);
     let shift1 = _mm256_set1_epi16(1 << 13);
     let mask = _mm256_set1_epi16(2047);
-    let shift2 = _mm256_set1_epi64x(((2048u64 << 48) + (1u64 << 32) + (2048 << 16) + 1) as i64);
+    let shift2 = _mm256_set1_epi64x(
+        ((2048u64 << 48) + (1u64 << 32) + (2048 << 16) + 1) as i64,
+    );
     let sllvdidx = _mm256_set1_epi64x(10);
     let srlvqidx = _mm256_set_epi64x(30, 10, 30, 10);
     let shufbidx = _mm256_set_epi8(
-        4, 3, 2, 1, 0, 0, -1, -1, -1, -1, 10, 9, 8, 7, 6, 5, -1, -1, -1, -1, -1, 10, 9, 8, 7, 6, 5,
-        4, 3, 2, 1, 0,
+        4, 3, 2, 1, 0, 0, -1, -1, -1, -1, 10, 9, 8, 7, 6, 5, -1, -1,
+        -1, -1, -1, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
     );
 
     for i in 0..KYBER_N / 16 {
@@ -115,8 +124,14 @@ pub unsafe fn poly_compress11(r: &mut [u8], a: &Poly) {
         t0 = _mm256_castsi256_si128(f0);
         t1 = _mm256_extracti128_si256(f0, 1);
         t0 = _mm_blendv_epi8(t0, t1, _mm256_castsi256_si128(shufbidx));
-        _mm_storeu_si128(r[22 * i + 0..].as_mut_ptr() as *mut __m128i, t0);
-        _mm_storel_epi64(r[22 * i + 16..].as_mut_ptr() as *mut __m128i, t1);
+        _mm_storeu_si128(
+            r[22 * i + 0..].as_mut_ptr() as *mut __m128i,
+            t0,
+        );
+        _mm_storel_epi64(
+            r[22 * i + 16..].as_mut_ptr() as *mut __m128i,
+            t1,
+        );
     }
 }
 
@@ -125,12 +140,14 @@ pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8]) {
 
     let q = _mm256_load_si256(QDATA.vec[_16XQ / 16..].as_ptr());
     let shufbidx = _mm256_set_epi8(
-        13, 12, 12, 11, 10, 9, 9, 8, 8, 7, 6, 5, 5, 4, 4, 3, 10, 9, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2,
-        2, 1, 1, 0,
+        13, 12, 12, 11, 10, 9, 9, 8, 8, 7, 6, 5, 5, 4, 4, 3, 10, 9, 9,
+        8, 7, 6, 6, 5, 5, 4, 3, 2, 2, 1, 1, 0,
     );
     let srlvdidx = _mm256_set_epi32(0, 0, 1, 0, 0, 0, 1, 0);
     let srlvqidx = _mm256_set_epi64x(2, 0, 2, 0);
-    let shift = _mm256_set_epi16(4, 32, 1, 8, 32, 1, 4, 32, 4, 32, 1, 8, 32, 1, 4, 32);
+    let shift = _mm256_set_epi16(
+        4, 32, 1, 8, 32, 1, 4, 32, 4, 32, 1, 8, 32, 1, 4, 32,
+    );
     let mask = _mm256_set1_epi16(32752);
 
     for i in 0..(KYBER_N / 16) {
@@ -212,7 +229,11 @@ pub fn polyvec_invntt_tomont(r: &mut Polyvec) {
 /// Arguments: - poly *r:  output polynomial
 ///  - const Polyvec a: first input vector of polynomials
 ///  - const Polyvec b: second input vector of polynomials
-pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec) {
+pub fn polyvec_basemul_acc_montgomery(
+    r: &mut Poly,
+    a: &Polyvec,
+    b: &Polyvec,
+) {
     let mut t = Poly::new();
     poly_basemul(r, &a.vec[0], &b.vec[0]);
     for i in 1..KYBER_SECURITY_PARAMETER {

@@ -58,12 +58,14 @@ fn cbd3(r: &mut Poly, buf: &[u8]) {
         let mask70: __m256i = _mm256_set1_epi32(7 << 16);
         let mask: __m256i = _mm256_set1_epi16(3);
         let shufbidx: __m256i = _mm256_set_epi8(
-            -1, 15, 14, 13, -1, 12, 11, 10, -1, 9, 8, 7, -1, 6, 5, 4, -1, 11, 10, 9, -1, 8, 7, 6,
-            -1, 5, 4, 3, -1, 2, 1, 0,
+            -1, 15, 14, 13, -1, 12, 11, 10, -1, 9, 8, 7, -1, 6, 5, 4,
+            -1, 11, 10, 9, -1, 8, 7, 6, -1, 5, 4, 3, -1, 2, 1, 0,
         );
 
         for i in 0..(KYBER_N / 32) {
-            f0 = _mm256_loadu_si256(buf[24 * i..].as_ptr() as *const __m256i);
+            f0 = _mm256_loadu_si256(
+                buf[24 * i..].as_ptr() as *const __m256i
+            );
             f0 = _mm256_permute4x64_epi64(f0, 0x94);
             f0 = _mm256_shuffle_epi8(f0, shufbidx);
 

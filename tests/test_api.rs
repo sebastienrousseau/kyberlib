@@ -31,9 +31,11 @@ mod tests {
         // Generate keypair
         let keypair = keypair(&mut rng).unwrap();
         // Encapsulate a shared secret
-        let (ciphertext, shared_secret1) = encapsulate(&keypair.public, &mut rng).unwrap();
+        let (ciphertext, shared_secret1) =
+            encapsulate(&keypair.public, &mut rng).unwrap();
         // Decapsulate the shared secret
-        let shared_secret2 = decapsulate(&ciphertext, &keypair.secret).unwrap();
+        let shared_secret2 =
+            decapsulate(&ciphertext, &keypair.secret).unwrap();
         // Assert equality of the shared secrets
         assert_eq!(shared_secret1, shared_secret2);
     }
@@ -112,7 +114,9 @@ mod tests {
         let mut public_key = keypair.public;
         let mut secret_key = keypair.secret;
         // Import keypair using Keypair::import
-        let imported_keypair = Keypair::import(&mut public_key, &mut secret_key, &mut rng).unwrap();
+        let imported_keypair =
+            Keypair::import(&mut public_key, &mut secret_key, &mut rng)
+                .unwrap();
         // Assert equality of the imported keypair and the original keypair
         assert_eq!(imported_keypair.public, keypair.public);
         assert_eq!(imported_keypair.secret, keypair.secret);
@@ -129,7 +133,9 @@ mod tests {
         let mut public_key = keypair.public;
         let mut secret_key = keypair.secret;
         // Create keypair using keypairfrom
-        let new_keypair = keypairfrom(&mut public_key, &mut secret_key, &mut rng).unwrap();
+        let new_keypair =
+            keypairfrom(&mut public_key, &mut secret_key, &mut rng)
+                .unwrap();
         // Assert equality of the new keypair and the original keypair
         assert_eq!(new_keypair.public, keypair.public);
         assert_eq!(new_keypair.secret, keypair.secret);
@@ -147,7 +153,12 @@ mod tests {
         invalid_public_key[0] = 0xFF;
         invalid_secret_key[0] = 0xFF;
         // Assert error handling for keypairfrom with invalid public key and secret key
-        assert!(keypairfrom(&mut invalid_public_key, &mut invalid_secret_key, &mut rng).is_err());
+        assert!(keypairfrom(
+            &mut invalid_public_key,
+            &mut invalid_secret_key,
+            &mut rng
+        )
+        .is_err());
     }
 
     // Test for handling of invalid inputs in Keypair::import
@@ -162,9 +173,12 @@ mod tests {
         invalid_public_key[0] = 0xFF;
         invalid_secret_key[0] = 0xFF;
         // Assert error handling for Keypair::import with invalid public key and secret key
-        assert!(
-            Keypair::import(&mut invalid_public_key, &mut invalid_secret_key, &mut rng).is_err()
-        );
+        assert!(Keypair::import(
+            &mut invalid_public_key,
+            &mut invalid_secret_key,
+            &mut rng
+        )
+        .is_err());
     }
 
     // Test for handling of invalid inputs in Keypair::generate
@@ -204,8 +218,11 @@ mod tests {
         let invalid_ciphertext = [0u8; KYBER_CIPHERTEXT_BYTES - 1];
         let invalid_secret_key = [0u8; KYBER_SECRET_KEY_BYTES - 1];
         // Assert error handling for decapsulate with invalid ciphertext and secret key
-        assert!(decapsulate(&invalid_ciphertext, &keypair.secret).is_err());
-        assert!(decapsulate(&invalid_ciphertext, &invalid_secret_key).is_err());
+        assert!(
+            decapsulate(&invalid_ciphertext, &keypair.secret).is_err()
+        );
+        assert!(decapsulate(&invalid_ciphertext, &invalid_secret_key)
+            .is_err());
     }
 
     // Test for handling of invalid inputs in derive
@@ -221,7 +238,10 @@ mod tests {
     #[test]
     fn test_public_invalid_secret_key_length() {
         let invalid_secret_key = [0u8; KYBER_SECRET_KEY_BYTES - 1];
-        assert_eq!(public(&invalid_secret_key).len(), KYBER_PUBLIC_KEY_BYTES);
+        assert_eq!(
+            public(&invalid_secret_key).len(),
+            KYBER_PUBLIC_KEY_BYTES
+        );
     }
 
     // Test for keypair equality
@@ -248,10 +268,12 @@ mod tests {
     fn test_encapsulate_decapsulate_valid_input() {
         let mut rng = OsRng;
         let keypair = keypair(&mut rng).unwrap();
-        let (ciphertext, shared_secret) = encapsulate(&keypair.public, &mut rng).unwrap();
+        let (ciphertext, shared_secret) =
+            encapsulate(&keypair.public, &mut rng).unwrap();
         assert_eq!(ciphertext.len(), KYBER_CIPHERTEXT_BYTES);
         assert_eq!(shared_secret.len(), KYBER_SHARED_SECRET_BYTES);
-        let decapsulated_secret = decapsulate(&ciphertext, &keypair.secret).unwrap();
+        let decapsulated_secret =
+            decapsulate(&ciphertext, &keypair.secret).unwrap();
         assert_eq!(shared_secret, decapsulated_secret);
     }
 }

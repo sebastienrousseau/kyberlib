@@ -24,20 +24,33 @@ impl Aes256CtrCtx {
     }
 }
 
-unsafe fn aesni_encrypt4(out: &mut [u8], n: &mut __m128i, rkeys: &[__m128i; 16]) {
-    let idx: __m128i = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 7, 6, 5, 4, 3, 2, 1, 0);
+unsafe fn aesni_encrypt4(
+    out: &mut [u8],
+    n: &mut __m128i,
+    rkeys: &[__m128i; 16],
+) {
+    let idx: __m128i = _mm_set_epi8(
+        8, 9, 10, 11, 12, 13, 14, 15, 7, 6, 5, 4, 3, 2, 1, 0,
+    );
 
     // Load current counter value
     let mut f = _mm_load_si128(n);
 
     // Increase counter in 4 consecutive blocks
-    let mut f0 = _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(0, 0)), idx);
-    let mut f1 = _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(1, 0)), idx);
-    let mut f2 = _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(2, 0)), idx);
-    let mut f3 = _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(3, 0)), idx);
+    let mut f0 =
+        _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(0, 0)), idx);
+    let mut f1 =
+        _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(1, 0)), idx);
+    let mut f2 =
+        _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(2, 0)), idx);
+    let mut f3 =
+        _mm_shuffle_epi8(_mm_add_epi64(f, _mm_set_epi64x(3, 0)), idx);
 
     // Write counter for next iteration, increased by 4
-    _mm_store_si128(n as *mut __m128i, _mm_add_epi64(f, _mm_set_epi64x(4, 0)));
+    _mm_store_si128(
+        n as *mut __m128i,
+        _mm_add_epi64(f, _mm_set_epi64x(4, 0)),
+    );
 
     // Actual AES encryption, 4x interleaved4
     f = _mm_load_si128(&rkeys[0]);
@@ -76,11 +89,16 @@ unsafe fn cast_128(x: __m128i) -> __m128 {
     _mm_castsi128_ps(x)
 }
 
-pub fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
+pub fn aes256ctr_init(
+    state: &mut Aes256CtrCtx,
+    key: &[u8],
+    nonce: [u8; 12],
+) {
     unsafe {
         let mut idx = 0;
         let key0 = _mm_loadu_si128(key.as_ptr() as *const __m128i);
-        let key1 = _mm_loadu_si128(key[16..].as_ptr() as *const __m128i);
+        let key1 =
+            _mm_loadu_si128(key[16..].as_ptr() as *const __m128i);
 
         state.n = _mm_loadl_epi64(nonce[..].as_ptr() as *const __m128i);
         state.rkeys[idx] = key0;
@@ -95,11 +113,23 @@ pub fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
                 temp1 = _mm_aeskeygenassist_si128(temp2, $imm);
                 state.rkeys[idx] = temp2;
                 idx += 1;
-                temp4 = cast_128i(_mm_shuffle_ps(cast_128(temp4), cast_128(temp0), 0x10));
+                temp4 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp4),
+                    cast_128(temp0),
+                    0x10,
+                ));
                 temp0 = _mm_xor_si128(temp0, temp4);
-                temp4 = cast_128i(_mm_shuffle_ps(cast_128(temp4), cast_128(temp0), 0x8c));
+                temp4 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp4),
+                    cast_128(temp0),
+                    0x8c,
+                ));
                 temp0 = _mm_xor_si128(temp0, temp4);
-                temp1 = cast_128i(_mm_shuffle_ps(cast_128(temp1), cast_128(temp1), 0xff));
+                temp1 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp1),
+                    cast_128(temp1),
+                    0xff,
+                ));
                 temp0 = _mm_xor_si128(temp0, temp1)
             };
         }
@@ -109,11 +139,23 @@ pub fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
                 temp1 = _mm_aeskeygenassist_si128(temp0, $imm);
                 state.rkeys[idx] = temp0;
                 idx += 1;
-                temp4 = cast_128i(_mm_shuffle_ps(cast_128(temp4), cast_128(temp2), 0x10));
+                temp4 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp4),
+                    cast_128(temp2),
+                    0x10,
+                ));
                 temp2 = _mm_xor_si128(temp2, temp4);
-                temp4 = cast_128i(_mm_shuffle_ps(cast_128(temp4), cast_128(temp2), 0x8c));
+                temp4 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp4),
+                    cast_128(temp2),
+                    0x8c,
+                ));
                 temp2 = _mm_xor_si128(temp2, temp4);
-                temp1 = cast_128i(_mm_shuffle_ps(cast_128(temp1), cast_128(temp1), 0xaa));
+                temp1 = cast_128i(_mm_shuffle_ps(
+                    cast_128(temp1),
+                    cast_128(temp1),
+                    0xaa,
+                ));
                 temp2 = _mm_xor_si128(temp2, temp1)
             };
         }
@@ -138,7 +180,11 @@ pub fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
     }
 }
 
-pub fn aes256ctr_squeezeblocks(out: &mut [u8], nblocks: usize, state: &mut Aes256CtrCtx) {
+pub fn aes256ctr_squeezeblocks(
+    out: &mut [u8],
+    nblocks: usize,
+    state: &mut Aes256CtrCtx,
+) {
     let mut idx = 0;
     for _ in 0..nblocks {
         unsafe {
@@ -149,7 +195,12 @@ pub fn aes256ctr_squeezeblocks(out: &mut [u8], nblocks: usize, state: &mut Aes25
 }
 
 #[cfg(feature = "90s")]
-pub fn aes256ctr_prf(out: &mut [u8], mut outlen: usize, seed: &[u8], nonce: u8) {
+pub fn aes256ctr_prf(
+    out: &mut [u8],
+    mut outlen: usize,
+    seed: &[u8],
+    nonce: u8,
+) {
     let mut buf = [0u8; 64];
     let mut idx = 0;
     let mut pad_nonce = [0u8; 12];

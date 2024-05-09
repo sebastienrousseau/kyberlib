@@ -36,7 +36,11 @@ use rand_core::{CryptoRng, RngCore};
 ///
 /// Ensure that the length of the buffer `x` is at least `len` bytes,
 /// otherwise the function will panic due to out-of-bounds memory access.
-pub fn randombytes<R>(x: &mut [u8], len: usize, rng: &mut R) -> Result<(), KyberLibError>
+pub fn randombytes<R>(
+    x: &mut [u8],
+    len: usize,
+    rng: &mut R,
+) -> Result<(), KyberLibError>
 where
     R: RngCore + CryptoRng,
 {

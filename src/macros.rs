@@ -151,7 +151,8 @@ macro_rules! kyberlib_uake_client_init {
 #[doc = "Macro to handle the output of a Unilaterally Authenticated Key Exchange."]
 macro_rules! kyberlib_uake_server_receive {
     ($send_a:expr, $secretkey:expr, $rng:expr) => {
-        kyberlib::kex::Uake::new().server_receive($send_a, $secretkey, $rng)
+        kyberlib::kex::Uake::new()
+            .server_receive($send_a, $secretkey, $rng)
     };
 }
 
@@ -207,7 +208,12 @@ macro_rules! kyberlib_ake_client_init {
 #[doc = "Macro to handle the output of a Mutually Authenticated Key Exchange."]
 macro_rules! kyberlib_ake_server_receive {
     ($ake_send_a:expr, $pubkey:expr, $secretkey:expr, $rng:expr) => {
-        kyberlib::kex::Ake::new().server_receive($ake_send_a, $pubkey, $secretkey, $rng)
+        kyberlib::kex::Ake::new().server_receive(
+            $ake_send_a,
+            $pubkey,
+            $secretkey,
+            $rng,
+        )
     };
 }
 

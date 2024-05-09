@@ -5,16 +5,18 @@
 mod tests {
     use kyberlib::{
         keypair, kyberlib_ake_client_confirm, kyberlib_ake_client_init,
-        kyberlib_ake_server_receive, kyberlib_assert, kyberlib_max, kyberlib_min,
-        kyberlib_uake_client_confirm, kyberlib_uake_client_init, kyberlib_uake_server_receive, Ake,
+        kyberlib_ake_server_receive, kyberlib_assert, kyberlib_max,
+        kyberlib_min, kyberlib_uake_client_confirm,
+        kyberlib_uake_client_init, kyberlib_uake_server_receive, Ake,
         Uake,
     };
     use kyberlib::{
-        kyberlib_decrypt_message, kyberlib_encrypt_message, kyberlib_generate_key_pair,
+        kyberlib_decrypt_message, kyberlib_encrypt_message,
+        kyberlib_generate_key_pair,
     };
     use kyberlib::{
-        KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
-        KYBER_SHARED_SECRET_BYTES,
+        KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
+        KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
     };
     use rand_core::OsRng;
     use rlg::{log::Log, log_format::LogFormat, log_level::LogLevel};
@@ -102,7 +104,13 @@ mod tests {
         let mut public_key = [0u8; KYBER_PUBLIC_KEY_BYTES];
         let mut secret_key = [0u8; KYBER_SECRET_KEY_BYTES];
 
-        kyberlib_generate_key_pair!(&mut public_key, &mut secret_key, &mut rng, None).unwrap();
+        kyberlib_generate_key_pair!(
+            &mut public_key,
+            &mut secret_key,
+            &mut rng,
+            None
+        )
+        .unwrap();
 
         assert_eq!(public_key.len(), KYBER_PUBLIC_KEY_BYTES);
         assert_eq!(secret_key.len(), KYBER_SECRET_KEY_BYTES);
@@ -114,7 +122,13 @@ mod tests {
         let mut public_key = [0u8; KYBER_PUBLIC_KEY_BYTES];
         let mut secret_key = [0u8; KYBER_SECRET_KEY_BYTES];
 
-        kyberlib_generate_key_pair!(&mut public_key, &mut secret_key, &mut rng, None).unwrap();
+        kyberlib_generate_key_pair!(
+            &mut public_key,
+            &mut secret_key,
+            &mut rng,
+            None
+        )
+        .unwrap();
 
         let mut ciphertext = [0u8; KYBER_CIPHERTEXT_BYTES];
         let mut shared_secret1 = [0u8; KYBER_SHARED_SECRET_BYTES];
@@ -129,7 +143,11 @@ mod tests {
         .unwrap();
 
         let mut shared_secret2 = [0u8; KYBER_SHARED_SECRET_BYTES];
-        kyberlib_decrypt_message!(&mut shared_secret2, &ciphertext, &secret_key);
+        kyberlib_decrypt_message!(
+            &mut shared_secret2,
+            &ciphertext,
+            &secret_key
+        );
 
         assert_eq!(shared_secret1, shared_secret2);
     }
@@ -140,7 +158,13 @@ mod tests {
         let mut public_key = [0u8; KYBER_PUBLIC_KEY_BYTES];
         let mut secret_key = [0u8; KYBER_SECRET_KEY_BYTES];
 
-        kyberlib_generate_key_pair!(&mut public_key, &mut secret_key, &mut rng, None).unwrap();
+        kyberlib_generate_key_pair!(
+            &mut public_key,
+            &mut secret_key,
+            &mut rng,
+            None
+        )
+        .unwrap();
 
         let mut ciphertext = [0u8; KYBER_CIPHERTEXT_BYTES];
         let mut shared_secret1 = [0u8; KYBER_SHARED_SECRET_BYTES];
@@ -155,7 +179,11 @@ mod tests {
         .unwrap();
 
         let mut shared_secret2 = [0u8; KYBER_SHARED_SECRET_BYTES];
-        kyberlib_decrypt_message!(&mut shared_secret2, &ciphertext, &secret_key);
+        kyberlib_decrypt_message!(
+            &mut shared_secret2,
+            &ciphertext,
+            &secret_key
+        );
 
         assert_eq!(shared_secret1, shared_secret2);
     }
@@ -164,7 +192,9 @@ mod tests {
     fn test_kyberlib_uake_client_init() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
-        let client_init = kyberlib_uake_client_init!(&bob_keys.public, &mut rng).unwrap();
+        let client_init =
+            kyberlib_uake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
 
         assert_eq!(client_init.len(), 2272);
     }
@@ -173,9 +203,15 @@ mod tests {
     fn test_kyberlib_uake_server_receive() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
-        let client_init = kyberlib_uake_client_init!(&bob_keys.public, &mut rng).unwrap();
-        let server_send =
-            kyberlib_uake_server_receive!(client_init, &bob_keys.secret, &mut rng).unwrap();
+        let client_init =
+            kyberlib_uake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
+        let server_send = kyberlib_uake_server_receive!(
+            client_init,
+            &bob_keys.secret,
+            &mut rng
+        )
+        .unwrap();
 
         assert_eq!(server_send.len(), 1088);
     }
@@ -187,9 +223,15 @@ mod tests {
         let bob = Uake::new();
         let bob_keys = keypair(&mut rng).unwrap();
 
-        let client_init = kyberlib_uake_client_init!(&bob_keys.public, &mut rng).unwrap();
-        let server_send =
-            kyberlib_uake_server_receive!(client_init, &bob_keys.secret, &mut rng).unwrap();
+        let client_init =
+            kyberlib_uake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
+        let server_send = kyberlib_uake_server_receive!(
+            client_init,
+            &bob_keys.secret,
+            &mut rng
+        )
+        .unwrap();
         kyberlib_uake_client_confirm!(server_send).unwrap();
 
         assert_eq!(alice.shared_secret, bob.shared_secret);
@@ -199,7 +241,9 @@ mod tests {
     fn test_kyberlib_ake_client_init() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
-        let client_init = kyberlib_ake_client_init!(&bob_keys.public, &mut rng).unwrap();
+        let client_init =
+            kyberlib_ake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
 
         assert_eq!(client_init.len(), 2272);
     }
@@ -209,7 +253,9 @@ mod tests {
         let mut rng = OsRng;
         let alice_keys = keypair(&mut rng).unwrap();
         let bob_keys = keypair(&mut rng).unwrap();
-        let client_init = kyberlib_ake_client_init!(&bob_keys.public, &mut rng).unwrap();
+        let client_init =
+            kyberlib_ake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
         let server_send = kyberlib_ake_server_receive!(
             client_init,
             &alice_keys.public,
@@ -229,7 +275,9 @@ mod tests {
         let alice_keys = keypair(&mut rng).unwrap();
         let bob_keys = keypair(&mut rng).unwrap();
 
-        let client_init = kyberlib_ake_client_init!(&bob_keys.public, &mut rng).unwrap();
+        let client_init =
+            kyberlib_ake_client_init!(&bob_keys.public, &mut rng)
+                .unwrap();
         let server_send = kyberlib_ake_server_receive!(
             client_init,
             &alice_keys.public,
@@ -237,7 +285,8 @@ mod tests {
             &mut rng
         )
         .unwrap();
-        kyberlib_ake_client_confirm!(server_send, &alice_keys.secret).unwrap();
+        kyberlib_ake_client_confirm!(server_send, &alice_keys.secret)
+            .unwrap();
 
         assert_eq!(alice.shared_secret, bob.shared_secret);
     }

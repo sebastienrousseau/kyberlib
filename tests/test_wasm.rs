@@ -57,7 +57,8 @@ mod tests {
         let keys = keypair_result.unwrap();
 
         // Test encapsulation with valid input sizes
-        let result = encapsulate(&keys.public, &mut rand::rngs::OsRng {});
+        let result =
+            encapsulate(&keys.public, &mut rand::rngs::OsRng {});
         assert!(result.is_ok());
 
         // Test decapsulation with valid input sizes
@@ -69,7 +70,9 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_keys() {
         // Create a new Keys instance
-        let keys = Keys::new().unwrap_or_else(|_| panic!("Failed to create Keys instance"));
+        let keys = Keys::new().unwrap_or_else(|_| {
+            panic!("Failed to create Keys instance")
+        });
 
         // Ensure the public key and secret key have expected lengths
         assert_eq!(keys.pubkey().len(), KYBER_PUBLIC_KEY_BYTES);
@@ -96,8 +99,10 @@ mod tests {
         assert_eq!(kex.sharedSecret().len(), KYBER_SHARED_SECRET_BYTES);
 
         // Test the set_ciphertext and set_sharedSecret methods
-        let new_ct = vec![0u8; KYBER_CIPHERTEXT_BYTES].into_boxed_slice();
-        let new_ss = vec![0u8; KYBER_SHARED_SECRET_BYTES].into_boxed_slice();
+        let new_ct =
+            vec![0u8; KYBER_CIPHERTEXT_BYTES].into_boxed_slice();
+        let new_ss =
+            vec![0u8; KYBER_SHARED_SECRET_BYTES].into_boxed_slice();
         kex.set_ciphertext(new_ct.clone());
         kex.set_sharedSecret(new_ss.clone());
         assert_eq!(kex.ciphertext(), new_ct);
@@ -128,6 +133,9 @@ mod tests {
         assert_eq!(Params::publicKeyBytes(), KYBER_PUBLIC_KEY_BYTES);
         assert_eq!(Params::secretKeyBytes(), KYBER_SECRET_KEY_BYTES);
         assert_eq!(Params::ciphertextBytes(), KYBER_CIPHERTEXT_BYTES);
-        assert_eq!(Params::sharedSecretBytes(), KYBER_SHARED_SECRET_BYTES);
+        assert_eq!(
+            Params::sharedSecretBytes(),
+            KYBER_SHARED_SECRET_BYTES
+        );
     }
 }

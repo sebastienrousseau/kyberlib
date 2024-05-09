@@ -1,5 +1,8 @@
 use crate::rng::randombytes;
-use crate::{params::*, poly::*, polyvec::*, symmetric::*, CryptoRng, KyberLibError, RngCore};
+use crate::{
+    params::*, poly::*, polyvec::*, symmetric::*, CryptoRng,
+    KyberLibError, RngCore,
+};
 
 /// Name:  pack_pk
 ///
@@ -13,7 +16,8 @@ use crate::{params::*, poly::*, polyvec::*, symmetric::*, CryptoRng, KyberLibErr
 fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
     const END: usize = KYBER_SYM_BYTES + KYBER_POLYVECBYTES;
     polyvec_tobytes(r, pk);
-    r[KYBER_POLYVECBYTES..END].copy_from_slice(&seed[..KYBER_SYM_BYTES]);
+    r[KYBER_POLYVECBYTES..END]
+        .copy_from_slice(&seed[..KYBER_SYM_BYTES]);
 }
 
 /// Name:  unpack_pk
@@ -27,7 +31,8 @@ fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
 fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
     const END: usize = KYBER_SYM_BYTES + KYBER_POLYVECBYTES;
     polyvec_frombytes(pk, packedpk);
-    seed[..KYBER_SYM_BYTES].copy_from_slice(&packedpk[KYBER_POLYVECBYTES..END]);
+    seed[..KYBER_SYM_BYTES]
+        .copy_from_slice(&packedpk[KYBER_POLYVECBYTES..END]);
 }
 
 /// Name:  pack_sk
@@ -88,13 +93,20 @@ fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8]) {
 ///  - usize buflen:  length of input buffer in bytes
 ///
 /// Returns number of sampled 16-bit integers (at most len)
-fn rej_uniform(r: &mut [i16], len: usize, buf: &[u8], buflen: usize) -> usize {
+fn rej_uniform(
+    r: &mut [i16],
+    len: usize,
+    buf: &[u8],
+    buflen: usize,
+) -> usize {
     let (mut ctr, mut pos) = (0usize, 0usize);
     let (mut val0, mut val1);
 
     while ctr < len && pos + 3 <= buflen {
         val0 = ((buf[pos]) as u16 | (buf[pos + 1] as u16) << 8) & 0xFFF;
-        val1 = ((buf[pos + 1] >> 4) as u16 | (buf[pos + 2] as u16) << 4) & 0xFFF;
+        val1 = ((buf[pos + 1] >> 4) as u16
+            | (buf[pos + 2] as u16) << 4)
+            & 0xFFF;
         pos += 3;
 
         if val0 < KYBER_Q as u16 {
@@ -130,13 +142,16 @@ fn gen_at(a: &mut [Polyvec], b: &[u8]) {
 fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
     let mut ctr;
     const GEN_MATRIX_NBLOCKS: usize =
-        (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES;
+        (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES)
+            / XOF_BLOCKBYTES;
     let mut buf = [0u8; GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES + 2];
     let mut buflen: usize;
     let mut off: usize;
     let mut state = XofState::new();
 
-    for (i, item) in a.iter_mut().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, item) in
+        a.iter_mut().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         for j in 0..KYBER_SECURITY_PARAMETER {
             if transposed {
                 xof_absorb(&mut state, seed, i as u8, j as u8);
@@ -145,7 +160,12 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
             }
             xof_squeezeblocks(&mut buf, GEN_MATRIX_NBLOCKS, &mut state);
             buflen = GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES;
-            ctr = rej_uniform(&mut item.vec[j].coeffs, KYBER_N, &buf, buflen);
+            ctr = rej_uniform(
+                &mut item.vec[j].coeffs,
+                KYBER_N,
+                &buf,
+                buflen,
+            );
 
             while ctr < KYBER_N {
                 off = buflen % 3;
@@ -154,7 +174,12 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
                 }
                 xof_squeezeblocks(&mut buf[off..], 1, &mut state);
                 buflen = off + XOF_BLOCKBYTES;
-                ctr += rej_uniform(&mut item.vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, buflen);
+                ctr += rej_uniform(
+                    &mut item.vec[j].coeffs[ctr..],
+                    KYBER_N - ctr,
+                    &buf,
+                    buflen,
+                );
             }
         }
     }
@@ -177,7 +202,8 @@ where
     R: CryptoRng + RngCore,
 {
     let mut a = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
-    let (mut e, mut pkpv, mut skpv) = (Polyvec::new(), Polyvec::new(), Polyvec::new());
+    let (mut e, mut pkpv, mut skpv) =
+        (Polyvec::new(), Polyvec::new(), Polyvec::new());
     let mut nonce = 0u8;
     let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
     let mut randbuf = [0u8; 2 * KYBER_SYM_BYTES];
@@ -193,11 +219,15 @@ where
     let (publicseed, noiseseed) = buf.split_at(KYBER_SYM_BYTES);
     gen_a(&mut a, publicseed);
 
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         poly_getnoise_eta1(&mut skpv.vec[i], noiseseed, nonce);
         nonce += 1;
     }
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         poly_getnoise_eta1(&mut e.vec[i], noiseseed, nonce);
         nonce += 1;
     }
@@ -206,7 +236,9 @@ where
     polyvec_ntt(&mut e);
 
     // matrix-vector multiplication
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         polyvec_basemul_acc_montgomery(&mut pkpv.vec[i], &a[i], &skpv);
         poly_tomont(&mut pkpv.vec[i]);
     }
@@ -228,7 +260,12 @@ where
 ///  - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLICKEYBYTES)
 ///  - const [u8] coin: input random coins used as seed (length KYBER_SYM_BYTES)
 ///      to deterministically generate all randomness
-pub(crate) fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
+pub(crate) fn indcpa_enc(
+    c: &mut [u8],
+    m: &[u8],
+    pk: &[u8],
+    coins: &[u8],
+) {
     let mut at = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
     let (mut sp, mut pkpv, mut ep, mut b) = (
         Polyvec::new(),
@@ -236,7 +273,8 @@ pub(crate) fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
         Polyvec::new(),
         Polyvec::new(),
     );
-    let (mut v, mut k, mut epp) = (Poly::new(), Poly::new(), Poly::new());
+    let (mut v, mut k, mut epp) =
+        (Poly::new(), Poly::new(), Poly::new());
     let mut seed = [0u8; KYBER_SYM_BYTES];
     let mut nonce = 0u8;
 
@@ -244,11 +282,15 @@ pub(crate) fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
     poly_frommsg(&mut k, m);
     gen_at(&mut at, &seed);
 
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         poly_getnoise_eta1(&mut sp.vec[i], coins, nonce);
         nonce += 1;
     }
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         poly_getnoise_eta2(&mut ep.vec[i], coins, nonce);
         nonce += 1;
     }
@@ -257,7 +299,9 @@ pub(crate) fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
     polyvec_ntt(&mut sp);
 
     // matrix-vector multiplication
-    for (i, _item) in a.iter().enumerate().take(KYBER_SECURITY_PARAMETER) {
+    for (i, _item) in
+        a.iter().enumerate().take(KYBER_SECURITY_PARAMETER)
+    {
         polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
     }
 

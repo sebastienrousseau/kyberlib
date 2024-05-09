@@ -42,7 +42,9 @@ mod tests {
     fn test_xof_absorb_squeeze() {
         use kyberlib::params::KYBER_SYM_BYTES;
         use kyberlib::symmetric::KeccakState;
-        use kyberlib::symmetric::{kyber_shake128_absorb, kyber_shake128_squeezeblocks};
+        use kyberlib::symmetric::{
+            kyber_shake128_absorb, kyber_shake128_squeezeblocks,
+        };
 
         const SHAKE128_RATE: usize = 168;
 
@@ -101,7 +103,9 @@ mod tests {
     fn test_kyber_shake128_absorb_squeeze() {
         use kyberlib::params::KYBER_SYM_BYTES;
         use kyberlib::symmetric::KeccakState;
-        use kyberlib::symmetric::{kyber_shake128_absorb, kyber_shake128_squeezeblocks};
+        use kyberlib::symmetric::{
+            kyber_shake128_absorb, kyber_shake128_squeezeblocks,
+        };
 
         const SHAKE128_RATE: usize = 168;
 

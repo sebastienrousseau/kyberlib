@@ -202,13 +202,18 @@ pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
 pub use params::{
-    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
-    KYBER_SECURITY_PARAMETER, KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
+    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES, KYBER_SECURITY_PARAMETER,
+    KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
 
 // Feature hack to expose private functions for the Known Answer Tests
 // and fuzzing. Will fail to compile if used outside `cargo test` or
 // the fuzz binaries.
-#[cfg(any(KYBER_SECURITY_PARAMETERat, fuzzing, feature = "benchmarking"))]
+#[cfg(any(
+    KYBER_SECURITY_PARAMETERat,
+    fuzzing,
+    feature = "benchmarking"
+))]
 pub use kem::*;

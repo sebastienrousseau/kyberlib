@@ -11,7 +11,9 @@ use crate::{fips202::*, params::*};
 use sha2::{Digest, Sha256, Sha512};
 
 #[cfg(feature = "90s-fixslice")]
-use aes::cipher::{generic_array::GenericArray, KeyIvInit, StreamCipher};
+use aes::cipher::{
+    generic_array::GenericArray, KeyIvInit, StreamCipher,
+};
 #[cfg(feature = "90s-fixslice")]
 type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
 
@@ -111,13 +113,21 @@ pub fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
 
 /// Squeezes XOF data into output in non-90s mode
 #[cfg(not(feature = "90s"))]
-pub fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
+pub fn xof_squeezeblocks(
+    out: &mut [u8],
+    outblocks: usize,
+    state: &mut XofState,
+) {
     kyber_shake128_squeezeblocks(out, outblocks, state);
 }
 
 /// Squeezes XOF data into output in 90s mode
 #[cfg(feature = "90s")]
-pub fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
+pub fn xof_squeezeblocks(
+    out: &mut [u8],
+    outblocks: usize,
+    state: &mut XofState,
+) {
     aes256ctr_squeezeblocks(out, outblocks, state);
 }
 
@@ -162,7 +172,12 @@ pub fn kdf(out: &mut [u8], input: &[u8], inlen: usize) {
 
 /// Absorb step of the SHAKE128 specialized for the Kyber context
 #[cfg(not(feature = "90s"))]
-pub fn kyber_shake128_absorb(s: &mut KeccakState, input: &[u8], x: u8, y: u8) {
+pub fn kyber_shake128_absorb(
+    s: &mut KeccakState,
+    input: &[u8],
+    x: u8,
+    y: u8,
+) {
     let mut extseed = [0u8; KYBER_SYM_BYTES + 2];
     extseed[..KYBER_SYM_BYTES].copy_from_slice(input);
     extseed[KYBER_SYM_BYTES] = x;
@@ -172,13 +187,22 @@ pub fn kyber_shake128_absorb(s: &mut KeccakState, input: &[u8], x: u8, y: u8) {
 
 /// Squeeze step of SHAKE128 XOF in non-90s mode
 #[cfg(not(feature = "90s"))]
-pub fn kyber_shake128_squeezeblocks(output: &mut [u8], nblocks: usize, s: &mut KeccakState) {
+pub fn kyber_shake128_squeezeblocks(
+    output: &mut [u8],
+    nblocks: usize,
+    s: &mut KeccakState,
+) {
     shake128_squeezeblocks(output, nblocks, s);
 }
 
 /// Usage of SHAKE256 as a PRF in non-90s mode
 #[cfg(not(feature = "90s"))]
-pub fn shake256_prf(output: &mut [u8], outlen: usize, key: &[u8], nonce: u8) {
+pub fn shake256_prf(
+    output: &mut [u8],
+    outlen: usize,
+    key: &[u8],
+    nonce: u8,
+) {
     let mut extkey = [0u8; KYBER_SYM_BYTES + 1];
     extkey[..KYBER_SYM_BYTES].copy_from_slice(key);
     extkey[KYBER_SYM_BYTES] = nonce;

@@ -57,7 +57,9 @@ mod tests {
             assert!(cfg!(feature = "std"));
         }
         #[test]
-        #[should_panic(expected = "Only one security level can be specified")]
+        #[should_panic(
+            expected = "Only one security level can be specified"
+        )]
         #[cfg(all(feature = "kyber512", feature = "kyber1024"))]
         fn test_invalid_feature_combination() {
             // This test should panic with the expected error message
@@ -87,8 +89,10 @@ mod tests {
             let mut rng = StdRng::from_seed([0u8; 32]);
             let keys = keypair(&mut rng).unwrap();
 
-            let (ciphertext, shared_secret_alice) = encapsulate(&keys.public, &mut rng).unwrap();
-            let shared_secret_bob = decapsulate(&ciphertext, &keys.secret).unwrap();
+            let (ciphertext, shared_secret_alice) =
+                encapsulate(&keys.public, &mut rng).unwrap();
+            let shared_secret_bob =
+                decapsulate(&ciphertext, &keys.secret).unwrap();
 
             assert_eq!(shared_secret_alice, shared_secret_bob);
         }
@@ -110,7 +114,8 @@ mod tests {
 
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
 
             let server_send = bob
                 .server_receive(client_init, &bob_keys.secret, &mut rng)
@@ -139,10 +144,16 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
 
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -166,9 +177,13 @@ mod tests {
             let mut rng = StdRng::from_seed([0u8; 32]);
             let keys = keypair(&mut rng).unwrap();
 
-            let invalid_ciphertext = vec![0u8; KYBER_CIPHERTEXT_BYTES - 1];
+            let invalid_ciphertext =
+                vec![0u8; KYBER_CIPHERTEXT_BYTES - 1];
             let result = decapsulate(&invalid_ciphertext, &keys.secret);
-            assert_eq!(result.unwrap_err(), KyberLibError::InvalidInput);
+            assert_eq!(
+                result.unwrap_err(),
+                KyberLibError::InvalidInput
+            );
         }
 
         #[test]
@@ -181,8 +196,10 @@ mod tests {
             let mut rng = StdRng::from_seed([0u8; 32]);
             let keys = keypair(&mut rng).unwrap();
 
-            let (ciphertext, shared_secret_alice) = encapsulate(&keys.public, &mut rng).unwrap();
-            let shared_secret_bob = decapsulate(&ciphertext, &keys.secret).unwrap();
+            let (ciphertext, shared_secret_alice) =
+                encapsulate(&keys.public, &mut rng).unwrap();
+            let shared_secret_bob =
+                decapsulate(&ciphertext, &keys.secret).unwrap();
 
             assert_eq!(shared_secret_alice, shared_secret_bob);
         }
@@ -198,9 +215,13 @@ mod tests {
 
             let mut rng = StdRng::from_seed([0u8; 32]);
 
-            let invalid_public_key = vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1];
+            let invalid_public_key =
+                vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1];
             let result = encapsulate(&invalid_public_key, &mut rng);
-            assert_eq!(result.unwrap_err(), KyberLibError::InvalidInput);
+            assert_eq!(
+                result.unwrap_err(),
+                KyberLibError::InvalidInput
+            );
         }
         #[test]
         // Test invalid input secret key with encapsulate function
@@ -213,9 +234,13 @@ mod tests {
 
             let mut rng = StdRng::from_seed([0u8; 32]);
 
-            let invalid_secret_key = vec![0u8; KYBER_SECRET_KEY_BYTES - 1];
+            let invalid_secret_key =
+                vec![0u8; KYBER_SECRET_KEY_BYTES - 1];
             let result = encapsulate(&invalid_secret_key, &mut rng);
-            assert_eq!(result.unwrap_err(), KyberLibError::InvalidInput);
+            assert_eq!(
+                result.unwrap_err(),
+                KyberLibError::InvalidInput
+            );
         }
         #[test]
         // Test invalid input secret key with decapsulate function
@@ -225,9 +250,16 @@ mod tests {
             use kyberlib::KYBER_CIPHERTEXT_BYTES;
             use kyberlib::KYBER_SECRET_KEY_BYTES;
 
-            let invalid_secret_key = vec![0u8; KYBER_SECRET_KEY_BYTES - 1];
-            let result = decapsulate(&vec![0u8; KYBER_CIPHERTEXT_BYTES], &invalid_secret_key);
-            assert_eq!(result.unwrap_err(), KyberLibError::InvalidInput);
+            let invalid_secret_key =
+                vec![0u8; KYBER_SECRET_KEY_BYTES - 1];
+            let result = decapsulate(
+                &vec![0u8; KYBER_CIPHERTEXT_BYTES],
+                &invalid_secret_key,
+            );
+            assert_eq!(
+                result.unwrap_err(),
+                KyberLibError::InvalidInput
+            );
         }
         #[test]
         // Test invalid input ciphertext with decapsulate function
@@ -237,9 +269,16 @@ mod tests {
             use kyberlib::KyberLibError;
             use kyberlib::KYBER_CIPHERTEXT_BYTES;
 
-            let invalid_ciphertext = vec![0u8; KYBER_CIPHERTEXT_BYTES - 1];
-            let result = decapsulate(&invalid_ciphertext, &vec![0u8; KYBER_SECRET_KEY_BYTES]);
-            assert_eq!(result.unwrap_err(), KyberLibError::InvalidInput);
+            let invalid_ciphertext =
+                vec![0u8; KYBER_CIPHERTEXT_BYTES - 1];
+            let result = decapsulate(
+                &invalid_ciphertext,
+                &vec![0u8; KYBER_SECRET_KEY_BYTES],
+            );
+            assert_eq!(
+                result.unwrap_err(),
+                KyberLibError::InvalidInput
+            );
         }
         #[test]
         // Test UAKE with invalid public key
@@ -256,7 +295,8 @@ mod tests {
 
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
                 .server_receive(client_init, &bob_keys.secret, &mut rng)
                 .unwrap();
@@ -278,7 +318,8 @@ mod tests {
 
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
                 .server_receive(client_init, &bob_keys.secret, &mut rng)
                 .unwrap();
@@ -301,9 +342,15 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -326,9 +373,15 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -351,9 +404,15 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -376,9 +435,15 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -401,9 +466,15 @@ mod tests {
             let alice_keys = keypair(&mut rng).unwrap();
             let bob_keys = keypair(&mut rng).unwrap();
 
-            let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+            let client_init =
+                alice.client_init(&bob_keys.public, &mut rng).unwrap();
             let server_send = bob
-                .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+                .server_receive(
+                    client_init,
+                    &alice_keys.public,
+                    &bob_keys.secret,
+                    &mut rng,
+                )
                 .unwrap();
 
             alice
@@ -429,13 +500,17 @@ mod tests {
     #[test]
     // Test decapsulate with invalid secret key length
     fn test_decapsulate_invalid_secret_key_length() {
-        use kyberlib::{decapsulate, encapsulate, keypair, KyberLibError, KYBER_SECRET_KEY_BYTES};
+        use kyberlib::{
+            decapsulate, encapsulate, keypair, KyberLibError,
+            KYBER_SECRET_KEY_BYTES,
+        };
         use rand::rngs::StdRng;
         use rand::SeedableRng;
 
         let mut rng = StdRng::from_seed([0u8; 32]);
         let keys = keypair(&mut rng).unwrap();
-        let (ciphertext, _) = encapsulate(&keys.public, &mut rng).unwrap();
+        let (ciphertext, _) =
+            encapsulate(&keys.public, &mut rng).unwrap();
 
         let invalid_secret_key = vec![0u8; KYBER_SECRET_KEY_BYTES - 1];
         let result = decapsulate(&ciphertext, &invalid_secret_key);
@@ -444,7 +519,9 @@ mod tests {
     #[test]
     // Test encapsulate with invalid secret key length
     fn test_encapsulate_invalid_public_key_length() {
-        use kyberlib::{encapsulate, KyberLibError, KYBER_PUBLIC_KEY_BYTES};
+        use kyberlib::{
+            encapsulate, KyberLibError, KYBER_PUBLIC_KEY_BYTES,
+        };
         use rand::rngs::StdRng;
         use rand::SeedableRng;
 
@@ -468,10 +545,16 @@ mod tests {
         let alice_keys = keypair(&mut rng).unwrap();
         let bob_keys = keypair(&mut rng).unwrap();
 
-        let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
+        let client_init =
+            alice.client_init(&bob_keys.public, &mut rng).unwrap();
 
         let server_send = bob
-            .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
+            .server_receive(
+                client_init,
+                &alice_keys.public,
+                &bob_keys.secret,
+                &mut rng,
+            )
             .unwrap();
 
         alice

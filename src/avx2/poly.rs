@@ -1,8 +1,12 @@
 #![allow(unused_imports)]
-use crate::{align::*, cbd::*, consts::*, fips202::*, fips202x4::*, params::*, symmetric::*};
+use crate::{
+    align::*, cbd::*, consts::*, fips202::*, fips202x4::*, params::*,
+    symmetric::*,
+};
 use core::arch::x86_64::*;
 
-pub const NOISE_NBLOCKS: usize = (KYBER_ETA1 * KYBER_N / 4 + SHAKE256_RATE - 1) / SHAKE256_RATE;
+pub const NOISE_NBLOCKS: usize =
+    (KYBER_ETA1 * KYBER_N / 4 + SHAKE256_RATE - 1) / SHAKE256_RATE;
 
 #[derive(Clone)]
 #[repr(C)]
@@ -33,14 +37,19 @@ extern "C" {
     );
     fn tomont_avx(r: &mut [i16; KYBER_N], q_data: &[i16; 640]);
     fn reduce_avx(r: &mut [i16; KYBER_N], q_data: &[i16; 640]);
-    fn ntttobytes_avx(r: *mut u8, a: &[i16; KYBER_N], q_data: &[i16; 640]);
+    fn ntttobytes_avx(
+        r: *mut u8,
+        a: &[i16; KYBER_N],
+        q_data: &[i16; 640],
+    );
     fn nttfrombytes_avx(r: *mut i16, a: *const u8, q_data: &[i16; 640]);
 }
 
 #[cfg(any(feature = "kyber512", not(feature = "kyber1024")))]
 pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
     let (mut f0, mut f1, mut f2, mut f3);
-    let v: __m256i = _mm256_load_si256(QDATA.vec[_16XV / 16..].as_ptr());
+    let v: __m256i =
+        _mm256_load_si256(QDATA.vec[_16XV / 16..].as_ptr());
     let shift1: __m256i = _mm256_set1_epi16(1 << 9);
     let mask: __m256i = _mm256_set1_epi16(15);
     let shift2: __m256i = _mm256_set1_epi16((16 << 8) + 1);
@@ -69,17 +78,21 @@ pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
         f2 = _mm256_maddubs_epi16(f2, shift2);
         f0 = _mm256_packus_epi16(f0, f2);
         f0 = _mm256_permutevar8x32_epi32(f0, permdidx);
-        _mm256_storeu_si256(r[32 * i..].as_mut_ptr() as *mut __m256i, f0);
+        _mm256_storeu_si256(
+            r[32 * i..].as_mut_ptr() as *mut __m256i,
+            f0,
+        );
     }
 }
 
 #[cfg(any(feature = "kyber512", not(feature = "kyber1024")))]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) {
     let (mut t, mut f);
-    let q: __m256i = _mm256_load_si256(QDATA.vec[_16XQ / 16..].as_ptr());
+    let q: __m256i =
+        _mm256_load_si256(QDATA.vec[_16XQ / 16..].as_ptr());
     let shufbidx: __m256i = _mm256_set_epi8(
-        7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0,
-        0, 0,
+        7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2,
+        2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,
     );
     let mask: __m256i = _mm256_set1_epi32(0x00F0000F);
     let shift: __m256i = _mm256_set1_epi32((128 << 16) + 2048);
@@ -107,8 +120,8 @@ pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
     let shift3: __m256i = _mm256_set1_epi32((1024 << 16) + 1);
     let sllvdidx: __m256i = _mm256_set1_epi64x(12);
     let shufbidx: __m256i = _mm256_set_epi8(
-        8, -1, -1, -1, -1, -1, 4, 3, 2, 1, 0, -1, 12, 11, 10, 9, -1, 12, 11, 10, 9, 8, -1, -1, -1,
-        -1, -1, 4, 3, 2, 1, 0,
+        8, -1, -1, -1, -1, -1, 4, 3, 2, 1, 0, -1, 12, 11, 10, 9, -1,
+        12, 11, 10, 9, 8, -1, -1, -1, -1, -1, 4, 3, 2, 1, 0,
     );
 
     for i in 0..(KYBER_N / 32) {
@@ -129,7 +142,10 @@ pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
         t0 = _mm256_castsi256_si128(f0);
         t1 = _mm256_extracti128_si256(f0, 1);
         t0 = _mm_blendv_epi8(t0, t1, _mm256_castsi256_si128(shufbidx));
-        _mm_storeu_si128(r[20 * i + 0..].as_mut_ptr() as *mut __m128i, t0);
+        _mm_storeu_si128(
+            r[20 * i + 0..].as_mut_ptr() as *mut __m128i,
+            t0,
+        );
         tmp = _mm_cvtsi128_si32(t1);
         r[20 * i + 16..20 * i + 20].copy_from_slice(&tmp.to_le_bytes());
     }
@@ -141,14 +157,16 @@ pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) {
 
     let q = _mm256_load_si256(&QDATA.vec[_16XQ / 16]);
     let shufbidx = _mm256_set_epi8(
-        9, 9, 9, 8, 8, 8, 8, 7, 7, 6, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 0,
-        0, 0,
+        9, 9, 9, 8, 8, 8, 8, 7, 7, 6, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3,
+        3, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0,
     );
     let mask = _mm256_set_epi16(
-        248, 1984, 62, 496, 3968, 124, 992, 31, 248, 1984, 62, 496, 3968, 124, 992, 31,
+        248, 1984, 62, 496, 3968, 124, 992, 31, 248, 1984, 62, 496,
+        3968, 124, 992, 31,
     );
     let shift = _mm256_set_epi16(
-        128, 16, 512, 64, 8, 256, 32, 1024, 128, 16, 512, 64, 8, 256, 32, 1024,
+        128, 16, 512, 64, 8, 256, 32, 1024, 128, 16, 512, 64, 8, 256,
+        32, 1024,
     );
 
     for i in 0..KYBER_N / 16 {
@@ -166,7 +184,11 @@ pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) {
 
 pub fn poly_frombytes(r: &mut Poly, a: &[u8]) {
     unsafe {
-        nttfrombytes_avx(r.coeffs.as_mut_ptr(), a.as_ptr(), &QDATA.coeffs);
+        nttfrombytes_avx(
+            r.coeffs.as_mut_ptr(),
+            a.as_ptr(),
+            &QDATA.coeffs,
+        );
     }
 }
 
@@ -246,7 +268,10 @@ pub fn poly_tomsg(msg: &mut [u8], a: Poly) {
     }
 }
 
-#[cfg(all(any(feature = "kyber1024", feature = "kyber512"), not(feature = "90s")))]
+#[cfg(all(
+    any(feature = "kyber1024", feature = "kyber512"),
+    not(feature = "90s")
+))]
 pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8) {
     let mut buf = Eta2Buf::new();
     unsafe {

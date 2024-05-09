@@ -62,7 +62,10 @@ mod tests {
     #[test]
     fn test_kyber_polyveccompressedbytes() {
         // Test KYBER_POLYVECCOMPRESSEDBYTES for non-kyber1024
-        assert_eq!(KYBER_POLYVECCOMPRESSEDBYTES, KYBER_SECURITY_PARAMETER * 320);
+        assert_eq!(
+            KYBER_POLYVECCOMPRESSEDBYTES,
+            KYBER_SECURITY_PARAMETER * 320
+        );
     }
 
     #[test]
@@ -78,7 +81,9 @@ mod tests {
         // Test KYBER_SECRET_KEY_BYTES
         assert_eq!(
             KYBER_SECRET_KEY_BYTES,
-            KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYM_BYTES
+            KYBER_INDCPA_SECRETKEYBYTES
+                + KYBER_INDCPA_PUBLICKEYBYTES
+                + 2 * KYBER_SYM_BYTES
         );
     }
 
@@ -119,7 +124,10 @@ mod tests {
     #[test]
     fn test_kyber_polyveccompressedbytes_kyber1024() {
         // Test KYBER_POLYVECCOMPRESSEDBYTES for kyber1024
-        assert_eq!(KYBER_POLYVECCOMPRESSEDBYTES, KYBER_SECURITY_PARAMETER * 352);
+        assert_eq!(
+            KYBER_POLYVECCOMPRESSEDBYTES,
+            KYBER_SECURITY_PARAMETER * 352
+        );
     }
 
     // Test Kyber parameters related to indcpa

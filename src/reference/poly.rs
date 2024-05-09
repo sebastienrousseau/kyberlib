@@ -41,7 +41,9 @@ pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
                     // map to positive standard representatives
                     u = a.coeffs[8 * i + j];
                     u += (u >> 15) & KYBER_Q as i16;
-                    t[j] = (((((u as u16) << 4) + KYBER_Q as u16 / 2) / KYBER_Q as u16) & 15) as u8;
+                    t[j] = (((((u as u16) << 4) + KYBER_Q as u16 / 2)
+                        / KYBER_Q as u16)
+                        & 15) as u8;
                 }
                 r[k] = t[0] | (t[1] << 4);
                 r[k + 1] = t[2] | (t[3] << 4);
@@ -57,7 +59,9 @@ pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
                     // map to positive standard representatives
                     u = a.coeffs[8 * i + j];
                     u += (u >> 15) & KYBER_Q as i16;
-                    t[j] = (((((u as u32) << 5) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 31) as u8;
+                    t[j] = (((((u as u32) << 5) + KYBER_Q as u32 / 2)
+                        / KYBER_Q as u32)
+                        & 31) as u8;
                 }
                 r[k] = t[0] | (t[1] << 5);
                 r[k + 1] = (t[1] >> 3) | (t[2] << 2) | (t[3] << 7);
@@ -67,7 +71,9 @@ pub(crate) fn poly_compress(r: &mut [u8], a: Poly) {
                 k += 5;
             }
         }
-        _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be one of (128, 160)"),
+        _ => panic!(
+            "KYBER_POLYCOMPRESSEDBYTES needs to be one of (128, 160)"
+        ),
     }
 }
 
@@ -82,8 +88,12 @@ pub(crate) fn poly_decompress(r: &mut Poly, a: &[u8]) {
     match KYBER_POLYCOMPRESSEDBYTES {
         128 => {
             for (idx, i) in (0..KYBER_N / 2).enumerate() {
-                r.coeffs[2 * i] = ((((a[idx] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-                r.coeffs[2 * i + 1] = ((((a[idx] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
+                r.coeffs[2 * i] = ((((a[idx] & 15) as usize * KYBER_Q)
+                    + 8)
+                    >> 4) as i16;
+                r.coeffs[2 * i + 1] =
+                    ((((a[idx] >> 4) as usize * KYBER_Q) + 8) >> 4)
+                        as i16;
             }
         }
         160 => {
@@ -102,11 +112,14 @@ pub(crate) fn poly_decompress(r: &mut Poly, a: &[u8]) {
                 idx += 5;
                 for j in 0..8 {
                     r.coeffs[8 * i + j] =
-                        ((((t[j] as u32) & 31) * KYBER_Q as u32 + 16) >> 5) as i16;
+                        ((((t[j] as u32) & 31) * KYBER_Q as u32 + 16)
+                            >> 5) as i16;
                 }
             }
         }
-        _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be either (128, 160)"),
+        _ => panic!(
+            "KYBER_POLYCOMPRESSEDBYTES needs to be either (128, 160)"
+        ),
     }
 }
 
@@ -140,9 +153,12 @@ pub(crate) fn poly_tobytes(r: &mut [u8], a: Poly) {
 ///  - const [u8] a: input byte array (of KYBER_POLYBYTES bytes)
 pub(crate) fn poly_frombytes(r: &mut Poly, a: &[u8]) {
     for i in 0..(KYBER_N / 2) {
-        r.coeffs[2 * i] = ((a[3 * i]) as u16 | ((a[3 * i + 1] as u16) << 8) & 0xFFF) as i16;
-        r.coeffs[2 * i + 1] =
-            ((a[3 * i + 1] >> 4) as u16 | ((a[3 * i + 2] as u16) << 4) & 0xFFF) as i16;
+        r.coeffs[2 * i] = ((a[3 * i]) as u16
+            | ((a[3 * i + 1] as u16) << 8) & 0xFFF)
+            as i16;
+        r.coeffs[2 * i + 1] = ((a[3 * i + 1] >> 4) as u16
+            | ((a[3 * i + 2] as u16) << 4) & 0xFFF)
+            as i16;
     }
 }
 
@@ -294,7 +310,8 @@ pub(crate) fn poly_frommsg(r: &mut Poly, msg: &[u8]) {
     for i in 0..KYBER_N / 8 {
         for j in 0..8 {
             mask = ((msg[i] as u16 >> j) & 1).wrapping_neg();
-            r.coeffs[8 * i + j] = (mask & ((KYBER_Q + 1) / 2) as u16) as i16;
+            r.coeffs[8 * i + j] =
+                (mask & ((KYBER_Q + 1) / 2) as u16) as i16;
         }
     }
 }

@@ -5,11 +5,13 @@ use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
 use rand_core::{CryptoRng, RngCore};
 
 /// Unilateral Key Exchange Initiation Byte Length
-pub const UAKE_INIT_BYTES: usize = KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTES;
+pub const UAKE_INIT_BYTES: usize =
+    KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTES;
 /// Unilateral Key Exchange Response Byte Length
 pub const UAKE_RESPONSE_BYTES: usize = KYBER_CIPHERTEXT_BYTES;
 /// Mutual Key Exchange Initiation Byte Length
-pub const AKE_INIT_BYTES: usize = KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTES;
+pub const AKE_INIT_BYTES: usize =
+    KYBER_PUBLIC_KEY_BYTES + KYBER_CIPHERTEXT_BYTES;
 /// Mutual Key Exchange Response Byte Length
 pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXT_BYTES;
 
@@ -22,7 +24,8 @@ pub type Encapsulated = Result<
     KyberLibError,
 >;
 /// Decapsulated ciphertext
-pub type Decapsulated = Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
+pub type Decapsulated =
+    Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
 /// Kyber public key
 pub type PublicKey = [u8; KYBER_PUBLIC_KEY_BYTES];
 /// Kyber secret key
@@ -177,8 +180,16 @@ impl Uake {
     /// let client_confirm = alice.client_confirm(server_send)?;
     /// assert_eq!(alice.shared_secret, bob.shared_secret);
     /// # Ok(()) }
-    pub fn client_confirm(&mut self, send_b: UakeSendResponse) -> Result<(), KyberLibError> {
-        uake_shared_a(&mut self.shared_secret, &send_b, &self.temp_key, &self.eska)?;
+    pub fn client_confirm(
+        &mut self,
+        send_b: UakeSendResponse,
+    ) -> Result<(), KyberLibError> {
+        uake_shared_a(
+            &mut self.shared_secret,
+            &send_b,
+            &self.temp_key,
+            &self.eska,
+        )?;
         Ok(())
     }
 }
@@ -352,7 +363,13 @@ where
     R: CryptoRng + RngCore,
 {
     generate_key_pair(send, sk, rng, None)?;
-    encrypt_message(&mut send[KYBER_PUBLIC_KEY_BYTES..], tk, pkb, rng, None)?;
+    encrypt_message(
+        &mut send[KYBER_PUBLIC_KEY_BYTES..],
+        tk,
+        pkb,
+        rng,
+        None,
+    )?;
     Ok(())
 }
 
@@ -379,7 +396,12 @@ where
 }
 
 // Unilaterally authenticated key exchange computation by Alice
-fn uake_shared_a(k: &mut [u8], recv: &[u8], tk: &[u8], sk: &[u8]) -> Result<(), KyberLibError> {
+fn uake_shared_a(
+    k: &mut [u8],
+    recv: &[u8],
+    tk: &[u8],
+    sk: &[u8],
+) -> Result<(), KyberLibError> {
     let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
     decrypt_message(&mut buf, recv, sk);
     buf[KYBER_SYM_BYTES..].copy_from_slice(tk);
@@ -399,7 +421,13 @@ where
     R: CryptoRng + RngCore,
 {
     generate_key_pair(send, sk, rng, None)?;
-    encrypt_message(&mut send[KYBER_PUBLIC_KEY_BYTES..], tk, pkb, rng, None)?;
+    encrypt_message(
+        &mut send[KYBER_PUBLIC_KEY_BYTES..],
+        tk,
+        pkb,
+        rng,
+        None,
+    )?;
     Ok(())
 }
 

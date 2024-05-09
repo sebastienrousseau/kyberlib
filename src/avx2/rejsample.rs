@@ -2,8 +2,10 @@ use crate::{consts::*, params::*, symmetric::*};
 use core::arch::x86_64::*;
 
 pub const REJ_UNIFORM_AVX_NBLOCKS: usize =
-    (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES;
-const REJ_UNIFORM_AVX_BUFLEN: usize = REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES;
+    (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES)
+        / XOF_BLOCKBYTES;
+const REJ_UNIFORM_AVX_BUFLEN: usize =
+    REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES;
 
 pub unsafe fn _mm256_cmpge_epu16(a: __m256i, b: __m256i) -> __m256i {
     _mm256_cmpeq_epi16(_mm256_max_epu16(a, b), a)
@@ -25,12 +27,14 @@ pub unsafe fn rej_uniform_avx(r: &mut [i16], buf: &[u8]) -> usize {
     let ones = _mm256_set1_epi8(1);
     let mask = _mm256_set1_epi16(0xFFF);
     let idx8 = _mm256_set_epi8(
-        15, 14, 14, 13, 12, 11, 11, 10, 9, 8, 8, 7, 6, 5, 5, 4, 11, 10, 10, 9, 8, 7, 7, 6, 5, 4, 4,
-        3, 2, 1, 1, 0,
+        15, 14, 14, 13, 12, 11, 11, 10, 9, 8, 8, 7, 6, 5, 5, 4, 11, 10,
+        10, 9, 8, 7, 7, 6, 5, 4, 4, 3, 2, 1, 1, 0,
     );
     while ctr <= KYBER_N - 32 && pos <= REJ_UNIFORM_AVX_BUFLEN - 48 {
         f0 = _mm256_loadu_si256(buf[pos..].as_ptr() as *const __m256i);
-        f1 = _mm256_loadu_si256(buf[pos + 24..].as_ptr() as *const __m256i);
+        f1 = _mm256_loadu_si256(
+            buf[pos + 24..].as_ptr() as *const __m256i
+        );
         f0 = _mm256_permute4x64_epi64(f0, 0x94);
         f1 = _mm256_permute4x64_epi64(f1, 0x94);
         f0 = _mm256_shuffle_epi8(f0, idx8);
@@ -49,14 +53,22 @@ pub unsafe fn rej_uniform_avx(r: &mut [i16], buf: &[u8]) -> usize {
         g0 = _mm256_packs_epi16(g0, g1);
         good = _mm256_movemask_epi8(g0) as usize;
 
-        let mut l0 = _mm_loadl_epi64(IDX[(good >> 0) & 0xFF].as_ptr() as *const __m128i);
+        let mut l0 = _mm_loadl_epi64(
+            IDX[(good >> 0) & 0xFF].as_ptr() as *const __m128i
+        );
         g0 = _mm256_castsi128_si256(l0);
-        let mut l1 = _mm_loadl_epi64(IDX[(good >> 8) & 0xFF].as_ptr() as *const __m128i);
+        let mut l1 = _mm_loadl_epi64(
+            IDX[(good >> 8) & 0xFF].as_ptr() as *const __m128i
+        );
         g1 = _mm256_castsi128_si256(l1);
 
-        l0 = _mm_loadl_epi64(IDX[(good >> 16) & 0xFF].as_ptr() as *const __m128i);
+        l0 = _mm_loadl_epi64(
+            IDX[(good >> 16) & 0xFF].as_ptr() as *const __m128i
+        );
         g0 = _mm256_inserti128_si256(g0, l0, 1);
-        l1 = _mm_loadl_epi64(IDX[(good >> 24) & 0xFF].as_ptr() as *const __m128i);
+        l1 = _mm_loadl_epi64(
+            IDX[(good >> 24) & 0xFF].as_ptr() as *const __m128i
+        );
         g1 = _mm256_inserti128_si256(g1, l1, 1);
 
         g2 = _mm256_add_epi8(g0, ones);
@@ -101,7 +113,8 @@ pub unsafe fn rej_uniform_avx(r: &mut [i16], buf: &[u8]) -> usize {
         good = _mm_movemask_epi8(t) as usize;
 
         let good = _pext_u32(good as u32, 0x5555) as usize;
-        pilo = _mm_loadl_epi64(IDX[good][..].as_ptr() as *const __m128i);
+        pilo =
+            _mm_loadl_epi64(IDX[good][..].as_ptr() as *const __m128i);
         pihi = _mm_add_epi8(pilo, _mm256_castsi256_si128(ones));
         pilo = _mm_unpacklo_epi8(pilo, pihi);
         f = _mm_shuffle_epi8(f, pilo);
@@ -110,8 +123,10 @@ pub unsafe fn rej_uniform_avx(r: &mut [i16], buf: &[u8]) -> usize {
     }
 
     while ctr < KYBER_N && pos <= REJ_UNIFORM_AVX_BUFLEN - 3 {
-        val0 = (buf[pos + 0] >> 0) as u16 | ((buf[pos + 1] as u16) << 8) & 0xFFF;
-        val1 = (buf[pos + 1] >> 4) as u16 | ((buf[pos + 2] as u16) << 4);
+        val0 = (buf[pos + 0] >> 0) as u16
+            | ((buf[pos + 1] as u16) << 8) & 0xFFF;
+        val1 =
+            (buf[pos + 1] >> 4) as u16 | ((buf[pos + 2] as u16) << 4);
         pos += 3;
 
         if (val0 as usize) < KYBER_Q {
