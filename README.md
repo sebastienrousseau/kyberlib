@@ -87,7 +87,7 @@ To use the `kyberlib` library in your project, add the following to your
 
 ```toml
 [dependencies]
-kyberlib = "0.0.5"
+kyberlib = "0.0.6"
 ```
 
 Add the following to your `main.rs` file:
@@ -310,6 +310,6 @@ providing a lot of useful suggestions on how to improve this project.
 [codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/kyberlib?style=for-the-badge&token=oEisyTucB5 'Codecov'
 [divider]: https://kura.pro/common/images/elements/divider.svg "divider"
 [docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs'
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.5-orange.svg?style=for-the-badge 'Lib.rs'
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.6-orange.svg?style=for-the-badge 'Lib.rs'
 [license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License'
 [made-with-rust]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust'

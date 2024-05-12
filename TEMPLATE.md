@@ -52,7 +52,7 @@ A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography
 [crates-badge]: https://img.shields.io/crates/v/kyberlib.svg?style=for-the-badge 'Crates.io badge'
 [divider]: https://via.placeholder.com/1024x1.png/d8dee4/FFFFFF?text=− "kyberlib's divider"
 [docs-badge]: https://img.shields.io/docsrs/kyberlib.svg?style=for-the-badge 'Docs.rs badge'
-[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.5-orange.svg?style=for-the-badge 'Lib.rs badge'
+[libs-badge]: https://img.shields.io/badge/lib.rs-v0.0.6-orange.svg?style=for-the-badge 'Lib.rs badge'
 [license-badge]: https://img.shields.io/crates/l/kyberlib.svg?style=for-the-badge 'License badge'
 [made-with-rust-badge]: https://img.shields.io/badge/rust-f04041?style=for-the-badge&labelColor=c0282d&logo=rust 'Made With Rust badge'
 
