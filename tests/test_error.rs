@@ -34,6 +34,11 @@ fn test_kyber_lib_error_display() {
         error.to_string(),
         "The secret and public key given does not match."
     );
+    let error = KyberLibError::InvalidLength;
+    assert_eq!(
+        error.to_string(),
+        "The length of the input buffer is invalid."
+    );
 }
 
 #[test]
@@ -52,6 +57,10 @@ fn test_kyber_lib_error_partial_eq() {
 
     let error1 = KyberLibError::InvalidKey;
     let error2 = KyberLibError::InvalidKey;
+    assert_eq!(error1, error2);
+
+    let error1 = KyberLibError::InvalidLength;
+    let error2 = KyberLibError::InvalidLength;
     assert_eq!(error1, error2);
 
     let error1 = KyberLibError::InvalidInput;
