@@ -29,15 +29,17 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
         let mut idx = 0usize;
         for i in 0..KYBER_SECURITY_PARAMETER {
             for j in 0..KYBER_N / 8 {
-                for k in 0..8 {
-                    t[k] = a.vec[i].coeffs[8 * j + k] as u16;
-                    t[k] = t[k].wrapping_add(
-                        (((t[k] as i16) >> 15) & KYBER_Q as i16) as u16,
+                for (k, t_k) in t.iter_mut().enumerate() {
+                    *t_k = a.vec[i].coeffs[8 * j + k] as u16;
+                    *t_k = t_k.wrapping_add(
+                        ((((*t_k as i16) >> 15) & KYBER_Q as i16)
+                            as u16),
                     );
-                    t[k] = (((((t[k] as u32) << 11)
-                        + KYBER_Q as u32 / 2)
-                        / KYBER_Q as u32)
-                        & 0x7ff) as u16;
+                    let mut tmp: u64 =
+                        ((*t_k as u64) << 11) + (KYBER_Q as u64 / 2);
+                    tmp *= 20642679;
+                    tmp >>= 36;
+                    *t_k = (tmp as u16) & 0x7ff;
                 }
                 r[idx] = (t[0]) as u8;
                 r[idx + 1] = ((t[0] >> 8) | (t[1] << 3)) as u8;
@@ -61,16 +63,16 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
         let mut idx = 0usize;
         for i in 0..KYBER_SECURITY_PARAMETER {
             for j in 0..KYBER_N / 4 {
-                for (k, item) in t.iter_mut().enumerate() {
-                    *item = a.vec[i].coeffs[4 * j + k] as u16;
-                    *item = item.wrapping_add(
-                        (((*item as i16) >> 15) & KYBER_Q as i16)
-                            as u16,
+                for (k, t_k) in t.iter_mut().enumerate() {
+                    *t_k = a.vec[i].coeffs[4 * j + k] as u16;
+                    *t_k = t_k.wrapping_add(
+                        (((*t_k as i16) >> 15) & KYBER_Q as i16) as u16,
                     );
-                    *item = (((((*item as u32) << 10)
-                        + KYBER_Q as u32 / 2)
-                        / KYBER_Q as u32)
-                        & 0x3ff) as u16;
+                    let mut tmp: u64 =
+                        ((*t_k as u64) << 10) + (KYBER_Q as u64 / 2);
+                    tmp *= 20642679;
+                    tmp >>= 36;
+                    *t_k = (tmp as u16) & 0x3ff;
                 }
                 r[idx] = (t[0]) as u8;
                 r[idx + 1] = ((t[0] >> 8) | (t[1] << 2)) as u8;
