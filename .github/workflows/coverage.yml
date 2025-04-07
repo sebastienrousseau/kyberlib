@@ -15,21 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: "0"
-      RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-      RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+      RUSTFLAGS: "-C instrument-coverage -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Zpanic_abort_tests"
+      RUSTDOCFLAGS: "-C instrument-coverage -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Zpanic_abort_tests"
+      LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
 
     steps:
       # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Rust nightly
+      # Setup Rust nightly    
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        id: toolchain
+        uses: hecrj/setup-rust-action@v1
         with:
-          toolchain: nightly
-          override: true
+          rust-version: nightly
 
       # Configure cache for Cargo
       - name: Cache Cargo registry, index
@@ -44,18 +43,22 @@ jobs:
 
       # Run tests with all features
       - name: Test (cargo test)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: "--workspace"
+        run: cargo test --workspace
 
       # Install grcov
-      - uses: actions-rs/grcov@v0.1
-        id: coverage
+      - name: Install grcov
+        run: cargo install grcov --force
+
+      - name: Generate lcov report
+        run: |
+          grcov . \
+          --ignore-not-existing \
+          -o lcov.info
+
 
       # Upload to Codecov.io
       - name: Upload to Codecov.io
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ${{ steps.coverage.outputs.report }}
+          file: lcov.info
