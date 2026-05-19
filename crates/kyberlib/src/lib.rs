@@ -177,6 +177,30 @@
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
+// Phase 5 backend selection. Both backend features are reservations
+// only at this stage — they declare the feature name in the manifest
+// so downstream consumers can pre-wire `--features fips` or
+// `--features verified` against the eventual delegation surface
+// (issues #170 / #171). Today they are pure no-ops: the pure-Rust
+// path is always used regardless of which is enabled.
+//
+// The mutual-exclusion guard between `fips` and `verified` lands
+// alongside the first feature with a non-trivial implementation.
+// Until then we tolerate `--all-features` enabling both for CI's
+// sake.
+
+/// Marker for the `fips` backend (skeleton — see issue #170).
+#[cfg(feature = "fips")]
+#[doc(hidden)]
+pub const __FIPS_BACKEND_STUB: &str =
+    "kyberlib `fips` feature is a phase-5 placeholder — see issue #170";
+
+/// Marker for the `verified` backend (skeleton — see issue #171).
+#[cfg(feature = "verified")]
+#[doc(hidden)]
+pub const __VERIFIED_BACKEND_STUB: &str =
+    "kyberlib `verified` feature is a phase-5 placeholder — see issue #171";
+
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]
 mod avx2;
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]

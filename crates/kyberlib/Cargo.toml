@@ -92,6 +92,29 @@ std          = ["zeroize/std"]
 # `Zeroize` / `ZeroizeOnDrop` are derived unconditionally since v0.0.7.
 zeroize = []
 
+# --- Phase 5 backend selection (skeleton) ----------------------------------
+#
+# Mutually exclusive backends for the ML-KEM primitive. By default
+# kyberlib uses its own pure-Rust implementation. Enabling one of these
+# delegates the underlying KEM to an alternative backend — at the
+# cost of adding a heavy dependency. Both features are currently
+# stubs: enabling them today is a no-op (the build emits a
+# compile-time `compile_error!` pointer to the tracking issue so the
+# misconfiguration is visible).
+#
+# `fips` — delegate to `aws-lc-rs`. AWS-LC FIPS 3.0 is the first
+#   cryptographic library to include ML-KEM in a FIPS 140-3
+#   validation (CMVP "in process", 2025). Required for FedRAMP High,
+#   NIST SP 800-53 SC-13, CNSA 2.0. Tracking: #170.
+fips = []
+# `verified` — delegate to `libcrux-ml-kem`. F* + hax-verified for
+#   panic-freedom, functional correctness, and secret-independence
+#   across the portable + AVX2 backends. Caveat: Symbolic Software
+#   (eprint 2026/192) found three bugs in the verified surface —
+#   formal verification is necessary but not sufficient. Tracking:
+#   #171.
+verified = []
+
 [package.metadata.docs.rs]
 features     = ["kyber768", "std", "hazmat"]
 rustdoc-args = ["--cfg", "docsrs"]

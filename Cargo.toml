@@ -13,6 +13,8 @@ resolver = "2"
 members = [
     "crates/kyberlib",
     "crates/kyberlib-asm",
+    "crates/kyberlib-hybrid",
+    "crates/kyberlib-pkcs8",
     "crates/kyberlib-wasm",
 ]
 # `fuzz/` is its own package — excluded from the workspace because

@@ -362,6 +362,20 @@ name = "kyberlib-asm"
 version = "0.0.7"
 
 [[package]]
+name = "kyberlib-hybrid"
+version = "0.0.7"
+dependencies = [
+ "kyberlib",
+]
+
+[[package]]
+name = "kyberlib-pkcs8"
+version = "0.0.7"
+dependencies = [
+ "kyberlib",
+]
+
+[[package]]
 name = "kyberlib-wasm"
 version = "0.0.7"
 dependencies = [

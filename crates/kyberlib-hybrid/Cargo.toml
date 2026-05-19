@@ -1,0 +1,34 @@
+[package]
+name = "kyberlib-hybrid"
+description = "Hybrid PQ + classical KEMs over kyberlib — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (skeleton, FIPS 203 conformance pending)."
+documentation = "https://docs.rs/kyberlib-hybrid"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "no-std"]
+keywords = ["kyber", "ml-kem", "hybrid", "post-quantum", "tls"]
+publish = false   # Skeleton. Flips to publishable when phase 2(b) lands.
+
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+[lib]
+name = "kyberlib_hybrid"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[features]
+default = ["x25519"]
+# Per-share enable. All three hybrids will eventually be on-demand.
+x25519       = []
+secp256r1    = []
+secp384r1    = []
+
+[dependencies]
+kyberlib = { path = "../kyberlib", default-features = false, features = ["kyber768"] }
+
+[lints]
+workspace = true
