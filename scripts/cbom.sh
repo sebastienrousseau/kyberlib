@@ -43,10 +43,13 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-echo ":: generating CycloneDX 1.6 SBOM via cargo-cyclonedx"
+echo ":: generating CycloneDX 1.5 SBOM via cargo-cyclonedx"
+# `cargo-cyclonedx` 0.5.x tops at CycloneDX 1.5. We generate 1.5
+# and post-process below to bump `specVersion` to 1.6 + inject
+# the `cryptoProperties` block introduced in 1.6.
 cargo cyclonedx \
     --format json \
-    --spec-version 1.6 \
+    --spec-version 1.5 \
     --override-filename bom \
     --all \
     --output-pattern bom \
@@ -59,9 +62,10 @@ if [[ -f "bom.cdx.json" ]]; then
     mv bom.cdx.json "$SBOM_PATH"
 fi
 
-echo ":: injecting cryptoProperties for kyberlib workspace members"
+echo ":: bumping specVersion 1.5 → 1.6 and injecting cryptoProperties"
 jq '
-  .components |= map(
+  .specVersion = "1.6"
+  | .components |= map(
     if .name == "kyberlib" then
       . + {
         "cryptoProperties": {
