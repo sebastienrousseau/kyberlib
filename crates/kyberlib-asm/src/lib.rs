@@ -3,34 +3,44 @@
 
 //! # `kyberlib-asm`
 //!
-//! Placeholder crate for the AVX2 / NEON / future SVE2 + AVX-512 assembly
-//! acceleration backends of `kyberlib`. **Not yet usable.**
+//! Placeholder for the future AVX2 / NEON / SVE2 / AVX-512 assembly
+//! backends of `kyberlib`. **Not yet usable as a dependency.**
 //!
-//! ## Status
+//! ## Status (v0.0.7)
 //!
-//! The AVX2 source (Rust intrinsics + hand-written GAS/NASM assembly) still
-//! lives at `crates/kyberlib/src/avx2/`. The eventual move into this crate
-//! is tracked by issue [#143][i143]. The move is non-trivial because the
-//! AVX2 module imports heavily from `crate::params::*`, `crate::rng`,
-//! `crate::symmetric::*`, and `crate::reference::poly::*` — a clean split
-//! requires either a shared `kyberlib-constants` crate or a re-export
-//! surface from the safe core. That design decision is logged in
-//! `doc/adr/0002-asm-quarantine.md` (filed alongside this commit).
+//! The AVX2 source (Rust intrinsics + hand-written GAS / NASM
+//! assembly) still lives at `crates/kyberlib/src/avx2/`. The
+//! cross-crate move is tracked by issue [#143][i143].
 //!
-//! ## Why the skeleton lands now
+//! However, **the safety property the move was meant to provide has
+//! already landed** via a finer-grained lint gate in
+//! `crates/kyberlib/src/lib.rs`:
 //!
-//! 1. So the workspace layout matches `noyalib`'s pattern from day one,
-//!    making it easy to add `kyberlib-hybrid`, `kyberlib-pkcs8`,
-//!    `kyberlib-wasm`, etc. without further restructuring.
-//! 2. So `Cargo.lock` and CI workflows enumerate every workspace member
-//!    we plan to ship — surprises during release are bad surprises.
-//! 3. So consumers checking the crates.io page see "placeholder /
-//!    upcoming" rather than wondering whether the AVX2 path is broken.
+//! ```text
+//!   Default (no avx2, no nasm) → #![forbid(unsafe_code)]
+//!   With --features avx2/nasm  → #![deny(unsafe_code)] crate-wide
+//!                                + #[allow(unsafe_code)] on `mod avx2;` only
+//! ```
 //!
-//! In the meantime, the safe core (`kyberlib`) carries a cfg-gated
-//! `#![forbid(unsafe_code)]`: the common build path (no `avx2` and no
-//! `nasm` features) **does** forbid unsafe — only when the user
-//! explicitly opts in to a SIMD backend is `unsafe` re-allowed.
+//! The safe-core modules (`api`, `kex`, `kem`, `ml_kem`, `params`,
+//! `rng`, `symmetric`, `oid`, `error`) inherit the crate-level
+//! `deny` under every feature combination — they are unsafe-free
+//! even under `--features avx2`. Only the `avx2` module itself can
+//! hold the SIMD intrinsics + assembly trampolines.
+//!
+//! ## Why the source move is still tracked
+//!
+//! 1. **Build hygiene** — AVX2 cross-compilation is broken on hosts
+//!    whose default `cc` target doesn't match (e.g. arm64 macOS
+//!    without an explicit `--target x86_64-...` switch). Moving into
+//!    a separate crate makes the SIMD-backend toolchain assumptions
+//!    explicit at the crate boundary.
+//! 2. **Workspace shape** — matches the noyalib pattern (safe core +
+//!    asm sidecar + WASM sidecar + hybrid sidecar). Easier to add
+//!    NEON and AVX-512 backends as sibling crates.
+//! 3. **crates.io discoverability** — `kyberlib-asm 0.0.7` on
+//!    crates.io would advertise SIMD acceleration as a first-class
+//!    option rather than burying it in a feature flag.
 //!
 //! [i143]: https://github.com/sebastienrousseau/kyberlib/issues/143
 

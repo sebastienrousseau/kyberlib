@@ -162,16 +162,25 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Every public item must carry rustdoc. See issue #137.
 #![deny(missing_docs)]
-// `unsafe` is forbidden in the common build path (default features, no_std,
-// reference-only). The `avx2` and `nasm` features opt back in because the
-// SIMD intrinsics and hand-written assembly trampolines require `unsafe`.
-// Phase 1.2 (#143) tracks the full move of that surface into a dedicated
-// `kyberlib-asm` workspace crate so the safe core remains
-// `#![forbid(unsafe_code)]` even with `--features avx2`.
+// `unsafe` policy:
+//   - Default build (no `avx2`, no `nasm`): `forbid(unsafe_code)` —
+//     strongest guarantee, no inner `#[allow]` can lift it.
+//   - With `--features avx2` or `--features nasm`: crate-level
+//     `deny(unsafe_code)` keeps the safe-core modules (api / kex /
+//     kem / ml_kem / params / rng / symmetric / oid / error) unsafe-
+//     free; only the `mod avx2;` declaration itself carries
+//     `#[allow(unsafe_code)]`, so the SIMD intrinsics + assembly
+//     trampolines are the only place `unsafe` is permitted.
+//   - Phase 1.2 (#143) tracks the full source relocation into a
+//     dedicated `kyberlib-asm` workspace crate. The granular gate
+//     below gives the same *safety property* (safe core stays
+//     unsafe-free under every feature combination) without the
+//     cross-crate refactor.
 #![cfg_attr(
     not(any(feature = "avx2", feature = "nasm")),
     forbid(unsafe_code)
 )]
+#![cfg_attr(any(feature = "avx2", feature = "nasm"), deny(unsafe_code))]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
@@ -201,7 +210,14 @@ pub const __FIPS_BACKEND_STUB: &str =
 pub const __VERIFIED_BACKEND_STUB: &str =
     "kyberlib `verified` feature is a phase-5 placeholder — see issue #171";
 
+// `#[allow(unsafe_code)]` is the granular exception to the crate-level
+// `deny(unsafe_code)` policy (see the policy block above). The safe-core
+// modules — declared below this — inherit `deny` and stay unsafe-free
+// even under `--features avx2`. Phase 1.2 (#143) relocates this module
+// into `kyberlib-asm` so the source layout matches the safety policy
+// 1:1.
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]
+#[allow(unsafe_code)]
 mod avx2;
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]
 use avx2::*;
