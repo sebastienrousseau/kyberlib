@@ -36,19 +36,6 @@ mod tests {
             assert!(cfg!(target_arch = "x86_64"));
         }
 
-        #[test]
-        #[cfg(feature = "wasm")]
-        fn test_wasm_enabled() {
-            // Assert that the WASM feature is enabled
-            assert!(cfg!(feature = "wasm"));
-        }
-
-        #[test]
-        #[cfg(feature = "zeroize")]
-        fn test_zeroize_enabled() {
-            // Assert that the zeroize feature is enabled
-            assert!(cfg!(feature = "zeroize"));
-        }
 
         #[test]
         #[cfg(feature = "std")]

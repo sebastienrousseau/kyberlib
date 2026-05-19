@@ -155,9 +155,9 @@ impl MlKem768 {
     /// Shared-secret length in bytes.
     pub const SHARED_SECRET_BYTES: usize = 32;
     /// Stable algorithm identifier per the IETF LAMPS draft.
-    pub const ALGORITHM_ID_STR: &'static str = "ML-KEM-768";
+    pub const ALGORITHM_ID: &'static str = "ML-KEM-768";
     /// Object identifier — `2.16.840.1.101.3.4.4.2`.
-    pub const OID_STR: &'static str = crate::oid::ML_KEM_768;
+    pub const OID: &'static str = crate::oid::ML_KEM_768;
 }
 
 /// ML-KEM-1024 parameter set marker. NIST security category 5 (≈ AES-256).

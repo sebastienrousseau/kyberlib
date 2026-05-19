@@ -1,10 +1,10 @@
 [package]
 name = "kyberlib-wasm"
-description = "WebAssembly bindings for kyberlib — CRYSTALS-Kyber / ML-KEM in the browser via wasm-bindgen."
+description = "WebAssembly bindings for kyberlib — FIPS 203 ML-KEM (CRYSTALS-Kyber) in the browser via wasm-bindgen."
 documentation = "https://docs.rs/kyberlib-wasm"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "wasm"]
-keywords = ["kyber", "kem", "post-quantum", "wasm", "wasm-bindgen"]
+keywords = ["ml-kem", "kyber", "post-quantum", "wasm", "wasm-bindgen"]
 
 authors.workspace      = true
 edition.workspace      = true

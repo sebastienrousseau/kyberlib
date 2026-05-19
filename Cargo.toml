@@ -40,7 +40,7 @@ ctr              = { version = "0.9.2",  default-features = false }
 rand             = { version = "0.8.6",  default-features = false }
 rand_core        = { version = "0.6.4",  default-features = false }
 sha2             = { version = "0.10.8", default-features = false }
-wasm-bindgen     = { version = "0.2.100" }
+wasm-bindgen     = { version = "0.2.100", default-features = false }
 wasm-bindgen-test = { version = "0.3.43" }
 zeroize          = { version = "1.7.0",  default-features = false, features = ["derive"] }
 cc               = { version = "1.2.10" }
@@ -53,6 +53,10 @@ serde_json       = { version = "1.0",   default-features = false, features = ["a
 # downstream crate re-enables features it needs (e.g. zeroize via the
 # `static_secrets` feature for symmetric secret-key storage).
 x25519-dalek     = { version = "2.0",   default-features = false, features = ["zeroize", "static_secrets"] }
+# Property-based / snapshot testing (dev-only).
+proptest         = { version = "1.5" }
+rand_chacha      = { version = "0.3" }
+insta            = { version = "1.40", features = ["yaml"] }
 
 # Workspace-level lints. Members opt in with `[lints] workspace = true`.
 # Specific lints carry explicit positive priority so they override the
@@ -112,11 +116,44 @@ rust_2021_compatibility = { level = "deny", priority = -1 }
 unused                  = { level = "deny", priority = -1 }
 
 [workspace.lints.clippy]
-# Pre-existing clippy warnings allowed at the workspace floor — cleaned up
-# in a follow-up. Member crates can tighten on top.
+# Lint *groups* carry `priority = -1` so the per-lint overrides below
+# (`priority = 0`, the default) win, satisfying the post-1.81
+# `clippy::lint_groups_priority` check.
+#
+# Policy:
+#   `pedantic`  — warn (raise the floor on subtle issues without blocking)
+#   `nursery`   — warn (early-warning lints that haven't yet stabilised)
+#   `cargo`     — warn (manifest-side hygiene)
+#   `correctness`/`suspicious`/`complexity`/`perf`/`style` — inherited
+#     from the default `clippy::all` group, which is deny-by-clippy-default.
+pedantic = { level = "warn", priority = -1 }
+nursery  = { level = "warn", priority = -1 }
+cargo    = { level = "warn", priority = -1 }
+
+# ---- Subjective allows, with rationale ----
+# Pre-existing items kept from the v0.0.6 floor:
 doc_lazy_continuation   = "allow"
 assertions_on_constants = "allow"
 manual_rotate           = "allow"
+
+# Subjective `pedantic` lints we accept the readability tradeoff on:
+module_name_repetitions   = "allow"  # `kex::KexInit` is clearer than `kex::Init`
+must_use_candidate         = "allow"  # noisy on small accessors; revisit at 0.1
+missing_errors_doc         = "allow"  # error-source docs live in `KyberLibError` itself
+missing_panics_doc         = "allow"  # safe core forbids `unsafe`; panic sites are reviewed
+similar_names              = "allow"  # `pk`/`sk` and `ct`/`ss` are spec-canonical
+cast_possible_truncation   = "allow"  # crypto code does exact-size casts by construction
+cast_possible_wrap         = "allow"  # same
+cast_sign_loss             = "allow"  # same
+many_single_char_names     = "allow"  # spec uses `a`, `b`, `r`, `s`, `e1`, `e2`
+unreadable_literal         = "allow"  # `KYBER_Q = 3329` magic constants follow the spec
+
+# `nursery` subjective allows:
+option_if_let_else         = "allow"  # readability is style-dependent
+use_self                   = "allow"  # explicit type names aid grep + audit
+missing_const_for_fn       = "allow"  # crypto fns rarely benefit; eval per site
+
+# `cargo` group is currently clean.
 
 # ----------------------------------------------------------------------- profiles
 [profile.dev]

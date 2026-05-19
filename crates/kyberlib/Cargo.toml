@@ -1,10 +1,10 @@
 [package]
 name = "kyberlib"
-description = "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography."
+description = "A robust, audit-friendly Rust implementation of FIPS 203 ML-KEM (the standardised CRYSTALS-Kyber post-quantum KEM)."
 documentation = "https://docs.rs/kyberlib"
 readme = "../../README.md"
-categories = ["algorithms", "cryptography", "wasm", "no-std"]
-keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
+categories = ["algorithms", "cryptography", "no-std"]
+keywords = ["ml-kem", "kyber", "kem", "post-quantum", "fips203"]
 build = "build.rs"
 
 # Inherit shared metadata from the workspace root.
@@ -30,9 +30,12 @@ include = [
 ]
 
 [dependencies]
+# The library uses only the trait surface from `rand_core::{CryptoRng,
+# RngCore}` — the `rand` crate proper is a dev-only dep (tests, doctests,
+# examples, benches). Keeping it out of the runtime closure shrinks the
+# downstream dependency graph for `cargo install kyberlib` consumers.
 aes       = { workspace = true, optional = true }
 ctr       = { workspace = true, optional = true }
-rand      = { workspace = true, features = ["getrandom"] }
 rand_core = { workspace = true }
 sha2      = { workspace = true, optional = true }
 zeroize   = { workspace = true }
@@ -46,8 +49,17 @@ rand       = { workspace = true, features = ["std", "std_rng", "getrandom"] }
 # `tests/test_acvp.rs` (gated on `--cfg KYBER_SECURITY_PARAMETERat`).
 serde      = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, features = ["std"] }
+# Property-based testing (`tests/test_properties.rs`) — proves
+# panic-freedom + KEM correctness across millions of random inputs.
+proptest    = { workspace = true }
+rand_chacha = { workspace = true }
+# Snapshot testing — secret-redaction Debug regressions
+# (`tests/test_snapshots.rs`).
+insta       = { workspace = true }
 
 [build-dependencies]
+# `optional = true` on a build-dep is gated by the matching `dep:`
+# reference in the `[features]` table (see `avx2`, `nasm`).
 cc      = { workspace = true, optional = true }
 nasm-rs = { workspace = true, optional = true }
 
@@ -79,18 +91,11 @@ hazmat = []
 ### Additional features
 # 90s mode uses AES256-CTR and SHA2 as primitives instead of SHAKE.
 # Removed from FIPS 203; retained pre-spec-migration for compatibility.
-90s          = ["sha2"]
-90s-fixslice = ["90s", "aes", "ctr"]
-avx2         = ["cc"]
-# `wasm` is a no-op compatibility shim — the bindings now live in the
-# dedicated `kyberlib-wasm` workspace crate (issue #144). The feature
-# will be removed in a future release.
-wasm         = []
-nasm         = ["nasm-rs", "avx2"]
+90s          = ["dep:sha2"]
+90s-fixslice = ["90s", "dep:aes", "dep:ctr"]
+avx2         = ["dep:cc"]
+nasm         = ["dep:nasm-rs", "avx2"]
 std          = ["zeroize/std"]
-# `zeroize` is a no-op opt-out feature retained for backward compatibility.
-# `Zeroize` / `ZeroizeOnDrop` are derived unconditionally since v0.0.7.
-zeroize = []
 
 # --- Phase 5 backend selection (skeleton) ----------------------------------
 #

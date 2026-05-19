@@ -1,10 +1,10 @@
 [package]
 name = "kyberlib-hybrid"
-description = "Hybrid PQ + classical KEMs over kyberlib — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (skeleton, FIPS 203 conformance pending)."
+description = "Hybrid PQ + classical KEMs over kyberlib — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (skeleton; FIPS 203 ML-KEM conformance pending)."
 documentation = "https://docs.rs/kyberlib-hybrid"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "no-std"]
-keywords = ["kyber", "ml-kem", "hybrid", "post-quantum", "tls"]
+keywords = ["ml-kem", "kyber", "hybrid", "post-quantum", "tls"]
 publish = false   # Phase 5.1 lands the implementation; flips publishable post-audit (#177).
 
 authors.workspace      = true
@@ -43,3 +43,7 @@ rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+features     = ["x25519"]
+rustdoc-args = ["--cfg", "docsrs"]

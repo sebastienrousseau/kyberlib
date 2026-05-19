@@ -7,7 +7,7 @@
 /// — e.g. backend-specific errors from the planned `fips` (#170) and
 /// `verified` (#171) features — can be added without a major-version
 /// bump.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum KyberLibError {
     /// One or more inputs to a function are incorrectly sized. A likely cause of this is

@@ -24,12 +24,12 @@ use rand_core::{CryptoRng, RngCore};
 /// # Examples
 ///
 /// ```
-/// # use rand_core::OsRng;
-/// # use crate::kyberlib::rng::randombytes;
+/// use kyberlib::rng::randombytes;
+/// use rand_core::OsRng;
+///
 /// let mut buffer = [0u8; 32];
-/// let buffer_len = buffer.len();
-/// let result = randombytes(&mut buffer, buffer_len, &mut OsRng);
-/// assert!(result.is_ok());
+/// let len = buffer.len();
+/// randombytes(&mut buffer, len, &mut OsRng).expect("OsRng cannot fail");
 /// ```
 ///
 /// # Notes

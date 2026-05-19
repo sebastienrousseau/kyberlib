@@ -1,0 +1,55 @@
+# Clippy configuration for kyberlib.
+#
+# Scope: this file tunes the *thresholds* Clippy uses; lint-group
+# enable/disable lives in `[workspace.lints.clippy]` in the workspace
+# Cargo.toml so it's picked up by `cargo check` / `cargo build`, not
+# only by `cargo clippy`.
+#
+# Run locally:
+#   cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+# MSRV — Clippy uses this to suppress lints that suggest patterns only
+# available on newer rustc. Keep in sync with `rust-version` in the
+# workspace Cargo.toml.
+msrv = "1.74"
+
+# Avoid `clippy::module_inception` shouting at the `reference` / `avx2`
+# backend modules whose internal layout mirrors the upstream
+# pq-crystals C reference.
+allow-private-module-inception = true
+
+# `clippy::too_many_arguments` triggers on the FIPS 203 KEM primitives
+# that take 6–8 buffers (matches the ML-KEM spec's function signatures
+# verbatim). Raise the threshold rather than `#[allow]` every site.
+too-many-arguments-threshold = 10
+
+# `clippy::type_complexity` — the typed-state ML-KEM API returns
+# `(DecapKey, EncapKey)` tuples; the default of 250 is fine, but if
+# Phase 5.1 lands the hybrid `(ClientShare, ClientState)` we'll need
+# headroom.
+type-complexity-threshold = 350
+
+# `clippy::large_enum_variant` — the largest variant of the ML-KEM
+# parameter-set enum is ~3 KB (decap key). Don't fire on
+# crypto-sized buffers.
+enum-variant-size-threshold = 4096
+
+# `clippy::cognitive_complexity` — the FIPS 203 reference functions
+# (`indcpa_keypair_derand`, `indcpa_enc`, `indcpa_dec`) match the
+# spec's pseudocode line-for-line; cognitive-complexity refactors
+# would diverge from the spec and hurt auditability.
+cognitive-complexity-threshold = 50
+
+# Doc-test idioms — the doctests use `# use kyberlib::*;` for brevity,
+# which fires `wildcard_imports` if we ever enable that pedantic
+# subset. Keep doc-paths explicit.
+doc-valid-idents = [
+    "KyberLib", "FIPS", "ML-KEM", "CRYSTALS", "NIST", "ACVP",
+    "X25519", "AES", "AVX2", "SHA2", "SHAKE", "NEON",
+    "RngCore", "CryptoRng", "OsRng",
+    "WASM", "WebAssembly", "TLS", "CMVP", "FedRAMP", "CNSA",
+]
+
+# Allow `// kyberslash-guard: safe — …` annotations (ADR 0003) without
+# `clippy::needless_doctest_main` complaints.
+disallowed-names = []

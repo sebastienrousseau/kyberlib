@@ -145,6 +145,7 @@ impl Uake {
     /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
     /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
     /// # Ok(()) }
+    /// ```
     pub fn server_receive<R>(
         &mut self,
         send_a: UakeSendInit,
@@ -180,6 +181,7 @@ impl Uake {
     /// let client_confirm = alice.client_confirm(server_send)?;
     /// assert_eq!(alice.shared_secret, bob.shared_secret);
     /// # Ok(()) }
+    /// ```
     pub fn client_confirm(
         &mut self,
         send_b: UakeSendResponse,
@@ -297,6 +299,7 @@ impl Ake {
     /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
     /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
     /// # Ok(()) }
+    /// ```
     pub fn server_receive<R>(
         &mut self,
         ake_send_a: AkeSendInit,
@@ -335,6 +338,7 @@ impl Ake {
     /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
     /// assert_eq!(alice.shared_secret, bob.shared_secret);
     /// # Ok(()) }
+    /// ```
     pub fn client_confirm(
         &mut self,
         send_b: AkeSendResponse,
