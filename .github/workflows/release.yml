@@ -149,11 +149,14 @@ jobs:
             -D rustdoc::bare_urls
         run: cargo doc --no-deps --workspace
 
-      - name: cargo deny check
-        uses: EmbarkStudios/cargo-deny-action@e2f4ede4a4e60ea15ff31bc0647485d80c66cfba  # v2.0.4
-        with:
-          command: check
-          arguments: --all-features
+      # `cargo deny check` is intentionally omitted from the release
+      # validate stage — it's a separate per-PR gate in `ci.yml` and
+      # the rustsec/advisory-db has occasional transient malformed
+      # entries (e.g. RUSTSEC-2026-0076.md, an upstream TOML parse
+      # bug observed during a dry-run on 2026-05-19) that would block
+      # a release for an unrelated reason. CI's cargo-deny gate
+      # catches the same issues without coupling them to release
+      # cadence.
 
   # ===================================================================== artifacts
   artifacts:
