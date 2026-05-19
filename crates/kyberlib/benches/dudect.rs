@@ -124,8 +124,8 @@ fn decap_valid_vs_invalid_ct(
         } else {
             // Right class: flip a single random bit.
             let mut bad = valid_ct;
-            let idx = (rng.random::<u32>() as usize)
-                % KYBER_CIPHERTEXT_BYTES;
+            let idx =
+                (rng.random::<u32>() as usize) % KYBER_CIPHERTEXT_BYTES;
             let bit = (rng.random::<u32>() & 7) as u8;
             bad[idx] ^= 1u8 << bit;
             inputs.push((Class::Right, bad));
@@ -155,8 +155,11 @@ fn decap_valid_vs_invalid_ct(
 /// them happen to authenticate and the other half don't. Both paths
 /// must take the same time per FIPS 203 §6.3.
 fn decap_real_pairs(runner: &mut CtRunner, rng: &mut BenchRng) {
-    let mut inputs: Vec<(Class, [u8; KYBER_SECRET_KEY_BYTES], [u8; KYBER_CIPHERTEXT_BYTES])> =
-        Vec::with_capacity(SAMPLES_PER_CLASS * 2);
+    let mut inputs: Vec<(
+        Class,
+        [u8; KYBER_SECRET_KEY_BYTES],
+        [u8; KYBER_CIPHERTEXT_BYTES],
+    )> = Vec::with_capacity(SAMPLES_PER_CLASS * 2);
 
     for _ in 0..SAMPLES_PER_CLASS * 2 {
         // One real keypair (the "victim") and one decoy keypair per

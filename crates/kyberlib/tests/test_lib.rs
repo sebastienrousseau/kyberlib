@@ -36,7 +36,6 @@ mod tests {
             assert!(cfg!(target_arch = "x86_64"));
         }
 
-
         #[test]
         #[cfg(feature = "std")]
         fn test_std_enabled() {

@@ -19,8 +19,6 @@
 //! `decapsulate`) and the v0.0.7 typed-state surface (`MlKem768::generate`,
 //! `EncapKey::encapsulate`, `DecapKey::decapsulate`).
 
-#![cfg(feature = "benchmarking")]
-
 use criterion::{
     black_box, criterion_group, criterion_main, BenchmarkId, Criterion,
     Throughput,
@@ -51,9 +49,11 @@ fn bench_encapsulate(c: &mut Criterion) {
     let keys = keypair(&mut rng).expect("setup keygen");
     c.bench_function("legacy/encapsulate", |b| {
         b.iter(|| {
-            let (ct, ss) =
-                encapsulate(black_box(&keys.public), black_box(&mut rng))
-                    .expect("encap");
+            let (ct, ss) = encapsulate(
+                black_box(&keys.public),
+                black_box(&mut rng),
+            )
+            .expect("encap");
             black_box(ct);
             black_box(ss);
         })
@@ -102,8 +102,8 @@ fn bench_typed_generate(c: &mut Criterion) {
     let mut rng = thread_rng();
     c.bench_function("typed/MlKem768::generate", |b| {
         b.iter(|| {
-            let (dk, ek) =
-                MlKem768::generate(black_box(&mut rng)).expect("keygen");
+            let (dk, ek) = MlKem768::generate(black_box(&mut rng))
+                .expect("keygen");
             black_box(dk);
             black_box(ek);
         })
@@ -112,13 +112,11 @@ fn bench_typed_generate(c: &mut Criterion) {
 
 fn bench_typed_encapsulate(c: &mut Criterion) {
     let mut rng = thread_rng();
-    let (_dk, ek) =
-        MlKem768::generate(&mut rng).expect("setup keygen");
+    let (_dk, ek) = MlKem768::generate(&mut rng).expect("setup keygen");
     c.bench_function("typed/EncapKey::encapsulate", |b| {
         b.iter(|| {
-            let (ct, ss) = ek
-                .encapsulate(black_box(&mut rng))
-                .expect("encap");
+            let (ct, ss) =
+                ek.encapsulate(black_box(&mut rng)).expect("encap");
             black_box(ct);
             black_box(ss);
         })
@@ -127,8 +125,7 @@ fn bench_typed_encapsulate(c: &mut Criterion) {
 
 fn bench_typed_decapsulate(c: &mut Criterion) {
     let mut rng = thread_rng();
-    let (dk, ek) =
-        MlKem768::generate(&mut rng).expect("setup keygen");
+    let (dk, ek) = MlKem768::generate(&mut rng).expect("setup keygen");
     let (ct, _ss) = ek.encapsulate(&mut rng).expect("setup encap");
     c.bench_function("typed/DecapKey::decapsulate", |b| {
         b.iter(|| {
@@ -147,11 +144,10 @@ fn bench_full_handshake(c: &mut Criterion) {
     group.throughput(Throughput::Bytes(1184 + 1088));
     group.bench_function(BenchmarkId::from_parameter("full"), |b| {
         b.iter(|| {
-            let (dk, ek) =
-                MlKem768::generate(black_box(&mut rng)).expect("keygen");
-            let (ct, ss_a) = ek
-                .encapsulate(black_box(&mut rng))
-                .expect("encap");
+            let (dk, ek) = MlKem768::generate(black_box(&mut rng))
+                .expect("keygen");
+            let (ct, ss_a) =
+                ek.encapsulate(black_box(&mut rng)).expect("encap");
             let ss_b = dk.decapsulate(&ct);
             black_box((ss_a, ss_b));
         })

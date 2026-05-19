@@ -28,6 +28,11 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 kyberlib      = { path = "../crates/kyberlib", default-features = false, features = ["kyber768", "std"] }
+# Direct deps for the fuzz-driver RNG wrappers. Previously these
+# resolved transitively through kyberlib, but `rand` was demoted to
+# dev-only in v0.0.7 so they must be declared explicitly here.
+rand          = { version = "0.8", default-features = false, features = ["std", "std_rng", "getrandom"] }
+rand_core     = { version = "0.6", default-features = false, features = ["getrandom"] }
 
 # Targets. Each fuzz_targets/<name>.rs becomes a separate binary that
 # libFuzzer drives via `cargo fuzz run <name>`.

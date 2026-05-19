@@ -29,7 +29,9 @@ fuzz_target!(|data: &[u8]| {
     match mode {
         // Mode 0: well-formed lengths, arbitrary content. Always Ok.
         0 => {
-            if body.len() < KYBER_CIPHERTEXT_BYTES + KYBER_SECRET_KEY_BYTES {
+            if body.len()
+                < KYBER_CIPHERTEXT_BYTES + KYBER_SECRET_KEY_BYTES
+            {
                 return;
             }
             let ct = &body[..KYBER_CIPHERTEXT_BYTES];

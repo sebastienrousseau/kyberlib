@@ -78,7 +78,11 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ## Warn
 missing_copy_implementations = "warn"
 unstable_features            = "warn"
-unused_results               = "warn"
+# `unused_results = warn` is incompatible with the criterion builder
+# pattern in benches (every `c.bench_function(...)` returns `&mut
+# Criterion` that benches naturally discard). Allow-list at the
+# workspace level; site-by-site `let _ =` would be churn.
+unused_results               = "allow"
 
 ## Allow
 bare_trait_objects         = "allow"
@@ -156,6 +160,32 @@ unreadable_literal         = "allow"  # `KYBER_Q = 3329` magic constants follow 
 option_if_let_else         = "allow"  # readability is style-dependent
 use_self                   = "allow"  # explicit type names aid grep + audit
 missing_const_for_fn       = "allow"  # crypto fns rarely benefit; eval per site
+
+# Codebase-wide subjective lints that fire heavily on the pq-crystals-
+# inherited reference backend (NTT / Barrett / polynomial arithmetic).
+# Cleaning these site-by-site would diverge from the upstream
+# pq-crystals C reference that the audit story relies on. Kept as
+# `allow` until the const-generic refactor in #130b (which will
+# rewrite those modules anyway).
+doc_markdown                       = "allow"  # 127 hits — most are spec acronyms (ML-KEM, NTT, IND-CCA)
+redundant_pub_crate                = "allow"  # 50 hits in nested private modules
+wildcard_imports                   = "allow"  # 26 hits — pq-crystals reference uses `use super::*` style
+cast_lossless                      = "allow"  # 36 hits — explicit `as` matches the C spec verbatim
+semicolon_if_nothing_returned      = "allow"  # 14 hits — formatting preference
+used_underscore_binding            = "allow"  # 9 hits — `_rng` placeholders in dummy-RNG paths
+unused_result_ok                   = "allow"  # criterion + benches consume builder results lazily
+items_after_statements             = "allow"  # 4 hits in nested test modules
+needless_pass_by_value             = "allow"  # 4 hits — by-value array passes are spec-canonical
+ptr_arg                            = "allow"  # mutable-reference helpers that don't always mutate
+needless_return                    = "allow"  # explicit returns in long functions aid audit
+uninlined_format_args              = "allow"  # `format!("{val:?}")` stays optional, not mandatory
+large_types_passed_by_value        = "allow"  # 512+ byte arrays are spec-canonical KEM buffers
+no_effect_underscore_binding       = "allow"  # `_rng` placeholders in dummy-RNG paths
+too_many_lines                     = "allow"  # FIPS 203 reference functions match spec line-for-line
+explicit_iter_loop                 = "allow"  # `for x in y.iter()` is clearer at audit time than `for x in &y`
+unnecessary_wraps                  = "allow"  # symmetric Ok-returning helpers keep call sites uniform
+needless_pass_by_ref_mut           = "allow"  # `&mut` placeholders in test/bench setup are intentional
+too_long_first_doc_paragraph       = "allow"  # crypto API descriptions are dense by necessity
 
 # `cargo` group is currently clean.
 

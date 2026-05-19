@@ -605,7 +605,8 @@ impl MlKem1024EncapKey {
     pub fn encapsulate<R: RngCore + CryptoRng>(
         &self,
         rng: &mut R,
-    ) -> Result<(MlKem1024Ciphertext, SharedSecret), KyberLibError> {
+    ) -> Result<(MlKem1024Ciphertext, SharedSecret), KyberLibError>
+    {
         let (ct, ss) = classic::encapsulate(&self.0, rng)?;
         Ok((MlKem1024Ciphertext(ct), SharedSecret(ss)))
     }
@@ -616,7 +617,10 @@ impl MlKem1024DecapKey {
     /// Decapsulate a ciphertext under this ML-KEM-1024 secret key.
     /// Implicit-rejection per FIPS 203 §6.3 — never panics, never
     /// branches on validity.
-    pub fn decapsulate(&self, ct: &MlKem1024Ciphertext) -> SharedSecret {
+    pub fn decapsulate(
+        &self,
+        ct: &MlKem1024Ciphertext,
+    ) -> SharedSecret {
         let ss = classic::decapsulate(&ct.0, &self.0)
             .expect("typed ciphertext + secret key — length-invariant guaranteed");
         SharedSecret(ss)
@@ -680,6 +684,135 @@ mod tests {
     fn ml_kem_768_oid() {
         assert_eq!(MlKem768::OID, "2.16.840.1.101.3.4.4.2");
         assert_eq!(MlKem768::ALGORITHM_ID, "ML-KEM-768");
+    }
+
+    // ------- Coverage tests for the sized_wrapper_types! macro --------
+    //
+    // The MlKem512 and MlKem1024 typed wrappers exist under all feature
+    // combinations (the macro that generates them is unconditional);
+    // only KemCore impls are feature-gated. The tests below exercise
+    // the constructor / accessor / Debug surface across all three
+    // parameter sets so the macro expansion lines stay covered.
+
+    #[test]
+    fn ml_kem_512_encap_key_constructors() {
+        let bytes = [0u8; 800];
+        let ek = MlKem512EncapKey::from_bytes(bytes);
+        assert_eq!(ek.as_bytes(), &bytes);
+        let ek2 = MlKem512EncapKey::try_from_slice(&bytes).unwrap();
+        assert_eq!(ek.as_bytes(), ek2.as_bytes());
+        assert!(MlKem512EncapKey::try_from_slice(&[0u8; 100]).is_err());
+        // Debug should NOT print raw bytes — "[bytes; not secret]" marker.
+        #[cfg(feature = "std")]
+        assert!(format!("{ek:?}").contains("not secret"));
+    }
+
+    #[test]
+    fn ml_kem_512_decap_key_constructors() {
+        let bytes = [0u8; 1632];
+        let dk = MlKem512DecapKey::from_bytes(bytes);
+        assert_eq!(dk.as_bytes(), &bytes);
+        assert!(MlKem512DecapKey::try_from_slice(&bytes).is_ok());
+        assert!(MlKem512DecapKey::try_from_slice(&[0u8; 100]).is_err());
+        #[cfg(feature = "std")]
+        assert!(format!("{dk:?}").contains("REDACTED"));
+    }
+
+    #[test]
+    fn ml_kem_512_ciphertext_constructors() {
+        let bytes = [0u8; 768];
+        let ct = MlKem512Ciphertext::from_bytes(bytes);
+        assert_eq!(ct.as_bytes(), &bytes);
+        assert!(MlKem512Ciphertext::try_from_slice(&bytes).is_ok());
+        assert!(
+            MlKem512Ciphertext::try_from_slice(&[0u8; 100]).is_err()
+        );
+        #[cfg(feature = "std")]
+        assert!(format!("{ct:?}").contains("opaque"));
+    }
+
+    #[test]
+    fn ml_kem_1024_encap_key_constructors() {
+        let bytes = [0u8; 1568];
+        let ek = MlKem1024EncapKey::from_bytes(bytes);
+        assert_eq!(ek.as_bytes(), &bytes);
+        assert!(MlKem1024EncapKey::try_from_slice(&bytes).is_ok());
+        assert!(MlKem1024EncapKey::try_from_slice(&[0u8; 100]).is_err());
+    }
+
+    #[test]
+    fn ml_kem_1024_decap_key_constructors() {
+        let bytes = [0u8; 3168];
+        let dk = MlKem1024DecapKey::from_bytes(bytes);
+        assert_eq!(dk.as_bytes(), &bytes);
+        assert!(MlKem1024DecapKey::try_from_slice(&bytes).is_ok());
+        assert!(MlKem1024DecapKey::try_from_slice(&[0u8; 100]).is_err());
+    }
+
+    #[test]
+    fn ml_kem_1024_ciphertext_constructors() {
+        let bytes = [0u8; 1568];
+        let ct = MlKem1024Ciphertext::from_bytes(bytes);
+        assert_eq!(ct.as_bytes(), &bytes);
+        assert!(MlKem1024Ciphertext::try_from_slice(&bytes).is_ok());
+        assert!(
+            MlKem1024Ciphertext::try_from_slice(&[0u8; 100]).is_err()
+        );
+    }
+
+    #[test]
+    fn ml_kem_768_encap_key_try_from_slice_wrong_length() {
+        assert!(MlKem768EncapKey::try_from_slice(&[0u8; 100]).is_err());
+        assert!(MlKem768EncapKey::try_from_slice(&[0u8; 1184]).is_ok());
+    }
+
+    #[test]
+    fn ml_kem_768_ciphertext_try_from_slice_wrong_length() {
+        assert!(
+            MlKem768Ciphertext::try_from_slice(&[0u8; 100]).is_err()
+        );
+        assert!(
+            MlKem768Ciphertext::try_from_slice(&[0u8; 1088]).is_ok()
+        );
+    }
+
+    #[test]
+    fn shared_secret_as_bytes() {
+        let ss = SharedSecret([0xAB; KYBER_SHARED_SECRET_BYTES]);
+        assert_eq!(ss.as_bytes(), &[0xAB; KYBER_SHARED_SECRET_BYTES]);
+        let ss2 = ss.clone();
+        assert_eq!(ss, ss2);
+    }
+
+    #[test]
+    fn marker_constants_match_spec() {
+        // FIPS 203 sizes, NIST IETF LAMPS OIDs.
+        assert_eq!(MlKem512::K, 2);
+        assert_eq!(MlKem512::PUBLIC_KEY_BYTES, 800);
+        assert_eq!(MlKem512::SECRET_KEY_BYTES, 1632);
+        assert_eq!(MlKem512::CIPHERTEXT_BYTES, 768);
+        assert_eq!(MlKem512::ALGORITHM_ID, "ML-KEM-512");
+
+        assert_eq!(MlKem768::K, 3);
+        assert_eq!(MlKem768::PUBLIC_KEY_BYTES, 1184);
+        assert_eq!(MlKem768::SECRET_KEY_BYTES, 2400);
+        assert_eq!(MlKem768::CIPHERTEXT_BYTES, 1088);
+        assert_eq!(MlKem768::ALGORITHM_ID, "ML-KEM-768");
+
+        assert_eq!(MlKem1024::K, 4);
+        assert_eq!(MlKem1024::PUBLIC_KEY_BYTES, 1568);
+        assert_eq!(MlKem1024::SECRET_KEY_BYTES, 3168);
+        assert_eq!(MlKem1024::CIPHERTEXT_BYTES, 1568);
+        assert_eq!(MlKem1024::ALGORITHM_ID, "ML-KEM-1024");
+    }
+
+    #[test]
+    fn marker_types_are_zst() {
+        // The marker types should be zero-sized — they exist only at
+        // the type level.
+        assert_eq!(size_of::<MlKem512>(), 0);
+        assert_eq!(size_of::<MlKem768>(), 0);
+        assert_eq!(size_of::<MlKem1024>(), 0);
     }
 
     #[test]
