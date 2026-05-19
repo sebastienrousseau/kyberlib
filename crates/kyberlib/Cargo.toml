@@ -38,10 +38,14 @@ sha2      = { workspace = true, optional = true }
 zeroize   = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true }
+criterion  = { workspace = true }
 # Tests / examples / benches re-enable `std` + `std_rng` on top of the
 # library-side no_std-friendly default. See SECURITY.md and CHANGELOG.
-rand      = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+rand       = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+# ACVP conformance harness — parses NIST ACVP JSON vectors in
+# `tests/test_acvp.rs` (gated on `--cfg KYBER_SECURITY_PARAMETERat`).
+serde      = { workspace = true, features = ["std"] }
+serde_json = { workspace = true, features = ["std"] }
 
 [build-dependencies]
 cc      = { workspace = true, optional = true }

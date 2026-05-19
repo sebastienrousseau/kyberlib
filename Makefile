@@ -83,8 +83,12 @@ miri: ## Run the focused Miri suite (phase 4 — placeholder).
 	@echo "miri target lands in phase 4 (#160). Skipping."
 
 # --------------------------------------------------------------- ACVP (phase 2)
-acvp: ## Run NIST ACVP ML-KEM vectors (phase 2 — placeholder).
-	@echo "ACVP vectors land in phase 2 (#148). Skipping."
+acvp: ## Run NIST ACVP ML-KEM-768 vectors (60 cases). Reports pass / fail per group.
+	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
+	  $(CARGO) test -p kyberlib --test test_acvp -- --nocapture
+
+acvp-refresh: ## Re-download NIST ACVP vectors and verify SHA-256.
+	bash scripts/acvp-refresh.sh
 
 # --------------------------------------------------------------- examples / bench
 examples: ## Run all examples once each.

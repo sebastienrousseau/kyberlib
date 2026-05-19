@@ -351,6 +351,8 @@ dependencies = [
  "nasm-rs",
  "rand",
  "rand_core",
+ "serde",
+ "serde_json",
  "sha2",
  "zeroize",
 ]
