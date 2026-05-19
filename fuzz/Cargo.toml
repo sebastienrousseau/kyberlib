@@ -1,0 +1,65 @@
+# cargo-fuzz harness for kyberlib.
+#
+# Excluded from the main workspace (see root Cargo.toml [workspace.exclude])
+# because cargo-fuzz requires nightly + libFuzzer and adds a heavy
+# dependency surface we do not want in normal builds. Build / run from
+# this directory:
+#
+#   cd fuzz
+#   cargo +nightly fuzz run fuzz_decap -- -runs=100000
+#
+# Or via the workspace Makefile:
+#
+#   make fuzz-smoke         # 10-second smoke against fuzz_decap
+#   make fuzz TARGET=...    # exhaustive run against a specific target
+
+[package]
+name        = "kyberlib-fuzz"
+version     = "0.0.0"
+edition     = "2021"
+publish     = false
+authors     = ["The kyberlib contributors <contact@kyberlib.com>"]
+license     = "MIT OR Apache-2.0"
+description = "libFuzzer harness for kyberlib — not published."
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+kyberlib      = { path = "../crates/kyberlib", default-features = false, features = ["kyber768", "std"] }
+
+# Targets. Each fuzz_targets/<name>.rs becomes a separate binary that
+# libFuzzer drives via `cargo fuzz run <name>`.
+
+[[bin]]
+name              = "fuzz_decap"
+path              = "fuzz_targets/fuzz_decap.rs"
+test              = false
+doc               = false
+bench             = false
+doctest           = false
+
+[[bin]]
+name              = "fuzz_ct_parse"
+path              = "fuzz_targets/fuzz_ct_parse.rs"
+test              = false
+doc               = false
+bench             = false
+doctest           = false
+
+[[bin]]
+name              = "fuzz_pk_parse"
+path              = "fuzz_targets/fuzz_pk_parse.rs"
+test              = false
+doc               = false
+bench             = false
+doctest           = false
+
+[[bin]]
+name              = "fuzz_roundtrip"
+path              = "fuzz_targets/fuzz_roundtrip.rs"
+test              = false
+doc               = false
+bench             = false
+doctest           = false

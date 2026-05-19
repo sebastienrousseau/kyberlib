@@ -172,3 +172,33 @@ jobs:
             -D rustdoc::invalid_html_tags
             -D rustdoc::bare_urls
         run: cargo doc --no-deps --all-features
+
+  miri-focused:
+    name: Miri (focused, per-PR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: nightly
+          components: miri
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - run: bash scripts/miri.sh focused
+
+  fuzz-smoke:
+    name: Fuzz smoke (10s)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true   # Soft gate until corpus is seeded; tighten later.
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: 10-second smoke against fuzz_decap
+        working-directory: fuzz
+        run: cargo +nightly fuzz run fuzz_decap -- -runs=0 -max_total_time=10

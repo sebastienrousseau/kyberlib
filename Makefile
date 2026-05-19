@@ -72,15 +72,30 @@ vendor: ## Air-gapped build simulation: cargo vendor + offline build.
 coverage: ## Run llvm-cov (nightly) and emit lcov.
 	NOYALIB_COVERAGE=1 $(CARGO) +nightly llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
-# --------------------------------------------------------------- fuzz / miri (placeholders — phase 4)
-fuzz-smoke: ## 10s smoke fuzz against the primary target (phase 4 — placeholder).
-	@echo "fuzz targets land in phase 4 (#159). Skipping."
+# --------------------------------------------------------------- fuzz
+# Requires nightly + cargo-fuzz: `cargo install cargo-fuzz`.
+FUZZ_TARGET ?= fuzz_decap
 
-fuzz: ## Run fuzz to exhaustion against a target (phase 4 — placeholder).
-	@echo "fuzz targets land in phase 4 (#159). Skipping."
+fuzz-smoke: ## 10-second smoke fuzz against $(FUZZ_TARGET) (default: fuzz_decap).
+	cd fuzz && cargo +nightly fuzz run $(FUZZ_TARGET) -- -runs=0 -max_total_time=10
 
-miri: ## Run the focused Miri suite (phase 4 — placeholder).
-	@echo "miri target lands in phase 4 (#160). Skipping."
+fuzz: ## Run cargo fuzz against TARGET (default fuzz_decap, set RUNS for cap).
+	cd fuzz && cargo +nightly fuzz run $(FUZZ_TARGET) $(if $(RUNS),-- -runs=$(RUNS),)
+
+fuzz-list: ## List available fuzz targets.
+	cd fuzz && cargo +nightly fuzz list
+
+# --------------------------------------------------------------- miri
+# Requires nightly + miri: `rustup +nightly component add miri`.
+miri: ## Run the focused Miri subset.
+	bash scripts/miri.sh
+
+miri-full: ## Run the full Miri suite (slow — many minutes).
+	bash scripts/miri.sh full
+
+# --------------------------------------------------------------- dudect (constant-time analysis)
+dudect: ## Run statistical constant-time analysis on decapsulate (scaffolded — phase 2b gate).
+	bash scripts/dudect.sh
 
 # --------------------------------------------------------------- ACVP (phase 2)
 acvp: ## Run NIST ACVP ML-KEM-768 vectors (60 cases). Reports pass / fail per group.
@@ -104,8 +119,8 @@ bench: ## Run criterion benchmarks (sequential).
 sbom: ## Generate a CycloneDX 1.5 SBOM (requires `cargo install cargo-cyclonedx`).
 	$(CARGO) cyclonedx --spec-version 1.5 --override-filename sbom
 
-cbom: ## Generate a CycloneDX 1.6 CBOM with cryptoProperties (phase 4 — placeholder).
-	@echo "CycloneDX 1.6 CBOM lands in phase 4 (#162). Skipping."
+cbom: ## Generate a CycloneDX 1.6 CBOM with cryptoProperties (requires cargo-cyclonedx + jq).
+	bash scripts/cbom.sh
 
 # --------------------------------------------------------------- hygiene
 clean: ## cargo clean.
