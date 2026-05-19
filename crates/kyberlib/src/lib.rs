@@ -162,6 +162,16 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Every public item must carry rustdoc. See issue #137.
 #![deny(missing_docs)]
+// `unsafe` is forbidden in the common build path (default features, no_std,
+// reference-only). The `avx2` and `nasm` features opt back in because the
+// SIMD intrinsics and hand-written assembly trampolines require `unsafe`.
+// Phase 1.2 (#143) tracks the full move of that surface into a dedicated
+// `kyberlib-asm` workspace crate so the safe core remains
+// `#![forbid(unsafe_code)]` even with `--features avx2`.
+#![cfg_attr(
+    not(any(feature = "avx2", feature = "nasm")),
+    forbid(unsafe_code)
+)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]

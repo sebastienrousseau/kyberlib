@@ -358,6 +358,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberlib-asm"
+version = "0.0.7"
+
+[[package]]
 name = "libc"
 version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
