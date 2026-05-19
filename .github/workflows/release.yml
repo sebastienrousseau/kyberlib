@@ -68,8 +68,18 @@ jobs:
           if [[ "${{ github.event_name }}" == "push" ]]; then
             version="${GITHUB_REF#refs/tags/v}"
           else
-            # Manual dispatch: read from kyberlib Cargo.toml directly.
-            version=$(grep -E '^version' crates/kyberlib/Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/')
+            # Manual dispatch: read from the workspace-root Cargo.toml.
+            # Member crates inherit via `version.workspace = true` and
+            # don't have a literal version line to extract from.
+            version=$(awk '
+              /^\[workspace\.package\]/ { in_pkg = 1; next }
+              /^\[/                      { in_pkg = 0 }
+              in_pkg && /^version[[:space:]]*=/ {
+                match($0, /"[^"]+"/);
+                print substr($0, RSTART + 1, RLENGTH - 2);
+                exit
+              }
+            ' Cargo.toml)
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Releasing version: $version"
@@ -79,26 +89,38 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
-      - name: Verify every workspace crate version matches the tag
+      - name: Verify workspace version matches the tag
         env:
           EXPECTED: ${{ steps.tag.outputs.version }}
         run: |
           set -euo pipefail
-          mismatch=0
-          for manifest in crates/*/Cargo.toml; do
-            # Skip non-publishable / placeholder crates that intentionally
-            # track the workspace version via `version.workspace = true`.
-            ws_version=$(grep -E '^version' Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/' || true)
-            actual=$(grep -E 'version(\.workspace)? *=' "$manifest" | head -1)
-            echo "  $manifest  ->  $actual"
-          done
-          # Authoritative check: workspace [workspace.package].version
-          actual=$(grep -E '^version' Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/')
+          # Authoritative version is `[workspace.package].version` in the
+          # workspace-root `Cargo.toml`. Every publishable member crate
+          # inherits via `version.workspace = true`, so the source of
+          # truth is the workspace value.
+          actual=$(awk '
+            /^\[workspace\.package\]/ { in_pkg = 1; next }
+            /^\[/                      { in_pkg = 0 }
+            in_pkg && /^version[[:space:]]*=/ {
+              match($0, /"[^"]+"/);
+              print substr($0, RSTART + 1, RLENGTH - 2);
+              exit
+            }
+          ' Cargo.toml)
+          echo "[workspace.package].version = $actual"
+          echo "tag / dispatch input       = $EXPECTED"
           if [[ "$actual" != "$EXPECTED" ]]; then
             echo "::error::Tag $EXPECTED does not match workspace version $actual"
-            mismatch=1
+            exit 1
           fi
-          exit "$mismatch"
+          # Sanity-check: every publishable crate uses `.workspace = true`.
+          for manifest in crates/*/Cargo.toml; do
+            if grep -qE '^version\s*=' "$manifest"; then
+              echo "::error::$manifest declares its own version literal; expected `version.workspace = true`."
+              exit 1
+            fi
+          done
+          echo "OK — workspace version $actual matches every member."
 
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
