@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2024-2026 kyberlib contributors
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# REUSE 3.3 annotations for non-source assets. Every code file should carry
+# an SPDX header inline; this file blankets the assets that can't (CHANGELOG
+# bullets, KAT vectors, etc.). Run `reuse lint` locally or via the
+# `reuse-lint` CI job (issue #141) to verify.
+
+version = 1
+
+[[annotations]]
+path = [
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "AUTHORS.md",
+    "doc/**",
+    "crates/*/README.md",
+    "crates/*/CHANGELOG.md",
+    ".github/**",
+    "Makefile",
+    "Cargo.toml",
+    "Cargo.lock",
+    "deny.toml",
+    "rustfmt.toml",
+    "rust-toolchain.toml",
+    "REUSE.toml",
+    ".gitignore",
+    ".deepsource.toml",
+]
+SPDX-FileCopyrightText = "2024-2026 kyberlib contributors"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"
+
+[[annotations]]
+path = [
+    "crates/kyberlib/tests/KAT/**",
+    "crates/kyberlib/tests/rand_bufs/**",
+]
+SPDX-FileCopyrightText = "2017-2024 pq-crystals (CRYSTALS-Kyber team) and 2024-2026 kyberlib contributors"
+SPDX-License-Identifier = "CC0-1.0"
+precedence = "aggregate"
+
+[[annotations]]
+path = "crates/kyberlib/src/avx2/**"
+SPDX-FileCopyrightText = "2017-2024 pq-crystals (CRYSTALS-Kyber team) and 2024-2026 kyberlib contributors"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"
+precedence = "aggregate"
+
+[[annotations]]
+path = "crates/kyberlib/benches/api.rs"
+SPDX-FileCopyrightText = "2024-2026 kyberlib contributors"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"

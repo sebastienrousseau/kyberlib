@@ -1,0 +1,52 @@
+# cargo-vet config for kyberlib.
+#
+# `cargo vet` records third-party security audits for our dependencies.
+# We import audits from trusted organisations rather than re-auditing
+# everything ourselves; gaps are bootstrap-exempted with a justification
+# so the audit gate is enforceable from day one.
+#
+# Run `cargo vet check` to verify the graph is fully covered. CI gates
+# this in the cargo-vet job once #165 lands.
+
+cargo-vet-version = "0.10"
+
+# ---------------------------------------------------------------------- imports
+# Audits imported from well-known organisations. We trust these for
+# `safe-to-deploy` and `safe-to-run` criteria — read each entry's
+# upstream policy before relying on it for new criteria.
+
+[imports.bytecode-alliance]
+url = "https://raw.githubusercontent.com/bytecodealliance/wasmtime/main/supply-chain/audits.toml"
+
+[imports.embark-studios]
+url = "https://raw.githubusercontent.com/EmbarkStudios/rust-ecosystem/main/audits.toml"
+
+[imports.fermyon]
+url = "https://raw.githubusercontent.com/fermyon/spin/main/supply-chain/audits.toml"
+
+[imports.google]
+url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
+
+[imports.isrg]
+url = "https://raw.githubusercontent.com/divviup/libprio-rs/main/supply-chain/audits.toml"
+
+[imports.mozilla]
+url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
+
+[imports.zcash]
+url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/audits.toml"
+
+# ---------------------------------------------------------------------- policy
+# Default criteria for the workspace.
+
+[policy.kyberlib]
+audit-as-crates-io = true
+criteria = "safe-to-deploy"
+
+[policy.kyberlib-asm]
+audit-as-crates-io = true
+criteria = "safe-to-deploy"
+
+[policy.kyberlib-wasm]
+audit-as-crates-io = true
+criteria = "safe-to-deploy"

@@ -1,0 +1,37 @@
+{{!--
+  Handlebars template for `cargo about generate`. Renders a NOTICE.html
+  listing every direct + transitive dependency's license. Keep simple —
+  the goal is auditable, not pretty.
+--}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>kyberlib — Third-Party Licenses</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 960px; margin: 2em auto; padding: 0 1em; }
+  h1 { border-bottom: 1px solid #ccc; padding-bottom: 0.25em; }
+  h2 { margin-top: 2em; }
+  pre { background: #f6f8fa; padding: 1em; overflow-x: auto; font-size: 0.85em; }
+  .license { margin-bottom: 2em; }
+  .crates { font-family: ui-monospace, monospace; font-size: 0.85em; color: #57606a; }
+</style>
+</head>
+<body>
+<h1>kyberlib — Third-Party Licenses</h1>
+<p>
+This file lists every third-party crate kyberlib depends on (directly
+or transitively) and the license each crate ships under. Generated
+automatically by <code>cargo about</code> from <code>about.hbs</code>.
+</p>
+{{#each licenses}}
+<section class="license">
+<h2>{{name}}</h2>
+<p class="crates">Used by:
+  {{#each used_by}}<code>{{crate.name}} {{crate.version}}</code>{{#unless @last}}, {{/unless}}{{/each}}
+</p>
+<pre>{{text}}</pre>
+</section>
+{{/each}}
+</body>
+</html>
