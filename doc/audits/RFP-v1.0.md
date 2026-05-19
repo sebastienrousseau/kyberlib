@@ -1,10 +1,15 @@
 # kyberlib — Third-Party Security Audit RFP (v1.0)
 
-> **Sending instructions for the maintainer:** fill in the four `<TBD>`
-> placeholders below (budget cap, target start date, point-of-contact
-> name + email, payment terms), then send this document together with
-> `MATERIALS.md` to two or three vendors from §7. Expect 1–2 weeks of
-> back-and-forth on scope and quote before signing.
+> **Sending instructions for the maintainer.** This RFP is ready
+> to send. The four placeholders are pre-filled with sensible
+> defaults; each is flagged `[ADJUST]` so you can confirm or
+> change before you forward to vendors. The four spots are: §1
+> point-of-contact (currently the public maintainer contact),
+> §5 target start date (currently `2026-06-15`), §6 budget cap
+> (currently USD 60 000 — middle of the COMPARISON.md guidance),
+> §6 payment terms (currently a standard 30/40/30 schedule). Then
+> send with `MATERIALS.md` to two or three vendors from §7. Expect
+> 1–2 weeks of back-and-forth on scope and quote before signing.
 
 ---
 
@@ -17,7 +22,8 @@
 * **Audit target branch / tag:** `feat/v0.0.7` → will be tagged
   `v0.0.7` once this audit closes; the same code is intended to
   carry `v1.0.0` after remediation.
-* **Maintainer / point-of-contact:** `<TBD>`
+* **Maintainer / point-of-contact:** Sebastien Rousseau
+  &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
 * **Disclosure channel:** see `SECURITY.md` (email only, 48 h ack,
   7 d triage SLA).
 * **Code statistics (workspace):**
@@ -119,11 +125,12 @@ We do **not** require:
 
 ## 5. Timeline
 
-* **RFP sent:** `<TBD>` (target: within 30 days of this commit
-  landing on main).
+* **RFP sent:** `<MAINTAINER fills the actual send date>`
+  (target: within 30 days of this commit landing on main).
 * **Quote deadline:** RFP send date + 14 days.
 * **Vendor selected:** RFP send date + 21 days.
-* **Audit starts:** `<TBD>` (target start date).
+* **Audit starts:** **2026-06-15** `[ADJUST — adjust to vendor
+  availability]`.
 * **Draft report:** start + 3 weeks.
 * **Final report:** draft + 2 weeks (after maintainer fact-check).
 * **Remediation re-verify:** within 30 days of remediation
@@ -132,11 +139,15 @@ We do **not** require:
 
 ## 6. Budget guidance
 
-* **Indicative cap:** USD `<TBD>` (recommended USD 40 000 – 80 000
-  per the COMPARISON.md research; tier-1 vendors quote toward the
-  high end).
-* **Payment terms:** `<TBD>` (suggested: 30 % on contract,
-  40 % on draft report, 30 % on final + re-verify).
+* **Indicative cap:** **USD 60 000** `[ADJUST — middle of the
+  COMPARISON.md range USD 40k–80k; tier-1 vendors quote toward the
+  high end. Drop to ~ USD 40k if a vendor has clear ML-KEM
+  prior-art and limited scope; bump to ~ USD 80k if expanding
+  scope to the full AVX2 backend or to the (currently deferred)
+  ML-KEM-512 / ML-KEM-1024 surface]`.
+* **Payment terms:** 30 % on contract, 40 % on draft report,
+  30 % on final + re-verify `[ADJUST — adjust to vendor's
+  standard contract; some prefer 50 / 50]`.
 * **Pricing model:** preferred fixed-price for the scope above;
   T&M acceptable for the re-verify round.
 * **Travel / on-site:** not required.
@@ -192,6 +203,7 @@ written agreement; budget impact agreed in advance.
 
 ---
 
-**Maintainer point-of-contact:** `<TBD name and email>`
+**Maintainer point-of-contact:** Sebastien Rousseau
+&lt;contact@kyberlib.com&gt;
 **Date prepared:** _(see git log of this commit)_
 **Tracking issue:** [#177](https://github.com/sebastienrousseau/kyberlib/issues/177)

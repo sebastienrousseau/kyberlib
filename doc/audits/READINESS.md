@@ -109,6 +109,8 @@
 pre-RFP-send tasks are:
 
 1. Run a `release.yml` workflow_dispatch with `dry_run = true` and
-   verify the artefacts (SBOM, CBOM, attestation, cosign sig).
-2. Fill in the four `<TBD>` placeholders in `RFP-v1.0.md`.
+   verify the artefacts (SBOM, CBOM, attestation, cosign sig). *(In
+   progress this commit series.)*
+2. ~~Fill in the four `<TBD>` placeholders in `RFP-v1.0.md`.~~ *(Done
+   — see the four `[ADJUST]` flags; confirm before sending.)*
 3. Pick 2–3 vendors from RFP §7 and send.
