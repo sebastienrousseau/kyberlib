@@ -242,6 +242,10 @@ pub mod symmetric;
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;
 
+/// IETF LAMPS object identifiers for ML-KEM parameter sets (v0.0.7
+/// — see issue #150).
+pub mod oid;
+
 pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
@@ -250,6 +254,12 @@ pub use ml_kem::{
     MlKem768DecapKey, MlKem768EncapKey, SharedSecret,
 };
 pub use params::{
+    // v0.0.7 — canonical ML_KEM_* names (preferred in new code).
+    ML_KEM_90S, ML_KEM_CIPHERTEXT_BYTES, ML_KEM_PUBLIC_KEY_BYTES,
+    ML_KEM_SECRET_KEY_BYTES, ML_KEM_SECURITY_PARAMETER,
+    ML_KEM_SHARED_SECRET_BYTES, ML_KEM_SYM_BYTES,
+    // Legacy KYBER_* aliases — retained for downstream-consumer
+    // migration; will tighten to `#[deprecated]` in a future release.
     KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
     KYBER_SECRET_KEY_BYTES, KYBER_SECURITY_PARAMETER,
     KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,

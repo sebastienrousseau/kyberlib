@@ -52,15 +52,9 @@
 
 /// IETF LAMPS object-identifier table for ML-KEM parameter sets.
 ///
-/// These are the dotted-decimal OIDs assigned under `joint-iso-itu-t.country.us.organization.gov.csor.nistAlgorithm.kems.kyber`.
-pub mod oid {
-    /// ML-KEM-512 OID: `2.16.840.1.101.3.4.4.1`.
-    pub const ML_KEM_512: &str = "2.16.840.1.101.3.4.4.1";
-    /// ML-KEM-768 OID: `2.16.840.1.101.3.4.4.2`.
-    pub const ML_KEM_768: &str = "2.16.840.1.101.3.4.4.2";
-    /// ML-KEM-1024 OID: `2.16.840.1.101.3.4.4.3`.
-    pub const ML_KEM_1024: &str = "2.16.840.1.101.3.4.4.3";
-}
+/// Re-exported from `kyberlib::oid` (since v0.0.7, issue #150) so the
+/// OID table has a single source of truth in the core crate.
+pub use kyberlib::oid;
 
 /// Encoding trait for the SPKI side (public keys).
 ///
