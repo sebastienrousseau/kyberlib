@@ -226,11 +226,14 @@ jobs:
       - name: Cosign keyless sign-blob (Fulcio + Rekor)
         working-directory: dist
         run: |
+          # Cosign v3+ deprecated --output-signature / --output-certificate
+          # in favour of --bundle which packs signature + certificate
+          # into a single JSON file. Bundle format is what `cosign
+          # verify-blob` expects when verifying.
           for crate in *.crate; do
             cosign sign-blob \
               --yes \
-              --output-signature "${crate}.sig" \
-              --output-certificate "${crate}.pem" \
+              --bundle "${crate}.cosign-bundle.json" \
               "$crate"
           done
 
