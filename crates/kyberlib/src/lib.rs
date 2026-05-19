@@ -250,8 +250,10 @@ pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
 pub use ml_kem::{
-    KemCore, MlKem1024, MlKem512, MlKem768, MlKem768Ciphertext,
-    MlKem768DecapKey, MlKem768EncapKey, SharedSecret,
+    KemCore, MlKem1024, MlKem1024Ciphertext, MlKem1024DecapKey,
+    MlKem1024EncapKey, MlKem512, MlKem512Ciphertext, MlKem512DecapKey,
+    MlKem512EncapKey, MlKem768, MlKem768Ciphertext, MlKem768DecapKey,
+    MlKem768EncapKey, SharedSecret,
 };
 pub use params::{
     // v0.0.7 — canonical ML_KEM_* names (preferred in new code).

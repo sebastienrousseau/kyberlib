@@ -100,29 +100,235 @@ pub trait KemCore: sealed::Sealed + Sized {
 
 /// ML-KEM-512 parameter set marker. NIST security category 1 (≈ AES-128).
 ///
-/// **Not yet implemented in this build** — see [`MlKem768`] for the
-/// only currently-wired parameter set. Tracking: #130b.
+/// Module rank `k = 2`. Public key 800 B, secret key 1632 B,
+/// ciphertext 768 B, shared secret 32 B.
+///
+/// **`KemCore` not yet implemented** — the typed wrappers
+/// ([`MlKem512EncapKey`], [`MlKem512DecapKey`], [`MlKem512Ciphertext`])
+/// exist so downstream code can be written generically, but the
+/// underlying primitives require the const-generic refactor tracked
+/// in #130c to support all three parameter sets in one build.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem512;
 impl sealed::Sealed for MlKem512 {}
 
+impl MlKem512 {
+    /// Module rank.
+    pub const K: usize = 2;
+    /// Public encapsulation key length in bytes.
+    pub const PUBLIC_KEY_BYTES: usize = 800;
+    /// Private decapsulation key length in bytes.
+    pub const SECRET_KEY_BYTES: usize = 1632;
+    /// Ciphertext length in bytes.
+    pub const CIPHERTEXT_BYTES: usize = 768;
+    /// Shared-secret length in bytes.
+    pub const SHARED_SECRET_BYTES: usize = 32;
+    /// Stable algorithm identifier per the IETF LAMPS draft.
+    pub const ALGORITHM_ID: &'static str = "ML-KEM-512";
+    /// Object identifier — `2.16.840.1.101.3.4.4.1`.
+    pub const OID: &'static str = crate::oid::ML_KEM_512;
+}
+
 /// ML-KEM-768 parameter set marker. NIST security category 3 (≈ AES-192).
 /// Default for CNSA 2.0 hybrid TLS deployments.
+///
+/// Module rank `k = 3`. Public key 1184 B, secret key 2400 B,
+/// ciphertext 1088 B, shared secret 32 B.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem768;
 impl sealed::Sealed for MlKem768 {}
 
+impl MlKem768 {
+    /// Module rank.
+    pub const K: usize = 3;
+    /// Public encapsulation key length in bytes.
+    pub const PUBLIC_KEY_BYTES: usize = 1184;
+    /// Private decapsulation key length in bytes.
+    pub const SECRET_KEY_BYTES: usize = 2400;
+    /// Ciphertext length in bytes.
+    pub const CIPHERTEXT_BYTES: usize = 1088;
+    /// Shared-secret length in bytes.
+    pub const SHARED_SECRET_BYTES: usize = 32;
+    /// Stable algorithm identifier per the IETF LAMPS draft.
+    pub const ALGORITHM_ID_STR: &'static str = "ML-KEM-768";
+    /// Object identifier — `2.16.840.1.101.3.4.4.2`.
+    pub const OID_STR: &'static str = crate::oid::ML_KEM_768;
+}
+
 /// ML-KEM-1024 parameter set marker. NIST security category 5 (≈ AES-256).
 /// Required by CNSA 2.0 for NSS by 1 Jan 2027.
 ///
-/// **Not yet implemented in this build** — see [`MlKem768`] for the
-/// only currently-wired parameter set. Tracking: #130b.
+/// Module rank `k = 4`. Public key 1568 B, secret key 3168 B,
+/// ciphertext 1568 B, shared secret 32 B.
+///
+/// **`KemCore` not yet implemented** — see [`MlKem512`] for the
+/// rationale. Tracking: #130c.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem1024;
 impl sealed::Sealed for MlKem1024 {}
+
+impl MlKem1024 {
+    /// Module rank.
+    pub const K: usize = 4;
+    /// Public encapsulation key length in bytes.
+    pub const PUBLIC_KEY_BYTES: usize = 1568;
+    /// Private decapsulation key length in bytes.
+    pub const SECRET_KEY_BYTES: usize = 3168;
+    /// Ciphertext length in bytes.
+    pub const CIPHERTEXT_BYTES: usize = 1568;
+    /// Shared-secret length in bytes.
+    pub const SHARED_SECRET_BYTES: usize = 32;
+    /// Stable algorithm identifier per the IETF LAMPS draft.
+    pub const ALGORITHM_ID: &'static str = "ML-KEM-1024";
+    /// Object identifier — `2.16.840.1.101.3.4.4.3`.
+    pub const OID: &'static str = crate::oid::ML_KEM_1024;
+}
+
+// ---------------------------------------------------------------- ML-KEM-512 + 1024 typed wrappers
+
+macro_rules! sized_wrapper_types {
+    ($p:ident, $ek:ident, $dk:ident, $ct:ident, $pk_bytes:expr, $sk_bytes:expr, $ct_bytes:expr) => {
+        /// Public encapsulation key.
+        #[derive(Clone, Copy, Eq, PartialEq)]
+        pub struct $ek([u8; $pk_bytes]);
+
+        impl $ek {
+            /// Construct from raw bytes.
+            pub fn from_bytes(bytes: [u8; $pk_bytes]) -> Self {
+                Self(bytes)
+            }
+            /// Construct from a borrowed slice, validating the length.
+            ///
+            /// # Errors
+            ///
+            /// [`KyberLibError::InvalidLength`] on length mismatch.
+            pub fn try_from_slice(
+                bytes: &[u8],
+            ) -> Result<Self, KyberLibError> {
+                if bytes.len() != $pk_bytes {
+                    return Err(KyberLibError::InvalidLength);
+                }
+                let mut buf = [0u8; $pk_bytes];
+                buf.copy_from_slice(bytes);
+                Ok(Self(buf))
+            }
+            /// Borrow as raw bytes.
+            pub fn as_bytes(&self) -> &[u8; $pk_bytes] {
+                &self.0
+            }
+        }
+
+        impl fmt::Debug for $ek {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.debug_tuple(stringify!($ek))
+                    .field(&format_args!("[{} bytes; not secret]", $pk_bytes))
+                    .finish()
+            }
+        }
+
+        /// Secret decapsulation key. Zeroized on drop.
+        #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
+        pub struct $dk([u8; $sk_bytes]);
+
+        impl $dk {
+            /// Construct from raw bytes.
+            pub fn from_bytes(bytes: [u8; $sk_bytes]) -> Self {
+                Self(bytes)
+            }
+            /// Construct from a borrowed slice, validating the length.
+            ///
+            /// # Errors
+            ///
+            /// [`KyberLibError::InvalidLength`] on length mismatch.
+            pub fn try_from_slice(
+                bytes: &[u8],
+            ) -> Result<Self, KyberLibError> {
+                if bytes.len() != $sk_bytes {
+                    return Err(KyberLibError::InvalidLength);
+                }
+                let mut buf = [0u8; $sk_bytes];
+                buf.copy_from_slice(bytes);
+                Ok(Self(buf))
+            }
+            /// Borrow as raw bytes. Sparingly — the secret state is
+            /// exposed.
+            pub fn as_bytes(&self) -> &[u8; $sk_bytes] {
+                &self.0
+            }
+        }
+
+        impl fmt::Debug for $dk {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str(concat!(
+                    stringify!($dk),
+                    "([REDACTED ",
+                    stringify!($sk_bytes),
+                    " bytes])"
+                ))
+            }
+        }
+
+        /// Ciphertext.
+        #[derive(Clone, Copy, Eq, PartialEq)]
+        pub struct $ct([u8; $ct_bytes]);
+
+        impl $ct {
+            /// Construct from raw bytes.
+            pub fn from_bytes(bytes: [u8; $ct_bytes]) -> Self {
+                Self(bytes)
+            }
+            /// Construct from a borrowed slice, validating the length.
+            ///
+            /// # Errors
+            ///
+            /// [`KyberLibError::InvalidLength`] on length mismatch.
+            pub fn try_from_slice(
+                bytes: &[u8],
+            ) -> Result<Self, KyberLibError> {
+                if bytes.len() != $ct_bytes {
+                    return Err(KyberLibError::InvalidLength);
+                }
+                let mut buf = [0u8; $ct_bytes];
+                buf.copy_from_slice(bytes);
+                Ok(Self(buf))
+            }
+            /// Borrow as raw bytes.
+            pub fn as_bytes(&self) -> &[u8; $ct_bytes] {
+                &self.0
+            }
+        }
+
+        impl fmt::Debug for $ct {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.debug_tuple(stringify!($ct))
+                    .field(&format_args!("[{} bytes; opaque]", $ct_bytes))
+                    .finish()
+            }
+        }
+    };
+}
+
+sized_wrapper_types!(
+    MlKem512,
+    MlKem512EncapKey,
+    MlKem512DecapKey,
+    MlKem512Ciphertext,
+    800,
+    1632,
+    768
+);
+sized_wrapper_types!(
+    MlKem1024,
+    MlKem1024EncapKey,
+    MlKem1024DecapKey,
+    MlKem1024Ciphertext,
+    1568,
+    3168,
+    1568
+);
 
 // ---------------------------------------------------------------- shared secret
 
