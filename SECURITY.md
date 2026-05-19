@@ -14,6 +14,8 @@ upstream consumers should track the latest patch number.
 A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)
 is complete and all findings have been resolved + re-verified.
+The audit RFP, materials package, and readiness checklist live at
+[`doc/audits/`](doc/audits/README.md).
 
 ## Reporting a Vulnerability
 
