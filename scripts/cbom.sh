@@ -52,14 +52,14 @@ cargo cyclonedx \
     --spec-version 1.5 \
     --override-filename bom \
     --all \
-    --output-pattern bom \
-    --output-cdx \
     > /dev/null
 
-# cargo-cyclonedx writes per-crate `bom.cdx.json` files. Move the
-# workspace root one into the canonical output path.
-if [[ -f "bom.cdx.json" ]]; then
-    mv bom.cdx.json "$SBOM_PATH"
+# cargo-cyclonedx writes per-crate `bom.json` files at the
+# manifest path. Pick the workspace-root one for post-processing.
+if [[ -f "bom.json" ]]; then
+    mv bom.json "$SBOM_PATH"
+elif [[ -f "crates/kyberlib/bom.json" ]]; then
+    cp crates/kyberlib/bom.json "$SBOM_PATH"
 fi
 
 echo ":: bumping specVersion 1.5 → 1.6 and injecting cryptoProperties"
