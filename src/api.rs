@@ -8,8 +8,6 @@ use crate::{
     params::*,
     CryptoRng, RngCore,
 };
-use pqc_core::zero;
-#[cfg(feature = "zeroize")]
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Generate a key pair for Kyber encryption with a provided RNG.
@@ -40,7 +38,7 @@ where
     let mut secret = [0u8; KYBER_SECRET_KEY_BYTES];
     generate_key_pair(&mut public, &mut secret, rng, None)?;
     let keys = Keypair { public, secret };
-    zero!(secret);
+    secret.zeroize();
     Ok(keys)
 }
 
@@ -76,13 +74,11 @@ where
             public: public2,
             secret: secret2,
         };
-        #[cfg(feature = "zeroize")]
-        {
-            public.zeroize();
-            secret.zeroize();
-            public2.zeroize();
-            secret2.zeroize();
-        }
+        // Zeroize only the caller-supplied secret slice. Public keys are
+        // not sensitive (and zeroizing them would surprise callers who
+        // expect their input buffers to be preserved). The in-struct
+        // `secret2` is moved into `key`, which zeroizes via `ZeroizeOnDrop`.
+        secret.zeroize();
         Ok(key)
     } else {
         //Else return an error
@@ -163,8 +159,23 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 /// A public/secret keypair for use with Kyber.
 ///
 /// Byte lengths of the keys are determined by the security level chosen.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
+///
+/// # Secret handling
+///
+/// `Keypair` no longer derives [`Copy`] (since v0.0.7). This is a deliberate
+/// footgun fix: a `Copy` secret would defeat [`ZeroizeOnDrop`] by leaving
+/// uncleared stack copies behind whenever the value was passed by value.
+///
+/// [`Zeroize`] and [`ZeroizeOnDrop`] are now derived unconditionally — the
+/// `zeroize` Cargo feature is retained as a no-op opt-out and will be removed
+/// in a future release. To pass a `Keypair` around, take it by reference
+/// (`&Keypair`) or clone it explicitly (`keys.clone()`); the explicit
+/// `.clone()` makes secret duplication visible at call sites.
+///
+/// Phase 3 of the v0.0.7 roadmap (issue #154) splits this further into
+/// `EncapsulationKey` (public, `Copy`-safe) and `DecapsulationKey` (private,
+/// `!Copy`, `ZeroizeOnDrop`, with a redacted `Debug` impl).
+#[derive(Clone, Debug, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Keypair {
     /// The public key.
     pub public: PublicKey,
@@ -216,13 +227,22 @@ impl Keypair {
 
     /// Imports a keypair from existing public and secret key arrays.
     ///
-    /// This function imports a keypair from existing public and secret key arrays and returns it as a `Keypair` struct.
+    /// This function imports a keypair from existing public and secret key
+    /// arrays and returns it as a `Keypair` struct.
     ///
     /// # Arguments
     ///
     /// * `public` - A mutable reference to a `[u8; KYBER_PUBLIC_KEY_BYTES]` array representing the public key.
     /// * `secret` - A mutable reference to a `[u8; KYBER_SECRET_KEY_BYTES]` array representing the secret key.
     /// * `rng` - The random number generator implementing the `RngCore` and `CryptoRng` traits.
+    ///
+    /// # Secret hygiene
+    ///
+    /// On success, the caller-supplied `secret` buffer is zeroized in place
+    /// (since v0.0.7). Subsequent calls with the same `secret` buffer will
+    /// therefore return [`KyberLibError::InvalidKey`]; this is intentional —
+    /// the secret has only one valid home, the returned [`Keypair`]. If you
+    /// genuinely need a copy, use [`Keypair::clone`] on the returned value.
     ///
     /// # Example
     ///
@@ -233,8 +253,10 @@ impl Keypair {
     /// let keys = keypair(&mut rng)?;
     /// let mut public_key = keys.public;
     /// let mut secret_key = keys.secret;
-    /// let keys = Keypair::import(&mut public_key, &mut secret_key, &mut rng)?;
-    /// let _ = Keypair::import(&mut public_key, &mut secret_key, &mut rng)?;
+    /// let imported = Keypair::import(&mut public_key, &mut secret_key, &mut rng)?;
+    /// // `secret_key` has been zeroized in place; `imported.secret` is the
+    /// // only remaining copy and will be zeroized when `imported` is dropped.
+    /// # let _ = imported;
     /// # Ok(()) }
     /// ```
     pub fn import<R: CryptoRng + RngCore>(

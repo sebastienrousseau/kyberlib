@@ -159,6 +159,9 @@
 #![crate_name = "kyberlib"]
 #![crate_type = "lib"]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+// Every public item must carry rustdoc. See issue #137.
+#![deny(missing_docs)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
@@ -201,9 +204,6 @@ pub mod params;
 pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
-
-/// WebAssembly bindings for the KyberLib library.
-pub mod wasm;
 
 pub use api::*;
 pub use error::KyberLibError;

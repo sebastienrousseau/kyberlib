@@ -37,7 +37,10 @@ mod tests {
         assert_ne!(out, [0u8; 64]);
     }
 
-    // Test the xof_absorb and xof_squeezeblocks functions
+    // Test the xof_absorb and xof_squeezeblocks functions.
+    // `kyber_shake128_*` are only compiled in non-90s mode (SHAKE-based KEM);
+    // 90s mode swaps the XOF for AES256-CTR and exposes a different surface.
+    #[cfg(not(feature = "90s"))]
     #[test]
     fn test_xof_absorb_squeeze() {
         use kyberlib::params::KYBER_SYM_BYTES;

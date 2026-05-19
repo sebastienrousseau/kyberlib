@@ -19,7 +19,6 @@ mod tests {
         KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
     };
     use rand_core::OsRng;
-    use rlg::{log::Log, log_format::LogFormat, log_level::LogLevel};
 
     #[test]
     fn test_kyberlib_assert() {
@@ -36,66 +35,6 @@ mod tests {
     fn test_kyberlib_max() {
         let max = kyberlib_max!(1, 2, 3);
         assert_eq!(max, 3);
-    }
-
-    #[test]
-    fn test_kyberlib_info() {
-        let log = Log::new(
-            "12345",
-            "2023-01-01T12:00:00Z",
-            &LogLevel::INFO,
-            "MyComponent",
-            "This is a sample log message",
-            &LogFormat::JSON,
-        );
-
-        assert_eq!(log.level, LogLevel::INFO);
-    }
-
-    #[test]
-    fn test_kyberlib_error() {
-        let log = Log::new(
-            "12345",
-            "2023-01-01T12:00:00Z",
-            &LogLevel::ERROR,
-            "MyComponent",
-            "This is a sample log message",
-            &LogFormat::JSON,
-        );
-
-        assert_eq!(log.level, LogLevel::ERROR);
-    }
-
-    #[test]
-    fn test_kyberlib_debug() {
-        let log = Log::new(
-            "12345",
-            "2023-01-01T12:00:00Z",
-            &LogLevel::DEBUG,
-            "MyComponent",
-            "This is a sample log message",
-            &LogFormat::JSON,
-        );
-
-        assert_eq!(log.level, LogLevel::DEBUG);
-    }
-
-    #[test]
-    fn test_kyberlib_log() {
-        let log = Log::new(
-            "12345",
-            "2023-02-28T12:34:56",
-            &LogLevel::INFO,
-            "MyComponent",
-            "Hello world",
-            &LogFormat::JSON,
-        );
-
-        assert_eq!(log.session_id, "12345");
-        assert_eq!(log.time, "2023-02-28T12:34:56");
-        assert_eq!(log.component, "MyComponent");
-        assert_eq!(log.description, "Hello world");
-        assert_eq!(log.format, LogFormat::JSON);
     }
 
     #[test]

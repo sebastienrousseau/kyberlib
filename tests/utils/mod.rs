@@ -1,3 +1,4 @@
+use core::num::NonZeroU32;
 use rand_core::{CryptoRng, Error, RngCore};
 
 pub(crate) struct FailingRng(u64);
@@ -22,9 +23,10 @@ impl RngCore for FailingRng {
     fn fill_bytes(&mut self, _: &mut [u8]) {}
 
     fn try_fill_bytes(&mut self, _: &mut [u8]) -> Result<(), Error> {
-        Err(Error::new(
-            "Error filling bytes with random numbers generated from an external True RNG device",
-        ))
+        // `Error::new(impl StdError)` requires rand_core's `std` feature.
+        // Stay no_std-safe by using a custom-code Error instead.
+        let code = NonZeroU32::new(Error::CUSTOM_START + 1).unwrap();
+        Err(Error::from(code))
     }
 }
 

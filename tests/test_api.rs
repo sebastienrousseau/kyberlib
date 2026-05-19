@@ -181,18 +181,14 @@ mod tests {
         .is_err());
     }
 
-    // Test for handling of invalid inputs in Keypair::generate
+    // `Keypair::generate(rng)` takes no public/secret arguments, so there
+    // is no "invalid input" case at this layer — generation either succeeds
+    // or surfaces an `RandomBytesGeneration` error from the RNG. We assert
+    // the happy path here; RNG failure is covered in test_rng.rs via
+    // `FailingRng`.
     #[test]
-    fn test_keypair_generate_invalid_input() {
-        // Initialize a random number generator
+    fn test_keypair_generate_succeeds() {
         let mut rng = OsRng;
-        // Define invalid public key and secret key
-        let mut invalid_public_key = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut invalid_secret_key = [0u8; KYBER_SECRET_KEY_BYTES];
-        // Modify the public key and secret key to make them invalid
-        invalid_public_key[0] = 0xFF;
-        invalid_secret_key[0] = 0xFF;
-        // Assert error handling for Keypair::generate with invalid public key and secret key
         assert!(Keypair::generate(&mut rng).is_ok());
     }
 

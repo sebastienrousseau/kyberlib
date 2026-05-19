@@ -1,6 +1,12 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! WebAssembly integration tests. Built only when the `wasm` feature is
+//! enabled (previously the module was always compiled but the bindings
+//! pulled `wasm-bindgen` transitively; v0.0.7 makes `wasm-bindgen` optional).
+
+#![cfg(feature = "wasm")]
+
 #[cfg(test)]
 mod tests {
     // Import necessary items
