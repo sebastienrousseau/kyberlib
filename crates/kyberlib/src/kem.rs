@@ -95,11 +95,11 @@ where
     // Coins are in kr[KYBER_SYM_BYTES..]
     indcpa_enc(ct, &buf, pk, &kr[KYBER_SYM_BYTES..]);
 
-    // Overwrite coins in kr with H(c)
-    hash_h(&mut kr[KYBER_SYM_BYTES..], ct, KYBER_CIPHERTEXT_BYTES);
-
-    // Hash concatenation of pre-k and H(c) to derive the shared secret
-    kdf(ss, &kr, 2 * KYBER_SYM_BYTES);
+    // FIPS 203 §6.2 — the shared secret `K` is the first half of `G`'s
+    // output directly. Kyber Round 3 ran a final KDF over `K_bar || H(c)`;
+    // that step was removed in the final standard.
+    ss[..KYBER_SHARED_SECRET_BYTES]
+        .copy_from_slice(&kr[..KYBER_SHARED_SECRET_BYTES]);
 
     Ok(())
 }
@@ -136,12 +136,29 @@ pub fn decrypt_message(ss: &mut [u8], ct: &[u8], sk: &[u8]) {
     indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYM_BYTES..]);
     let fail = verify(ct, &cmp, KYBER_CIPHERTEXT_BYTES);
 
-    // Overwrite coins in kr with H(c)
-    hash_h(&mut kr[KYBER_SYM_BYTES..], ct, KYBER_CIPHERTEXT_BYTES);
+    // FIPS 203 §6.3 — implicit rejection.
+    //   Success path: K = K' = kr[..32] (from `G(m' || h)`).
+    //   Failure path: K = J(z || c) = SHAKE256(z || c, 32).
+    // Kyber Round 3 used `KDF(K_bar || H(c))` on success and
+    // `KDF(z || H(c))` on failure. The final standard replaced the
+    // post-KDF entirely and switched the rejection input from
+    // `z || H(c)` to `z || c`.
+    let mut k_reject_input =
+        [0u8; KYBER_SYM_BYTES + KYBER_CIPHERTEXT_BYTES];
+    k_reject_input[..KYBER_SYM_BYTES].copy_from_slice(&sk[END..]);
+    // `ct` may be a slice into a longer buffer (kex.rs concatenates
+    // additional payload after the KEM ciphertext); only the first
+    // `KYBER_CIPHERTEXT_BYTES` are the ciphertext proper.
+    k_reject_input[KYBER_SYM_BYTES..]
+        .copy_from_slice(&ct[..KYBER_CIPHERTEXT_BYTES]);
+    let mut k_reject = [0u8; KYBER_SHARED_SECRET_BYTES];
+    kdf(
+        &mut k_reject,
+        &k_reject_input,
+        KYBER_SYM_BYTES + KYBER_CIPHERTEXT_BYTES,
+    );
 
-    // Overwrite pre-k with z on re-encryption failure
-    cmov(&mut kr, &sk[END..], KYBER_SYM_BYTES, fail);
-
-    // Hash concatenation of pre-k and H(c) to derive the shared secret
-    kdf(ss, &kr, 2 * KYBER_SYM_BYTES);
+    ss[..KYBER_SHARED_SECRET_BYTES]
+        .copy_from_slice(&kr[..KYBER_SHARED_SECRET_BYTES]);
+    cmov(ss, &k_reject, KYBER_SHARED_SECRET_BYTES, fail);
 }
