@@ -62,59 +62,71 @@ elif [[ -f "crates/kyberlib/bom.json" ]]; then
     cp crates/kyberlib/bom.json "$SBOM_PATH"
 fi
 
-echo ":: bumping specVersion 1.5 → 1.6 and injecting cryptoProperties"
+echo ":: bumping specVersion 1.5 → 1.6, injecting cryptoProperties"
+# cargo-cyclonedx places the audited crate in `metadata.component`
+# (not `.components[]`). We inject cryptoProperties there, and into
+# any kyberlib-* dep that happens to also appear in `.components`.
 jq '
+  def crypto_props_for_kyberlib:
+    {
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kem",
+          "parameterSetIdentifier": "ML-KEM-768",
+          "executionEnvironment": "software-plain-ram",
+          "implementationPlatform": "x86_64",
+          "certificationLevel": ["none"],
+          "mode": "cca",
+          "padding": "implicit-rejection",
+          "cryptoFunctions": ["keygen", "encapsulate", "decapsulate"],
+          "classicalSecurityLevel": 192,
+          "nistQuantumSecurityLevel": 3
+        },
+        "oid": "2.16.840.1.101.3.4.4.2"
+      }
+    };
+  def crypto_props_for_asm:
+    {
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kem",
+          "parameterSetIdentifier": "ML-KEM-768",
+          "executionEnvironment": "software-plain-ram",
+          "implementationPlatform": "x86_64-avx2",
+          "certificationLevel": ["none"]
+        }
+      }
+    };
+  def crypto_props_for_wasm:
+    {
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kem",
+          "parameterSetIdentifier": "ML-KEM-768",
+          "executionEnvironment": "browser-wasm",
+          "implementationPlatform": "wasm32"
+        }
+      }
+    };
+
   .specVersion = "1.6"
+  | .metadata.component += (
+      if .metadata.component.name == "kyberlib" then crypto_props_for_kyberlib
+      else {} end
+    )
   | .components |= map(
-    if .name == "kyberlib" then
-      . + {
-        "cryptoProperties": {
-          "assetType": "algorithm",
-          "algorithmProperties": {
-            "primitive": "kem",
-            "parameterSetIdentifier": "ML-KEM-768",
-            "executionEnvironment": "software-plain-ram",
-            "implementationPlatform": "x86_64",
-            "certificationLevel": ["none"],
-            "mode": "cca",
-            "padding": "implicit-rejection",
-            "cryptoFunctions": ["keygen", "encapsulate", "decapsulate"],
-            "classicalSecurityLevel": 192,
-            "nistQuantumSecurityLevel": 3
-          },
-          "oid": "2.16.840.1.101.3.4.4.2"
-        }
-      }
-    elif .name == "kyberlib-asm" then
-      . + {
-        "cryptoProperties": {
-          "assetType": "algorithm",
-          "algorithmProperties": {
-            "primitive": "kem",
-            "parameterSetIdentifier": "ML-KEM-768",
-            "executionEnvironment": "software-plain-ram",
-            "implementationPlatform": "x86_64-avx2",
-            "certificationLevel": ["none"]
-          }
-        }
-      }
-    elif .name == "kyberlib-wasm" then
-      . + {
-        "cryptoProperties": {
-          "assetType": "algorithm",
-          "algorithmProperties": {
-            "primitive": "kem",
-            "parameterSetIdentifier": "ML-KEM-768",
-            "executionEnvironment": "browser-wasm",
-            "implementationPlatform": "wasm32"
-          }
-        }
-      }
-    else . end
-  )
+      if .name == "kyberlib"      then . + crypto_props_for_kyberlib
+      elif .name == "kyberlib-asm"  then . + crypto_props_for_asm
+      elif .name == "kyberlib-wasm" then . + crypto_props_for_wasm
+      else . end
+    )
   | .metadata.properties = (.metadata.properties // []) + [
-      { "name": "kyberlib:phase", "value": "v0.0.7 enterprise upgrade" },
-      { "name": "kyberlib:fips203-conformance", "value": "pending — see issue #147" }
+      { "name": "kyberlib:phase",                  "value": "v0.0.7 enterprise upgrade" },
+      { "name": "kyberlib:fips203-conformance",    "value": "ACVP 60/60 ML-KEM-768 (commit b0f3bfb)" },
+      { "name": "kyberlib:kyberslash-audit",       "value": "clean — ADR 0003 (commit 18ba0d9)" }
     ]
 ' "$SBOM_PATH" > "$CBOM_PATH"
 
