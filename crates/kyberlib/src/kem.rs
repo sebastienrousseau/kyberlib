@@ -83,8 +83,10 @@ where
         randombytes(&mut randbuf, KYBER_SYM_BYTES, _rng)?;
     }
 
-    // Don't release system RNG output
-    hash_h(&mut buf, &randbuf, KYBER_SYM_BYTES);
+    // FIPS 203 §6.2 — `m` flows directly into `G(m || H(ek))`.
+    // Kyber Round 3 first hashed `m' = H(m)` and then used `m'` in
+    // place of `m`. NIST removed that step in the final standard.
+    buf[..KYBER_SYM_BYTES].copy_from_slice(&randbuf[..KYBER_SYM_BYTES]);
 
     // Multitarget countermeasure for coins + contributory KEM
     hash_h(&mut buf[KYBER_SYM_BYTES..], pk, KYBER_PUBLIC_KEY_BYTES);
