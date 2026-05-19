@@ -1,0 +1,98 @@
+[package]
+name = "kyberlib"
+description = "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography."
+documentation = "https://docs.rs/kyberlib"
+readme = "../../README.md"
+categories = ["algorithms", "cryptography", "wasm", "no-std"]
+keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
+build = "build.rs"
+
+# Inherit shared metadata from the workspace root.
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+include = [
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/SECURITY.md",
+    "/benches/**",
+    "/build.rs",
+    "/Cargo.toml",
+    "/examples/**",
+    "/src/**",
+    "/tests/**",
+]
+
+[dependencies]
+aes          = { workspace = true, optional = true }
+ctr          = { workspace = true, optional = true }
+rand         = { workspace = true, features = ["getrandom"] }
+rand_core    = { workspace = true }
+sha2         = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+zeroize      = { workspace = true }
+
+[dev-dependencies]
+criterion         = { workspace = true }
+# Tests / examples / benches re-enable `std` + `std_rng` on top of the
+# library-side no_std-friendly default. See SECURITY.md and CHANGELOG.
+rand              = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+wasm-bindgen-test = { workspace = true }
+
+[build-dependencies]
+cc      = { workspace = true, optional = true }
+nasm-rs = { workspace = true, optional = true }
+
+[lib]
+# v0.0.7 narrows `crate-type` from `["cdylib", "rlib", "staticlib"]` to `rlib`
+# only. See CHANGELOG. The dedicated `kyberlib-wasm` workspace crate (issue
+# #144, Phase 1.3) re-introduces the cdylib path.
+crate-type = ["rlib"]
+name       = "kyberlib"
+path       = "src/lib.rs"
+
+[features]
+### Security Levels ###
+# Defaults to `kyber768` if none selected. Phase 3 of the v0.0.7 roadmap
+# replaces this Cargo-feature switch with sealed marker types
+# (`MlKem512`, `MlKem768`, `MlKem1024`) — see issues #130 / #153 / #158.
+#
+# `std` is on by default so `cargo build` works for typical applications.
+# For embedded / `no_std` consumers set `default-features = false` and
+# re-enable `kyber768` explicitly.
+default = ["kyber768", "std"]
+# kyber512 = []
+kyber768 = []
+# kyber1024 = []
+
+### Export IND-CPA primitives (advanced — bypasses the FO transform).
+hazmat = []
+
+### Additional features
+# 90s mode uses AES256-CTR and SHA2 as primitives instead of SHAKE.
+# Removed from FIPS 203; retained pre-spec-migration for compatibility.
+90s          = ["sha2"]
+90s-fixslice = ["90s", "aes", "ctr"]
+avx2         = ["cc"]
+wasm         = ["wasm-bindgen"]
+nasm         = ["nasm-rs", "avx2"]
+std          = ["zeroize/std"]
+# `zeroize` is a no-op opt-out feature retained for backward compatibility.
+# `Zeroize` / `ZeroizeOnDrop` are derived unconditionally since v0.0.7.
+zeroize = []
+
+[package.metadata.docs.rs]
+features     = ["kyber768", "std", "hazmat", "wasm"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[package.metadata.clippy]
+warn-lints = ["clippy::all", "clippy::pedantic", "clippy::cargo", "clippy::nursery"]
+
+[lints]
+workspace = true
