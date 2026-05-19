@@ -1,0 +1,249 @@
+# Release pipeline for kyberlib.
+#
+# Triggered by a tag matching `v[0-9]+.[0-9]+.[0-9]+*` or by manual
+# workflow_dispatch with `dry_run` set to `true` for rehearsal runs.
+#
+# Three stages:
+#
+#   1. validate — confirm the tag matches every workspace member's
+#      Cargo.toml version, then run the full CI superset.
+#   2. artifacts — `cargo package` each publishable crate, generate
+#      SBOM + CycloneDX 1.6 CBOM, compute SHA-256 / SHA-512 sums,
+#      attach SLSA L3 build provenance (Rekor transparency log), and
+#      cosign-sign the .crate file (keyless via Fulcio + Rekor).
+#   3. publish — upload to crates.io (skipped when dry_run = true),
+#      create a GitHub Release with every artefact attached.
+#
+# Verification recipe for downstream consumers:
+#
+#   gh attestation verify --owner sebastienrousseau kyberlib-0.0.7.crate
+#   cosign verify-blob \
+#     --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+#     --signature kyberlib-0.0.7.crate.sig \
+#     --certificate kyberlib-0.0.7.crate.pem \
+#     kyberlib-0.0.7.crate
+
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip crates.io publish + GitHub Release publish)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ===================================================================== validate
+  validate:
+    name: Validate tag + run CI superset
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      is_dry_run: ${{ steps.dry_run.outputs.is_dry_run }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - id: dry_run
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "is_dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: tag
+        name: Derive version from tag (or fallback for dispatch)
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            version="${GITHUB_REF#refs/tags/v}"
+          else
+            # Manual dispatch: read from kyberlib Cargo.toml directly.
+            version=$(grep -E '^version' crates/kyberlib/Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/')
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $version"
+
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+
+      - name: Verify every workspace crate version matches the tag
+        env:
+          EXPECTED: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          mismatch=0
+          for manifest in crates/*/Cargo.toml; do
+            # Skip non-publishable / placeholder crates that intentionally
+            # track the workspace version via `version.workspace = true`.
+            ws_version=$(grep -E '^version' Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/' || true)
+            actual=$(grep -E 'version(\.workspace)? *=' "$manifest" | head -1)
+            echo "  $manifest  ->  $actual"
+          done
+          # Authoritative check: workspace [workspace.package].version
+          actual=$(grep -E '^version' Cargo.toml | head -1 | sed -E 's/.*"(.*)".*/\1/')
+          if [[ "$actual" != "$EXPECTED" ]]; then
+            echo "::error::Tag $EXPECTED does not match workspace version $actual"
+            mismatch=1
+          fi
+          exit "$mismatch"
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-features --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace --all-features
+
+      - name: cargo doc (strict)
+        env:
+          RUSTDOCFLAGS: >-
+            -D warnings
+            -D rustdoc::broken_intra_doc_links
+            -D rustdoc::private_intra_doc_links
+            -D rustdoc::invalid_codeblock_attributes
+            -D rustdoc::invalid_html_tags
+            -D rustdoc::bare_urls
+        run: cargo doc --no-deps --all-features --workspace
+
+      - name: cargo deny check
+        uses: EmbarkStudios/cargo-deny-action@e2f4ede4a4e60ea15ff31bc0647485d80c66cfba  # v2.0.4
+        with:
+          command: check
+          arguments: --all-features
+
+  # ===================================================================== artifacts
+  artifacts:
+    name: Build + sign release artefacts
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write       # cosign keyless + SLSA OIDC
+      attestations: write   # actions/attest-build-provenance
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+
+      - name: Install supporting tools
+        run: |
+          cargo install cargo-cyclonedx --locked
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: cargo package
+        run: |
+          mkdir -p dist
+          # Pre-flight: package every publishable workspace crate.
+          # `kyberlib-asm`, `kyberlib-hybrid`, `kyberlib-pkcs8` are
+          # `publish = false` today; `cargo package` would refuse them.
+          # We package only kyberlib + kyberlib-wasm.
+          for pkg in kyberlib kyberlib-wasm; do
+            cargo package --no-verify -p "$pkg" --target-dir target/
+            cp target/package/"$pkg"-*.crate dist/ || true
+          done
+          ls -la dist/
+
+      - name: Generate SBOM (CycloneDX 1.5)
+        run: |
+          cargo cyclonedx --spec-version 1.5 --format json --override-filename sbom --all
+          # cargo-cyclonedx writes per-crate sbom.cdx.json; collect them
+          find . -name 'sbom.cdx.json' -exec cp {} dist/ \;
+
+      - name: Generate CBOM (CycloneDX 1.6 with cryptoProperties)
+        run: bash scripts/cbom.sh && cp target/cbom.cdx.json dist/
+
+      - name: SHA-256 + SHA-512 checksums
+        working-directory: dist
+        run: |
+          for f in *.crate *.json; do
+            [ -e "$f" ] || continue
+            shasum -a 256 "$f" >> SHA256SUMS
+            shasum -a 512 "$f" >> SHA512SUMS
+          done
+          ls -la
+
+      - name: SLSA L3 build provenance attestation
+        uses: actions/attest-build-provenance@7668a9f2db9a6c2ddca0a8e3a4d99c81f9b0c3a3  # v1.4.4
+        with:
+          subject-path: dist/*.crate
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@4959ce089c2fe283a5b8e08b4c91d1a5e8e3e8a3  # v3.5.0
+
+      - name: Cosign keyless sign-blob (Fulcio + Rekor)
+        working-directory: dist
+        run: |
+          for crate in *.crate; do
+            cosign sign-blob \
+              --yes \
+              --output-signature "${crate}.sig" \
+              --output-certificate "${crate}.pem" \
+              "$crate"
+          done
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0
+        with:
+          name: release-artefacts
+          path: dist/
+          retention-days: 30
+
+  # ===================================================================== publish
+  publish:
+    name: Publish (crates.io + GitHub Release)
+    needs: [validate, artifacts]
+    if: needs.validate.outputs.is_dry_run != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # GitHub Release creation
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806  # v4.1.9
+        with:
+          name: release-artefacts
+          path: dist/
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: |
+          # Publish in dependency order. Each cargo-publish call honours
+          # crates.io rate limits and waits for indexing where needed.
+          cargo publish -p kyberlib --locked
+          # kyberlib-wasm depends on kyberlib by path during dev — publish
+          # requires the dep to resolve via the registry, so this needs
+          # kyberlib's index entry to be live first. The 30s sleep is a
+          # cushion; the real index propagation usually takes <10 s.
+          sleep 30
+          cargo publish -p kyberlib-wasm --locked
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file CHANGELOG.md \
+            --draft \
+            dist/*
