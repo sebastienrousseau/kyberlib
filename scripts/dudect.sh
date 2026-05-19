@@ -1,73 +1,137 @@
 #!/usr/bin/env bash
 # dudect-style constant-time analysis runner for kyberlib.
 #
-# `dudect` (de Reijke & Bertoni 2017, https://eprint.iacr.org/2016/1123)
-# measures whether the timing distribution of a function differs
-# significantly between two classes of inputs. A t-statistic above a
-# threshold (typically ±4.5σ → ±10σ for very tight bounds) indicates
-# secret-dependent timing.
+# Background: de Reijke & Bertoni 2017 (eprint 2016/1123) — "dude, is
+# my code constant time?". Runs Welch's t-test on two timing
+# distributions to detect secret-dependent execution paths. A
+# t-statistic above ±4.5σ indicates leakage (we use ±10σ for tighter
+# release-gate bounds).
 #
-# This script invokes the Rust harness in `crates/kyberlib/benches/dudect.rs`
-# (added in Phase 4.3) which uses the `dudect-bencher` crate to run the
-# statistical test. The harness is built but not run as part of the
-# normal CI — execute manually before each release and on every change
-# to the secret-handling paths.
+# Implementation: `crates/kyberlib/benches/dudect.rs` (the
+# `dudect-bencher`-driven harness). Covers:
 #
-# Status: **scaffolded only**. The Rust harness file lands as a
-# placeholder until Phase 2(b) (FIPS 203 patch) closes the
-# documented Round-3 vs FIPS-203 gaps. Running dudect against the
-# current code would measure Round-3 behaviour and produce results
-# that need re-running after the patches; the value of the gate
-# comes after Phase 2(b).
+#   - decap_valid_vs_invalid_ct       — FIPS 203 §6.3 implicit-
+#                                       rejection timing equivalence
+#   - decap_zero_vs_ff_secret_stream  — KyberSlash-class
+#                                       Hamming-weight invariance
+#
+# Modes:
+#   bash scripts/dudect.sh            # quick check (10k samples / bench)
+#   bash scripts/dudect.sh full       # release gate (200k samples)
+#   bash scripts/dudect.sh continuous # streaming; Ctrl-C to stop
+#
+# CI does *not* run dudect — shared CI runners introduce timing noise
+# that overwhelms any real signal. Run on a quiescent baremetal host
+# before each release.
+#
+# Output format (per bench):
+#   `n == +0.200M, max t = +X.YYYYY, max tau = +0.0NNNN, (5/tau)^2 = N`
+# where `max t` is the Welch t-statistic. Anything below `T_THRESHOLD`
+# (default 10) passes; anything above is an investigation trigger.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# Hard-fail threshold. Above this t-statistic we declare leakage.
-# 10σ is the noyalib-aligned setting; 4.5σ is the original dudect
-# default and is more sensitive but also more flake-prone on noisy
-# CI runners.
 T_THRESHOLD="${DUDECT_T_THRESHOLD:-10}"
+MODE="${1:-quick}"
+LOG="${DUDECT_LOG:-target/dudect.log}"
 
-cat <<'EOF'
-:: dudect harness — gating conditions satisfied; runner not yet wired.
+mkdir -p target
 
-The two preconditions that blocked the harness are now both
-resolved:
+echo ":: building dudect harness in release mode"
+# Use `--message-format=json` so we get the exact compiled binary
+# path back, respecting `CARGO_TARGET_DIR` and any user overrides
+# (the script must not assume the binary lives under ./target/).
+BUILD_JSON=$(cargo build \
+    --release \
+    --bench dudect \
+    --features benchmarking \
+    -p kyberlib \
+    --message-format=json 2>/dev/null)
 
-  1. FIPS 203 spec migration is complete (Phase 2(b), commits
-     417595a / 27e4b6b / b0f3bfb). 60/60 ML-KEM-768 ACVP cases
-     pass; the cryptographic surface dudect would measure is now
-     stable.
+BINARY=$(echo "$BUILD_JSON" \
+    | grep -o '"executable":"[^"]*dudect-[^"]*"' \
+    | head -1 \
+    | sed 's/"executable":"//; s/"$//')
 
-  2. The KyberSlash audit is complete (ADR 0003, this commit).
-     Every secret-dependent `/` and `%` in the source tree
-     uses Barrett-style multiply-and-shift; no `udiv` / `sdiv`
-     leaks to measure.
+if [[ -z "$BINARY" ]]; then
+    echo "ERROR: could not locate compiled dudect harness binary" >&2
+    exit 1
+fi
 
-What remains is the actual `dudect-bencher` integration: a Rust
-harness that exercises `decapsulate` with carefully chosen input
-classes (random pk × valid c, random pk × tampered c, etc.) and
-runs the t-statistic test from de Reijke & Bertoni (eprint
-2016/1123). That work is tracked as a follow-up to #161.
+echo ":: harness binary: $BINARY"
+echo ":: mode: $MODE  (T_THRESHOLD = ±$T_THRESHOLD)"
 
-For now this script exits 0 so CI stays green. When the harness
-lands, the body below activates.
+# Capture run output to a temp file so we parse the same bytes we
+# show to the user (running the harness twice produces independent
+# noise on the t-statistics, which would make the gate non-deterministic
+# vs the displayed numbers).
+RUN_OUT=$(mktemp)
+trap 'rm -f "$RUN_OUT"' EXIT
 
-EOF
+case "$MODE" in
+    quick)
+        # Default sample count from benches/dudect.rs::SAMPLES_PER_CLASS
+        # (5k per class). Suitable for dev-loop checks; not for release.
+        "$BINARY" --out "$LOG" | tee "$RUN_OUT"
+        ;;
+    full)
+        # For a release gate, run with substantially more samples per
+        # class — edit benches/dudect.rs::SAMPLES_PER_CLASS to 200_000
+        # and rebuild. (dudect-bencher's CLI doesn't expose sample
+        # count as a flag.) The 200k figure is the noyalib-aligned
+        # release-gate norm; on a quiescent baremetal host it takes
+        # roughly 15-20 minutes per bench.
+        echo ":: full mode — assumes SAMPLES_PER_CLASS has been raised"
+        echo "   in benches/dudect.rs (default 5k → release 200k)"
+        "$BINARY" --out "$LOG" | tee "$RUN_OUT"
+        ;;
+    continuous)
+        # Streaming mode — runs forever, printing rolling t-stats.
+        # Use to triage a flagged bench.
+        echo ":: continuous mode — Ctrl-C to stop"
+        exec "$BINARY" --continuous decap_valid_vs_invalid_ct --out "$LOG"
+        ;;
+    *)
+        echo "Usage: $0 [quick|full|continuous]" >&2
+        exit 2
+        ;;
+esac
 
-exit 0
+echo
+echo ":: raw samples written to $LOG"
+echo
+echo ":: parsing t-statistics for threshold violations…"
 
-# ---------------------------------------------------------------------
-# Below is the *intended* runner. Activate when the harness lands.
-# ---------------------------------------------------------------------
-#
-# cargo bench -p kyberlib --bench dudect -- \
-#     --thresholds "$T_THRESHOLD" \
-#     --samples 200000 \
-#     --classes "valid_ct,tampered_ct,truncated_ct" \
-#     --report json > dudect-report.json
-#
-# python3 scripts/dudect-summarise.py dudect-report.json
+# Threshold gate. The harness prints `max t = +X.YYYYY` per bench;
+# extract |t| and compare to T_THRESHOLD.
+FAIL=0
+while IFS= read -r line; do
+    if [[ "$line" =~ max\ t\ =\ ([+-]?[0-9]+\.[0-9]+) ]]; then
+        t_val="${BASH_REMATCH[1]}"
+        abs_t=$(awk -v v="$t_val" 'BEGIN { print (v < 0 ? -v : v) }')
+        if awk -v a="$abs_t" -v t="$T_THRESHOLD" 'BEGIN { exit !(a > t) }'; then
+            echo "  LEAK: |t| = $abs_t exceeds ±$T_THRESHOLD"
+            echo "        line: $line"
+            FAIL=1
+        else
+            echo "  OK:   |t| = $abs_t  <  ±$T_THRESHOLD"
+        fi
+    fi
+done < <(grep 'max t =' "$RUN_OUT")
+
+if [[ $FAIL -ne 0 ]]; then
+    echo
+    echo ":: FAIL — timing-leak signal detected. Investigate before release."
+    exit 1
+fi
+
+echo
+echo ":: PASS — no constant-time leak detected at ±$T_THRESHOLD."
+echo
+echo ":: Note: dudect is a negative result only — failure to detect"
+echo "   doesn't prove CT. Pair with the structural audit in"
+echo "   doc/adr/0003-kyberslash-audit.md and the Barrett-reduction"
+echo "   guarantees inherited from pq-crystals."

@@ -57,6 +57,10 @@ x25519-dalek     = { version = "2.0",   default-features = false, features = ["z
 proptest         = { version = "1.5" }
 rand_chacha      = { version = "0.3" }
 insta            = { version = "1.40", features = ["yaml"] }
+# Welch's t-test runner for constant-time analysis (eprint 2016/1123).
+# `default-features = false` keeps the ctgrind backend off (we use the
+# native counter-based timing).
+dudect-bencher   = { version = "0.7" }
 
 # Workspace-level lints. Members opt in with `[lints] workspace = true`.
 # Specific lints carry explicit positive priority so they override the

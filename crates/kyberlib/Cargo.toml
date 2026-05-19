@@ -63,6 +63,9 @@ rand_chacha = { workspace = true }
 # Snapshot testing — secret-redaction Debug regressions
 # (`tests/test_snapshots.rs`).
 insta       = { workspace = true }
+# Welch's t-test for the constant-time analysis harness
+# (`benches/dudect.rs`). Pairs with `scripts/dudect.sh`.
+dudect-bencher = { workspace = true }
 
 [build-dependencies]
 # `optional = true` on a build-dep is gated by the matching `dep:`
@@ -77,6 +80,18 @@ nasm-rs = { workspace = true, optional = true }
 crate-type = ["rlib"]
 name       = "kyberlib"
 path       = "src/lib.rs"
+
+# Criterion micro-benchmarks (legacy + typed API + handshake throughput).
+[[bench]]
+name    = "api"
+harness = false   # criterion provides its own main via `criterion_main!`
+
+# dudect-bencher Welch's t-test harness for constant-time analysis.
+# Run with: `cargo bench -p kyberlib --bench dudect -- --continuous decap_valid_vs_invalid`
+# (see scripts/dudect.sh for the production runner).
+[[bench]]
+name    = "dudect"
+harness = false   # dudect-bencher provides its own main via `ctbench_main!`
 
 [features]
 ### Security Levels ###
