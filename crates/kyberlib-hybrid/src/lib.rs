@@ -20,7 +20,7 @@
 //!
 //! [`X25519MlKem768`] is fully wired (Phase 5.1, issue #167) on top of
 //! the FIPS 203 ML-KEM-768 primitives in `kyberlib` v0.0.7 and
-//! [`x25519-dalek`] v2 for the classical side. The ECDHE-variants
+//! `x25519-dalek` v2 for the classical side. The ECDHE-variants
 //! `SecP256r1MlKem768` and `SecP384r1MlKem1024` are declared but the
 //! ECDH choice is deferred — see issue #167 part b.
 //!

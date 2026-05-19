@@ -8,13 +8,12 @@
 //! aliases for one release so downstream consumers can migrate at
 //! their own pace.
 //!
-//! For per-parameter-set sized constants (`ML-KEM-512`, `ML-KEM-768`,
-//! `ML-KEM-1024`) once #130b lands, prefer the associated constants
-//! on the [`KemParams`](crate::ml_kem::sealed::KemParams) trait via
-//! the marker types `MlKem512` / `MlKem768` / `MlKem1024`. The
-//! free constants in this module pin to the **current build's**
-//! parameter set (currently always ML-KEM-768 — `kyber512` and
-//! `kyber1024` features are reserved but disabled).
+//! For per-parameter-set sized constants (ML-KEM-512, ML-KEM-768,
+//! ML-KEM-1024) once #130c lands, prefer the inherent associated
+//! constants on the marker types — e.g. [`crate::MlKem768::PUBLIC_KEY_BYTES`].
+//! The free constants in this module pin to the **current build's**
+//! parameter set (currently always ML-KEM-768; `kyber512` and
+//! `kyber1024` Cargo features are reserved but disabled).
 
 // ============================================================================
 // Canonical names (ML_KEM_*) — use these in new code

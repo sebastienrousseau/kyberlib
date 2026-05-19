@@ -344,8 +344,8 @@ sized_wrapper_types!(
 /// 32-byte shared secret. Zeroized on drop.
 ///
 /// Construct via [`KemCore::generate`] →
-/// [`EncapsulationKey::encapsulate`] →
-/// [`DecapsulationKey::decapsulate`]; never directly by the consumer.
+/// `EncapsulationKey::encapsulate` → `DecapsulationKey::decapsulate`;
+/// never directly by the consumer.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 #[non_exhaustive]
 pub struct SharedSecret([u8; KYBER_SHARED_SECRET_BYTES]);
