@@ -5,7 +5,7 @@ documentation = "https://docs.rs/kyberlib-hybrid"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "no-std"]
 keywords = ["kyber", "ml-kem", "hybrid", "post-quantum", "tls"]
-publish = false   # Skeleton. Flips to publishable when phase 2(b) lands.
+publish = false   # Phase 5.1 lands the implementation; flips publishable post-audit (#177).
 
 authors.workspace      = true
 edition.workspace      = true
@@ -23,7 +23,7 @@ crate-type = ["rlib"]
 [features]
 default = ["x25519"]
 # Per-share enable. All three hybrids will eventually be on-demand.
-x25519       = []
+x25519       = ["dep:x25519-dalek"]
 secp256r1    = []
 secp384r1    = []
 
@@ -33,6 +33,13 @@ secp384r1    = []
 # unversioned path deps, and `cargo publish` requires the version
 # stamp to be present on the manifest.
 kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
+# X25519 classical KEM. Activated only when the `x25519` feature is on.
+x25519-dalek = { workspace = true, optional = true }
+rand_core    = { workspace = true }
+zeroize      = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
 
 [lints]
 workspace = true

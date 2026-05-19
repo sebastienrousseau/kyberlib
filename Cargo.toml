@@ -48,6 +48,11 @@ nasm-rs          = { version = "0.3.0" }
 criterion        = { version = "0.5.1" }
 serde            = { version = "1.0",   default-features = false, features = ["derive"] }
 serde_json       = { version = "1.0",   default-features = false, features = ["alloc"] }
+# X25519 classical KEM (used by `kyberlib-hybrid`'s X25519MLKEM768).
+# `default-features = false` keeps the dep no_std-friendly; the
+# downstream crate re-enables features it needs (e.g. zeroize via the
+# `static_secrets` feature for symmetric secret-key storage).
+x25519-dalek     = { version = "2.0",   default-features = false, features = ["zeroize", "static_secrets"] }
 
 # Workspace-level lints. Members opt in with `[lints] workspace = true`.
 # Specific lints carry explicit positive priority so they override the

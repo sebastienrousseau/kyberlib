@@ -163,8 +163,34 @@ impl Eq for SharedSecret {}
 
 /// ML-KEM-768 encapsulation key (public). 1184 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MlKem768EncapKey(pub [u8; KYBER_PUBLIC_KEY_BYTES]);
+pub struct MlKem768EncapKey([u8; KYBER_PUBLIC_KEY_BYTES]);
+
+impl MlKem768EncapKey {
+    /// Construct from raw bytes — typically the receiving side of a
+    /// wire-format decode.
+    pub fn from_bytes(
+        bytes: [u8; KYBER_PUBLIC_KEY_BYTES],
+    ) -> Self {
+        Self(bytes)
+    }
+
+    /// Construct from a borrowed slice, validating the length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KyberLibError::InvalidLength`] if `bytes.len() !=
+    /// KYBER_PUBLIC_KEY_BYTES`.
+    pub fn try_from_slice(
+        bytes: &[u8],
+    ) -> Result<Self, KyberLibError> {
+        if bytes.len() != KYBER_PUBLIC_KEY_BYTES {
+            return Err(KyberLibError::InvalidLength);
+        }
+        let mut buf = [0u8; KYBER_PUBLIC_KEY_BYTES];
+        buf.copy_from_slice(bytes);
+        Ok(Self(buf))
+    }
+}
 
 impl fmt::Debug for MlKem768EncapKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -235,8 +261,34 @@ impl MlKem768DecapKey {
 
 /// ML-KEM-768 ciphertext. 1088 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
-#[non_exhaustive]
-pub struct MlKem768Ciphertext(pub [u8; KYBER_CIPHERTEXT_BYTES]);
+pub struct MlKem768Ciphertext([u8; KYBER_CIPHERTEXT_BYTES]);
+
+impl MlKem768Ciphertext {
+    /// Construct from raw bytes — typically the receiving side of a
+    /// wire-format decode.
+    pub fn from_bytes(
+        bytes: [u8; KYBER_CIPHERTEXT_BYTES],
+    ) -> Self {
+        Self(bytes)
+    }
+
+    /// Construct from a borrowed slice, validating the length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`KyberLibError::InvalidLength`] if `bytes.len() !=
+    /// KYBER_CIPHERTEXT_BYTES`.
+    pub fn try_from_slice(
+        bytes: &[u8],
+    ) -> Result<Self, KyberLibError> {
+        if bytes.len() != KYBER_CIPHERTEXT_BYTES {
+            return Err(KyberLibError::InvalidLength);
+        }
+        let mut buf = [0u8; KYBER_CIPHERTEXT_BYTES];
+        buf.copy_from_slice(bytes);
+        Ok(Self(buf))
+    }
+}
 
 impl fmt::Debug for MlKem768Ciphertext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
