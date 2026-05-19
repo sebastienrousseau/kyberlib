@@ -328,7 +328,7 @@ pub(crate) fn poly_frommsg(r: &mut Poly, msg: &[u8]) {
         for j in 0..8 {
             mask = ((msg[i] as u16 >> j) & 1).wrapping_neg();
             r.coeffs[8 * i + j] =
-                (mask & ((KYBER_Q + 1) / 2) as u16) as i16;
+                (mask & KYBER_Q.div_ceil(2) as u16) as i16;
         }
     }
 }
