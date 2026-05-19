@@ -153,7 +153,7 @@
 //!
 #![doc(
     html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
-    html_logo_url = "https://kura.pro/kyberlib/images/logos/kyberlib.svg",
+    html_logo_url = "https://cloudcdn.pro/kyberlib/v1/logos/kyberlib.svg",
     html_root_url = "https://docs.rs/kyberlib"
 )]
 #![crate_name = "kyberlib"]

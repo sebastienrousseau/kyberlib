@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://kura.pro/kyberlib/images/logos/kyberlib.svg" alt="KyberLib logo" width="128" />
+  <img src="https://cloudcdn.pro/kyberlib/v1/logos/kyberlib.svg" alt="KyberLib logo" width="128" />
 </p>
 
 <h1 align="center">KyberLib</h1>
