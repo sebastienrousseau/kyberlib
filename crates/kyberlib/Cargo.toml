@@ -103,9 +103,9 @@ harness = false   # dudect-bencher provides its own main via `ctbench_main!`
 # For embedded / `no_std` consumers set `default-features = false` and
 # re-enable `kyber768` explicitly.
 default = ["kyber768", "std"]
-# kyber512 = []
+kyber512 = []
 kyber768 = []
-# kyber1024 = []
+kyber1024 = []
 
 ### Export IND-CPA primitives (advanced — bypasses the FO transform).
 hazmat = []

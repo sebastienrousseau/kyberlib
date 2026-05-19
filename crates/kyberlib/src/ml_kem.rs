@@ -106,11 +106,11 @@ pub trait KemCore: sealed::Sealed + Sized {
 /// Module rank `k = 2`. Public key 800 B, secret key 1632 B,
 /// ciphertext 768 B, shared secret 32 B.
 ///
-/// **`KemCore` not yet implemented** — the typed wrappers
-/// ([`MlKem512EncapKey`], [`MlKem512DecapKey`], [`MlKem512Ciphertext`])
-/// exist so downstream code can be written generically, but the
-/// underlying primitives require the const-generic refactor tracked
-/// in #130c to support all three parameter sets in one build.
+/// [`KemCore`] is implemented under `--features kyber512`. Today the
+/// kyberlib internals are configured for one parameter set per build,
+/// so to use ML-KEM-512 the consumer disables `kyber768` (the default)
+/// and enables `kyber512`. Const-generic unification across all three
+/// parameter sets in a single build is tracked as #130b.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem512;
@@ -166,8 +166,8 @@ impl MlKem768 {
 /// Module rank `k = 4`. Public key 1568 B, secret key 3168 B,
 /// ciphertext 1568 B, shared secret 32 B.
 ///
-/// **`KemCore` not yet implemented** — see [`MlKem512`] for the
-/// rationale. Tracking: #130c.
+/// [`KemCore`] is implemented under `--features kyber1024`. See
+/// [`MlKem512`] for the per-build-feature-selection rationale.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem1024;
@@ -512,6 +512,20 @@ impl MlKem768Ciphertext {
     }
 }
 
+// ============================== KemCore impls (param-set-feature gated)
+//
+// Each impl is gated on the corresponding `kyber{512,768,1024}` feature.
+// Today the kyberlib internals select ONE parameter set per build via
+// the same feature gates (`KYBER_SECURITY_PARAMETER`, `KYBER_PUBLIC_KEY_BYTES`,
+// etc. in `params.rs`), so only one impl is active in any single build.
+// Downstream code can still be written generically over `P: KemCore` —
+// the build picks which `P` is instantiable.
+//
+// The const-generic refactor that would let all three impls coexist in
+// one build is tracked as #130b. When it lands, drop the cfg gates here
+// and the algorithm code becomes generic over the parameter pack.
+
+#[cfg(feature = "kyber768")]
 impl KemCore for MlKem768 {
     type EncapsulationKey = MlKem768EncapKey;
     type DecapsulationKey = MlKem768DecapKey;
@@ -530,14 +544,133 @@ impl KemCore for MlKem768 {
     }
 }
 
+#[cfg(feature = "kyber512")]
+impl MlKem512EncapKey {
+    /// Encapsulate against this public key under ML-KEM-512.
+    ///
+    /// # Errors
+    ///
+    /// [`KyberLibError::RandomBytesGeneration`] if the RNG fails.
+    pub fn encapsulate<R: RngCore + CryptoRng>(
+        &self,
+        rng: &mut R,
+    ) -> Result<(MlKem512Ciphertext, SharedSecret), KyberLibError> {
+        let (ct, ss) = classic::encapsulate(&self.0, rng)?;
+        Ok((MlKem512Ciphertext(ct), SharedSecret(ss)))
+    }
+}
+
+#[cfg(feature = "kyber512")]
+impl MlKem512DecapKey {
+    /// Decapsulate a ciphertext under this ML-KEM-512 secret key.
+    /// Implicit-rejection per FIPS 203 §6.3 — never panics, never
+    /// branches on validity.
+    pub fn decapsulate(&self, ct: &MlKem512Ciphertext) -> SharedSecret {
+        let ss = classic::decapsulate(&ct.0, &self.0)
+            .expect("typed ciphertext + secret key — length-invariant guaranteed");
+        SharedSecret(ss)
+    }
+}
+
+#[cfg(feature = "kyber512")]
+impl KemCore for MlKem512 {
+    type EncapsulationKey = MlKem512EncapKey;
+    type DecapsulationKey = MlKem512DecapKey;
+    type Ciphertext = MlKem512Ciphertext;
+    const ALGORITHM_ID: &'static str = "ML-KEM-512";
+    const OID: &'static str = "2.16.840.1.101.3.4.4.1";
+
+    fn generate<R: RngCore + CryptoRng>(
+        rng: &mut R,
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    > {
+        // Under `--features kyber512`, the classic free functions are
+        // configured with KYBER_K=2, KYBER_PUBLIC_KEY_BYTES=800, etc.
+        // The typed wrappers' byte arrays match those sizes (declared
+        // in the `sized_wrapper_types!` macro invocation).
+        let kp = classic::keypair(rng)?;
+        Ok((MlKem512DecapKey(kp.secret), MlKem512EncapKey(kp.public)))
+    }
+}
+
+#[cfg(feature = "kyber1024")]
+impl MlKem1024EncapKey {
+    /// Encapsulate against this public key under ML-KEM-1024.
+    ///
+    /// # Errors
+    ///
+    /// [`KyberLibError::RandomBytesGeneration`] if the RNG fails.
+    pub fn encapsulate<R: RngCore + CryptoRng>(
+        &self,
+        rng: &mut R,
+    ) -> Result<(MlKem1024Ciphertext, SharedSecret), KyberLibError> {
+        let (ct, ss) = classic::encapsulate(&self.0, rng)?;
+        Ok((MlKem1024Ciphertext(ct), SharedSecret(ss)))
+    }
+}
+
+#[cfg(feature = "kyber1024")]
+impl MlKem1024DecapKey {
+    /// Decapsulate a ciphertext under this ML-KEM-1024 secret key.
+    /// Implicit-rejection per FIPS 203 §6.3 — never panics, never
+    /// branches on validity.
+    pub fn decapsulate(&self, ct: &MlKem1024Ciphertext) -> SharedSecret {
+        let ss = classic::decapsulate(&ct.0, &self.0)
+            .expect("typed ciphertext + secret key — length-invariant guaranteed");
+        SharedSecret(ss)
+    }
+}
+
+#[cfg(feature = "kyber1024")]
+impl KemCore for MlKem1024 {
+    type EncapsulationKey = MlKem1024EncapKey;
+    type DecapsulationKey = MlKem1024DecapKey;
+    type Ciphertext = MlKem1024Ciphertext;
+    const ALGORITHM_ID: &'static str = "ML-KEM-1024";
+    const OID: &'static str = "2.16.840.1.101.3.4.4.3";
+
+    fn generate<R: RngCore + CryptoRng>(
+        rng: &mut R,
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    > {
+        let kp = classic::keypair(rng)?;
+        Ok((MlKem1024DecapKey(kp.secret), MlKem1024EncapKey(kp.public)))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
+    #[cfg(feature = "kyber768")]
     fn ml_kem_768_round_trip() {
         let mut rng = rand::thread_rng();
         let (dk, ek) = MlKem768::generate(&mut rng).expect("keygen");
+        let (ct, ss_a) = ek.encapsulate(&mut rng).expect("encap");
+        let ss_b = dk.decapsulate(&ct);
+        assert_eq!(ss_a, ss_b);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn ml_kem_512_round_trip() {
+        let mut rng = rand::thread_rng();
+        let (dk, ek) = MlKem512::generate(&mut rng).expect("keygen");
+        let (ct, ss_a) = ek.encapsulate(&mut rng).expect("encap");
+        let ss_b = dk.decapsulate(&ct);
+        assert_eq!(ss_a, ss_b);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn ml_kem_1024_round_trip() {
+        let mut rng = rand::thread_rng();
+        let (dk, ek) = MlKem1024::generate(&mut rng).expect("keygen");
         let (ct, ss_a) = ek.encapsulate(&mut rng).expect("encap");
         let ss_b = dk.decapsulate(&ct);
         assert_eq!(ss_a, ss_b);
@@ -550,6 +683,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn shared_secret_debug_is_redacted() {
         let ss = SharedSecret([0xAA; KYBER_SHARED_SECRET_BYTES]);
         assert_eq!(
@@ -559,6 +693,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn decap_key_debug_is_redacted() {
         let dk = MlKem768DecapKey([0xBB; KYBER_SECRET_KEY_BYTES]);
         assert_eq!(

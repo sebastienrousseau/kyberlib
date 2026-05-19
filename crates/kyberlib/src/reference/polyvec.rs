@@ -32,8 +32,7 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
                 for (k, t_k) in t.iter_mut().enumerate() {
                     *t_k = a.vec[i].coeffs[8 * j + k] as u16;
                     *t_k = t_k.wrapping_add(
-                        ((((*t_k as i16) >> 15) & KYBER_Q as i16)
-                            as u16),
+                        (((*t_k as i16) >> 15) & KYBER_Q as i16) as u16,
                     );
                     let mut tmp: u64 =
                         ((*t_k as u64) << 11) + (KYBER_Q as u64 / 2);
