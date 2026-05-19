@@ -93,7 +93,10 @@ pub trait KemCore: sealed::Sealed + Sized {
     /// well-behaved RNG.
     fn generate<R: RngCore + CryptoRng>(
         rng: &mut R,
-    ) -> Result<(Self::DecapsulationKey, Self::EncapsulationKey), KyberLibError>;
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    >;
 }
 
 // ---------------------------------------------------------------- markers
@@ -224,7 +227,10 @@ macro_rules! sized_wrapper_types {
         impl fmt::Debug for $ek {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 f.debug_tuple(stringify!($ek))
-                    .field(&format_args!("[{} bytes; not secret]", $pk_bytes))
+                    .field(&format_args!(
+                        "[{} bytes; not secret]",
+                        $pk_bytes
+                    ))
                     .finish()
             }
         }
@@ -304,7 +310,10 @@ macro_rules! sized_wrapper_types {
         impl fmt::Debug for $ct {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 f.debug_tuple(stringify!($ct))
-                    .field(&format_args!("[{} bytes; opaque]", $ct_bytes))
+                    .field(&format_args!(
+                        "[{} bytes; opaque]",
+                        $ct_bytes
+                    ))
                     .finish()
             }
         }
@@ -374,9 +383,7 @@ pub struct MlKem768EncapKey([u8; KYBER_PUBLIC_KEY_BYTES]);
 impl MlKem768EncapKey {
     /// Construct from raw bytes — typically the receiving side of a
     /// wire-format decode.
-    pub fn from_bytes(
-        bytes: [u8; KYBER_PUBLIC_KEY_BYTES],
-    ) -> Self {
+    pub fn from_bytes(bytes: [u8; KYBER_PUBLIC_KEY_BYTES]) -> Self {
         Self(bytes)
     }
 
@@ -386,9 +393,7 @@ impl MlKem768EncapKey {
     ///
     /// Returns [`KyberLibError::InvalidLength`] if `bytes.len() !=
     /// KYBER_PUBLIC_KEY_BYTES`.
-    pub fn try_from_slice(
-        bytes: &[u8],
-    ) -> Result<Self, KyberLibError> {
+    pub fn try_from_slice(bytes: &[u8]) -> Result<Self, KyberLibError> {
         if bytes.len() != KYBER_PUBLIC_KEY_BYTES {
             return Err(KyberLibError::InvalidLength);
         }
@@ -447,10 +452,7 @@ impl MlKem768DecapKey {
     /// rejection per FIPS 203 §6.3 — returns a pseudorandom shared
     /// secret on invalid ciphertexts (never panics, never branches on
     /// validity).
-    pub fn decapsulate(
-        &self,
-        ct: &MlKem768Ciphertext,
-    ) -> SharedSecret {
+    pub fn decapsulate(&self, ct: &MlKem768Ciphertext) -> SharedSecret {
         // The classic API returns Err only on length mismatch; here
         // the type system guarantees the length, so we unwrap-safely.
         let ss = classic::decapsulate(&ct.0, &self.0)
@@ -472,9 +474,7 @@ pub struct MlKem768Ciphertext([u8; KYBER_CIPHERTEXT_BYTES]);
 impl MlKem768Ciphertext {
     /// Construct from raw bytes — typically the receiving side of a
     /// wire-format decode.
-    pub fn from_bytes(
-        bytes: [u8; KYBER_CIPHERTEXT_BYTES],
-    ) -> Self {
+    pub fn from_bytes(bytes: [u8; KYBER_CIPHERTEXT_BYTES]) -> Self {
         Self(bytes)
     }
 
@@ -484,9 +484,7 @@ impl MlKem768Ciphertext {
     ///
     /// Returns [`KyberLibError::InvalidLength`] if `bytes.len() !=
     /// KYBER_CIPHERTEXT_BYTES`.
-    pub fn try_from_slice(
-        bytes: &[u8],
-    ) -> Result<Self, KyberLibError> {
+    pub fn try_from_slice(bytes: &[u8]) -> Result<Self, KyberLibError> {
         if bytes.len() != KYBER_CIPHERTEXT_BYTES {
             return Err(KyberLibError::InvalidLength);
         }
@@ -554,7 +552,10 @@ mod tests {
     #[test]
     fn shared_secret_debug_is_redacted() {
         let ss = SharedSecret([0xAA; KYBER_SHARED_SECRET_BYTES]);
-        assert_eq!(format!("{ss:?}"), "SharedSecret([REDACTED 32 bytes])");
+        assert_eq!(
+            format!("{ss:?}"),
+            "SharedSecret([REDACTED 32 bytes])"
+        );
     }
 
     #[test]

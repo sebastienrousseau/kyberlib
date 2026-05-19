@@ -256,15 +256,23 @@ pub use ml_kem::{
     MlKem768EncapKey, SharedSecret,
 };
 pub use params::{
-    // v0.0.7 — canonical ML_KEM_* names (preferred in new code).
-    ML_KEM_90S, ML_KEM_CIPHERTEXT_BYTES, ML_KEM_PUBLIC_KEY_BYTES,
-    ML_KEM_SECRET_KEY_BYTES, ML_KEM_SECURITY_PARAMETER,
-    ML_KEM_SHARED_SECRET_BYTES, ML_KEM_SYM_BYTES,
     // Legacy KYBER_* aliases — retained for downstream-consumer
     // migration; will tighten to `#[deprecated]` in a future release.
-    KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
-    KYBER_SECRET_KEY_BYTES, KYBER_SECURITY_PARAMETER,
-    KYBER_SHARED_SECRET_BYTES, KYBER_SYM_BYTES,
+    KYBER_90S,
+    KYBER_CIPHERTEXT_BYTES,
+    KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES,
+    KYBER_SECURITY_PARAMETER,
+    KYBER_SHARED_SECRET_BYTES,
+    KYBER_SYM_BYTES,
+    // v0.0.7 — canonical ML_KEM_* names (preferred in new code).
+    ML_KEM_90S,
+    ML_KEM_CIPHERTEXT_BYTES,
+    ML_KEM_PUBLIC_KEY_BYTES,
+    ML_KEM_SECRET_KEY_BYTES,
+    ML_KEM_SECURITY_PARAMETER,
+    ML_KEM_SHARED_SECRET_BYTES,
+    ML_KEM_SYM_BYTES,
 };
 pub use rand_core::{CryptoRng, RngCore};
 

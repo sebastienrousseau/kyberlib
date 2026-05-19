@@ -36,7 +36,9 @@ mod tests {
     fn oid_format() {
         for oid in [ML_KEM_512, ML_KEM_768, ML_KEM_1024] {
             // Sanity-check: dotted-decimal, ASCII digits and dots only.
-            assert!(oid.chars().all(|c| c.is_ascii_digit() || c == '.'));
+            assert!(oid
+                .chars()
+                .all(|c| c.is_ascii_digit() || c == '.'));
             assert!(oid.starts_with("2.16.840.1.101.3.4.4."));
         }
     }

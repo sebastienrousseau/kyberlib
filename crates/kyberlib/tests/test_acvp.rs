@@ -218,7 +218,11 @@ impl GroupReport {
             self.group,
             self.passed,
             self.total,
-            if self.passed == self.total { "OK" } else { "FAIL" },
+            if self.passed == self.total {
+                "OK"
+            } else {
+                "FAIL"
+            },
         );
         if let Some(msg) = &self.first_failure {
             for line in msg.lines() {
@@ -309,7 +313,10 @@ fn acvp_ml_kem_keygen() {
         println!("  SKIPPED: {s}");
     }
     println!();
-    assert!(report.ok(), "ACVP keyGen ML-KEM-768 mismatch — see output above");
+    assert!(
+        report.ok(),
+        "ACVP keyGen ML-KEM-768 mismatch — see output above"
+    );
 }
 
 // -------------------------------------------------------------------------- harness: encap
@@ -361,8 +368,13 @@ fn acvp_ml_kem_encap() {
 
             let mut ct = vec![0u8; KYBER_CIPHERTEXT_BYTES];
             let mut ss = vec![0u8; KYBER_SHARED_SECRET_BYTES];
-            let res =
-                encrypt_message(&mut ct, &mut ss, &ek, &mut rng, Some(&m));
+            let res = encrypt_message(
+                &mut ct,
+                &mut ss,
+                &ek,
+                &mut rng,
+                Some(&m),
+            );
             if let Err(e) = res {
                 report.fail(format!(
                     "tcId {} encrypt_message returned {:?}",
@@ -371,8 +383,10 @@ fn acvp_ml_kem_encap() {
                 continue;
             }
 
-            let expected_c = hex(ec.c.as_ref().expect("encap expected c"));
-            let expected_k = hex(ec.k.as_ref().expect("encap expected k"));
+            let expected_c =
+                hex(ec.c.as_ref().expect("encap expected c"));
+            let expected_k =
+                hex(ec.k.as_ref().expect("encap expected k"));
             if ct == expected_c && ss == expected_k {
                 report.pass();
             } else {
@@ -438,8 +452,18 @@ fn acvp_ml_kem_decap() {
 
             let c = hex(pc.c.as_ref().expect("decap prompt has c"));
             let dk = hex(pc.dk.as_ref().expect("decap prompt has dk"));
-            assert_eq!(c.len(), KYBER_CIPHERTEXT_BYTES, "tcId {} c length", pc.tc_id);
-            assert_eq!(dk.len(), KYBER_SECRET_KEY_BYTES, "tcId {} dk length", pc.tc_id);
+            assert_eq!(
+                c.len(),
+                KYBER_CIPHERTEXT_BYTES,
+                "tcId {} c length",
+                pc.tc_id
+            );
+            assert_eq!(
+                dk.len(),
+                KYBER_SECRET_KEY_BYTES,
+                "tcId {} dk length",
+                pc.tc_id
+            );
 
             let observed = match decapsulate(&c, &dk) {
                 Ok(k) => k,

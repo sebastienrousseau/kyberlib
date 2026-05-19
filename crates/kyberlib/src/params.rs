@@ -102,14 +102,16 @@ pub const ML_KEM_INDCPA_BYTES: usize =
     ML_KEM_POLYVEC_COMPRESSED_BYTES + ML_KEM_POLY_COMPRESSED_BYTES;
 
 /// Size of the public encapsulation key (same as the IND-CPA public key).
-pub const ML_KEM_PUBLIC_KEY_BYTES: usize = ML_KEM_INDCPA_PUBLIC_KEY_BYTES;
+pub const ML_KEM_PUBLIC_KEY_BYTES: usize =
+    ML_KEM_INDCPA_PUBLIC_KEY_BYTES;
 
 /// Size of the secret decapsulation key.
 ///
 /// Layout (FIPS 203 §6.1): `dk_PKE ‖ ek_PKE ‖ H(ek) ‖ z`.
-pub const ML_KEM_SECRET_KEY_BYTES: usize = ML_KEM_INDCPA_SECRET_KEY_BYTES
-    + ML_KEM_INDCPA_PUBLIC_KEY_BYTES
-    + 2 * ML_KEM_SYM_BYTES;
+pub const ML_KEM_SECRET_KEY_BYTES: usize =
+    ML_KEM_INDCPA_SECRET_KEY_BYTES
+        + ML_KEM_INDCPA_PUBLIC_KEY_BYTES
+        + 2 * ML_KEM_SYM_BYTES;
 
 /// Size of the IND-CCA ciphertext (same as the IND-CPA ciphertext).
 pub const ML_KEM_CIPHERTEXT_BYTES: usize = ML_KEM_INDCPA_BYTES;

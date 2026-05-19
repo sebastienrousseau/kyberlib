@@ -97,7 +97,13 @@ mod tests {
         assert_eq!(oid::ML_KEM_512, "2.16.840.1.101.3.4.4.1");
         assert_eq!(oid::ML_KEM_768, "2.16.840.1.101.3.4.4.2");
         assert_eq!(oid::ML_KEM_1024, "2.16.840.1.101.3.4.4.3");
-        assert_eq!(<MlKem768Pkcs8 as EncapKeyEncoding>::OID, oid::ML_KEM_768);
-        assert_eq!(<MlKem768Pkcs8 as DecapKeyEncoding>::OID, oid::ML_KEM_768);
+        assert_eq!(
+            <MlKem768Pkcs8 as EncapKeyEncoding>::OID,
+            oid::ML_KEM_768
+        );
+        assert_eq!(
+            <MlKem768Pkcs8 as DecapKeyEncoding>::OID,
+            oid::ML_KEM_768
+        );
     }
 }

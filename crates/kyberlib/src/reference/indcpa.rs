@@ -228,7 +228,8 @@ where
     // Kyber Round 3 used `G(d)` without the trailing byte; the byte
     // is the domain separator NIST added in the final standard.
     let mut g_input = [0u8; KYBER_SYM_BYTES + 1];
-    g_input[..KYBER_SYM_BYTES].copy_from_slice(&randbuf[..KYBER_SYM_BYTES]);
+    g_input[..KYBER_SYM_BYTES]
+        .copy_from_slice(&randbuf[..KYBER_SYM_BYTES]);
     g_input[KYBER_SYM_BYTES] = KYBER_SECURITY_PARAMETER as u8;
     hash_g(&mut buf, &g_input, KYBER_SYM_BYTES + 1);
 

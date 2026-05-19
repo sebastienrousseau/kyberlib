@@ -90,7 +90,8 @@ impl Hybrid for X25519MlKem768 {
     const TLS_CODEPOINT: u16 = 0x11EC;
     const CLIENT_SHARE_LEN: usize = sizes::X25519_MLKEM768_CLIENT_SHARE;
     const SERVER_SHARE_LEN: usize = sizes::X25519_MLKEM768_SERVER_SHARE;
-    const SHARED_SECRET_LEN: usize = sizes::X25519_MLKEM768_SHARED_SECRET;
+    const SHARED_SECRET_LEN: usize =
+        sizes::X25519_MLKEM768_SHARED_SECRET;
 }
 
 #[cfg(feature = "x25519")]
@@ -130,8 +131,10 @@ mod x25519_impl {
         ///   ML-KEM-768 EncapKey (1184 B) ‖ X25519 PublicKey (32 B).
         pub fn generate<R: RngCore + CryptoRng>(
             rng: &mut R,
-        ) -> Result<(Self, [u8; X25519_MLKEM768_CLIENT_SHARE]), KyberLibError>
-        {
+        ) -> Result<
+            (Self, [u8; X25519_MLKEM768_CLIENT_SHARE]),
+            KyberLibError,
+        > {
             let (ml_kem_dk, ml_kem_ek) = MlKem768::generate(rng)?;
             let x25519_sk = StaticSecret::random_from_rng(&mut *rng);
             let x25519_pk = PublicKey::from(&x25519_sk);
@@ -140,7 +143,13 @@ mod x25519_impl {
             share[..1184].copy_from_slice(ml_kem_ek.as_bytes());
             share[1184..].copy_from_slice(x25519_pk.as_bytes());
 
-            Ok((Self { ml_kem_dk, x25519_sk }, share))
+            Ok((
+                Self {
+                    ml_kem_dk,
+                    x25519_sk,
+                },
+                share,
+            ))
         }
 
         /// Process the server's response and derive the 64-byte
@@ -205,10 +214,7 @@ mod x25519_impl {
             rng: &mut R,
             client_share: &[u8],
         ) -> Result<
-            (
-                [u8; X25519_MLKEM768_SERVER_SHARE],
-                SharedSecret,
-            ),
+            ([u8; X25519_MLKEM768_SERVER_SHARE], SharedSecret),
             KyberLibError,
         > {
             if client_share.len() != X25519_MLKEM768_CLIENT_SHARE {
@@ -252,9 +258,7 @@ mod x25519_impl {
 
     impl SharedSecret {
         /// Borrow the raw 64 bytes (for feeding into TLS 1.3 HKDF, etc.).
-        pub fn as_bytes(
-            &self,
-        ) -> &[u8; X25519_MLKEM768_SHARED_SECRET] {
+        pub fn as_bytes(&self) -> &[u8; X25519_MLKEM768_SHARED_SECRET] {
             &self.0
         }
     }
@@ -341,7 +345,8 @@ mod tests {
     fn x25519_mlkem768_round_trip() {
         let mut rng = rand::thread_rng();
         let (client, client_share) =
-            X25519MlKem768Client::generate(&mut rng).expect("client gen");
+            X25519MlKem768Client::generate(&mut rng)
+                .expect("client gen");
         assert_eq!(client_share.len(), 1216);
 
         let (server_share, server_ss) =
@@ -359,8 +364,8 @@ mod tests {
     #[cfg(feature = "x25519")]
     fn x25519_mlkem768_rejects_wrong_length_server_share() {
         let mut rng = rand::thread_rng();
-        let (client, _) =
-            X25519MlKem768Client::generate(&mut rng).expect("client gen");
+        let (client, _) = X25519MlKem768Client::generate(&mut rng)
+            .expect("client gen");
         let bad = vec![0u8; 1119]; // off by 1
         assert!(client.decapsulate(&bad).is_err());
     }
