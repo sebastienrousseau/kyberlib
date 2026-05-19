@@ -1,71 +1,73 @@
-[licenses]
-# The lint level for crates which do not have a detectable license
-unlicensed = "deny"
+# cargo-deny configuration for kyberlib.
+#
+# Schema reference: https://embarkstudios.github.io/cargo-deny/checks/cfg.html
+# Tracks the modern schema (cargo-deny ≥ 0.14). Run locally with:
+#   cargo deny check
+# CI runs `cargo deny check --all-features` on every PR (see ci.yml).
 
-# List of explicitly allowed licenses
-# See https://spdx.org/licenses/ for list of possible licenses
-# [possible values: any SPDX 3.7 short identifier (+ optional exception)].
+[graph]
+all-features = true
+
+[output]
+feature-depth = 1
+
+# ---------------------------------------------------------------------------- advisories
+[advisories]
+# RustSec database
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# Yanked-from-crates.io: warn but do not fail (these often happen mid-release).
+yanked = "warn"
+# `ignore` allows known-accepted advisories. Empty by default; add with a
+# justification comment.
+ignore = []
+
+# ---------------------------------------------------------------------------- licenses
+[licenses]
+# Whitelist of permissive / OSI-approved licenses we accept upstream.
 allow = [
-    "Apache-2.0",
     "MIT",
-    "CC0-1.0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
     "ISC",
-    "0BSD",
     "BSD-2-Clause",
     "BSD-3-Clause",
-    "Unlicense",
+    "0BSD",
+    "CC0-1.0",
     "Unicode-DFS-2016",
+    "Unicode-3.0",            # ICU (used transitively by some date / locale crates)
+    "Unlicense",              # memchr is dual Unlicense | MIT
+    "Zlib",                   # rare, accept for now
 ]
-
-# List of banned licenses
-[bans]
-multiple-versions = "deny"
-
-
-# The lint level for licenses considered copyleft
-copyleft = "deny"
-
-# Blanket approval or denial for OSI-approved or FSF Free/Libre licenses
-# * both - The license will only be approved if it is both OSI-approved *AND* FSF/Free
-# * either - The license will be approved if it is either OSI-approved *OR* FSF/Free
-# * osi-only - The license will be approved if is OSI-approved *AND NOT* FSF/Free
-# * fsf-only - The license will be approved if is FSF/Free *AND NOT* OSI-approved
-# * neither - The license will be denied if is FSF/Free *OR* OSI-approved
-allow-osi-fsf-free = "either"
-
-# The confidence threshold for detecting a license from license text.
-# The higher the value, the more closely the license text must be to the
-# canonical license text of a valid SPDX license file.
-# [possible values: any between 0.0 and 1.0].
+# Confidence threshold for license-text matching.
 confidence-threshold = 0.8
+# Per-crate license clarifications (use sparingly).
+exceptions = []
 
-# The graph highlighting used when creating dotgraphs for crates
-# with multiple versions
-# * lowest-version - The path to the lowest versioned duplicate is highlighted
-# * simplest-path - The path to the version with the fewest edges is highlighted
-# * all - Both lowest-version and simplest-path are used
+# ---------------------------------------------------------------------------- bans
+[bans]
+# Multiple versions of the same crate in the graph: warn (not deny) — Cargo
+# resolves transitively and minor-version duplication is occasionally
+# unavoidable. CI surfaces them so they can be tracked down.
+multiple-versions = "warn"
+# Wildcard version requirements are an attack surface — deny.
+wildcards = "deny"
+# Highlight all paths to duplicates.
 highlight = "all"
-
-# List of crates that are allowed. Use with care!
+# Explicit allow / deny lists (empty by default).
 allow = []
-
-# List of crates to deny
 deny = [
-    # Each entry the name of a crate and a version range. If version is
-    # not specified, all versions will be matched.
+    # No crates currently banned. Add entries as:
+    # { name = "openssl-sys", reason = "Use ring or aws-lc-rs instead" },
 ]
-
-# Certain crates/versions that will be skipped when doing duplicate detection.
 skip = []
-
-# Similarly to `skip` allows you to skip certain crates during duplicate detection,
-# unlike skip, it also includes the entire tree of transitive dependencies starting at
-# the specified crate, up to a certain depth, which is by default infinite
 skip-tree = []
 
-
-[advisories]
-notice = "deny"
-unmaintained = "deny"
-unsound = "deny"
-vulnerability = "deny"
+# ---------------------------------------------------------------------------- sources
+[sources]
+# Reject unknown registries and unknown git sources. Procurement / EU CRA /
+# FedRAMP buyers require this.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
