@@ -1,6 +1,16 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! RNG helpers.
+//!
+//! kyberlib's public surface consumes generic [`rand_core::RngCore`]
+//! + [`rand_core::CryptoRng`] — see the function signatures in
+//! [`crate::api`] and [`crate::ml_kem`]. The single helper exported
+//! here ([`randombytes`](crate::rng::randombytes)) wraps
+//! `RngCore::try_fill_bytes` to surface kyberlib's
+//! [`KyberLibError::RandomBytesGeneration`](crate::KyberLibError::RandomBytesGeneration)
+//! variant on external-RNG faults.
+
 use crate::KyberLibError;
 use rand_core::{CryptoRng, RngCore};
 

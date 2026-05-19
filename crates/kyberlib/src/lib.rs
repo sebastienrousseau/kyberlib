@@ -1,158 +1,112 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! # `KyberLib` 🦀
+//! # `kyberlib` — FIPS 203 ML-KEM in Rust
 //!
-//! `KyberLib` is a robust Rust library designed for CRYSTALS-Kyber Post-Quantum Cryptography, offering strong security guarantees. This library is compatible with `no_std`, making it suitable for embedded devices, and it avoids memory allocations. Additionally, it contains reference implementations with no unsafe code and provides an optimized AVX2 version by default on x86_64 platforms. You can also compile it to WebAssembly (WASM) using wasm-bindgen.
+//! Audit-friendly, `no_std`-compatible implementation of **FIPS 203
+//! ML-KEM** (the standardised CRYSTALS-Kyber post-quantum key
+//! encapsulation mechanism, finalised August 2024). 60/60 ACVP
+//! conformance against the NIST test corpus.
 //!
-//! [![KyberLib Logo](https://kura.pro/kyberlib/images/banners/banner-kyberlib.svg)](https://kyberlib.com "A Robust Rust Library for CRYSTALS-Kyber Post-Quantum Cryptography")
+//! [![kyberlib logo](https://cloudcdn.pro/kyberlib/v1/logos/kyberlib.svg)](https://kyberlib.com)
 //!
-//! ## Features
+//! ## At a glance
 //!
-//! `KyberLib` offers various features to customize its behavior and security level:
+//! - **Three parameter sets**: [`MlKem512`], [`MlKem768`] (default),
+//!   [`MlKem1024`] — covering NIST security categories 1, 3, 5.
+//! - **Two APIs**: the v0.0.7 *typed-state* API ([`KemCore`] trait +
+//!   typed wrappers) and the legacy free-function API
+//!   ([`keypair`] / [`encapsulate`] / [`decapsulate`]).
+//! - **Constant-time**: KyberSlash audit clean (ADR 0003); secrets
+//!   carry [`zeroize::Zeroize`]; `dudect` regression gate in
+//!   `scripts/dudect.sh`.
+//! - **`no_std`**: optional `std` feature. Default features pull in
+//!   `std` for ergonomic error types.
+//! - **No `unsafe`** in the safe core. The optional `avx2` / `nasm`
+//!   backends scope `unsafe` to the SIMD module only.
 //!
-//! | Feature   | Description                                                                                                                                                                |
-//! |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-//! | `kyber512`  | Enables Kyber512 mode, providing a security level roughly equivalent to AES-128.                                                                                                |
-//! | `kyber1024` | Enables Kyber1024 mode, offering a security level roughly equivalent to AES-256.                   |
-//! | `90s`       | Activates 90's mode, which uses SHA2 and AES-CTR as a replacement for SHAKE. This may provide hardware speedups on certain architectures.                                                           |
-//! | `avx2`      | On x86_64 platforms, enables the optimized AVX2 version. This flag causes a compile error on other architectures. |
-//! | `wasm`      | Enables support for compiling to WASM targets. |
-//! | `nasm`      | Uses Netwide Assembler (NASM) AVX2 code instead of GNU Assembler (GAS) for portability. Requires a NASM compiler: <https://www.nasm.us/> |
-//! | `zeroize`   | Automatically zeroes out key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
-//! | `std`       | Enables the standard library (std). |
+//! ## Quick start (typed API — recommended)
 //!
-//! ## Usage
-//!
-//! To optimize for x86 platforms, enable the `avx2` feature and set the following RUSTFLAGS:
-//!
-//! ```shell
-//! export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 //! ```
+//! # fn main() -> Result<(), kyberlib::KyberLibError> {
+//! use kyberlib::{KemCore, MlKem768};
 //!
-//! Import the library into your Rust project as follows:
-//!
-//! ```rust
-//! use kyberlib::*;
-//! ```
-//!
-//! ### Key Encapsulation
-//!
-//! Generate key pairs and encapsulate a shared secret between two parties:
-//!
-//! ```rust
-//! # use kyberlib::*;
-//! # fn main() -> Result<(), KyberLibError> {
-//! # let mut rng = rand::thread_rng();
-//!
-//! // Generate Keypair for Bob
-//! let keys_bob = keypair(&mut rng)?;
-//!
-//! // Alice encapsulates a shared secret using Bob's public key
-//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
-//!
-//! // Bob decapsulates the shared secret using the ciphertext sent by Alice
-//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
-//!
-//! // Verify that both parties share the same secret
-//! assert_eq!(shared_secret_alice, shared_secret_bob);
-//! # Ok(()) }
-//! ```
-//!
-//! ### Unilaterally Authenticated Key Exchange
-//!
-//! Perform a unilaterally authenticated key exchange between two parties:
-//!
-//! ```rust
-//! # use kyberlib::*;
-//! # fn main() -> Result<(), KyberLibError> {
 //! let mut rng = rand::thread_rng();
 //!
-//! // Initialize the key exchange structs for Alice and Bob
-//! let mut alice = Uake::new();
-//! let mut bob = Uake::new();
+//! // Bob generates a (decap, encap) keypair.
+//! let (bob_dk, bob_ek) = MlKem768::generate(&mut rng)?;
 //!
-//! // Generate Keypairs for Alice and Bob
-//! let alice_keys = keypair(&mut rng)?;
-//! let bob_keys = keypair(&mut rng)?;
+//! // Alice encapsulates a shared secret against Bob's encap key.
+//! let (ciphertext, ss_alice) = bob_ek.encapsulate(&mut rng)?;
 //!
-//! // Alice initiates the key exchange
-//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+//! // Bob decapsulates with his decap key (implicit rejection per
+//! // FIPS 203 §6.3 — never panics, never branches on validity).
+//! let ss_bob = bob_dk.decapsulate(&ciphertext);
 //!
-//! // Bob authenticates and responds
-//! let server_send = bob.server_receive(
-//!   client_init, &bob_keys.secret, &mut rng
-//! )?;
-//!
-//! // Alice confirms the server response and retrieves the shared secret
-//! alice.client_confirm(server_send)?;
-//!
-//! // Both Alice and Bob now have the same shared secret
-//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! assert_eq!(ss_alice, ss_bob);
 //! # Ok(()) }
 //! ```
 //!
-//! ### Mutually Authenticated Key Exchange
+//! ## Quick start (legacy free-function API)
 //!
-//! Perform a mutually authenticated key exchange between two parties:
+//! ```
+//! # fn main() -> Result<(), kyberlib::KyberLibError> {
+//! use kyberlib::{keypair, encapsulate, decapsulate};
 //!
-//! ```rust
-//! # use kyberlib::*;
-//! # fn main() -> Result<(), KyberLibError> {
-//! # let mut rng = rand::thread_rng();
-//! let mut alice = Ake::new();
-//! let mut bob = Ake::new();
-//!
-//! let alice_keys = keypair(&mut rng)?;
-//! let bob_keys = keypair(&mut rng)?;
-//!
-//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
-//!
-//! let server_send = bob.server_receive(
-//!   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
-//! )?;
-//!
-//! alice.client_confirm(server_send, &alice_keys.secret)?;
-//!
-//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! let mut rng = rand::thread_rng();
+//! let bob = keypair(&mut rng)?;
+//! let (ct, ss_a) = encapsulate(&bob.public, &mut rng)?;
+//! let ss_b = decapsulate(&ct, &bob.secret)?;
+//! assert_eq!(ss_a, ss_b);
 //! # Ok(()) }
 //! ```
 //!
-//! ## Macros
+//! ## Cargo features
 //!
-//! The KyberLib crate provides several macros to simplify common cryptographic operations:
+//! | Feature | Default | Description |
+//! |---|---|---|
+//! | `std` | ✅ | Enables the `std` library — required for `std::error::Error` on [`KyberLibError`]. Disable for `no_std` targets. |
+//! | `kyber768` | ✅ | NIST security category 3 (≈ AES-192). Default. |
+//! | `kyber512` |  | NIST security category 1 (≈ AES-128). Mutually exclusive with `kyber768`/`kyber1024`. |
+//! | `kyber1024` |  | NIST security category 5 (≈ AES-256). Required by CNSA 2.0 for NSS by 2027-01-01. Mutually exclusive with `kyber768`/`kyber512`. |
+//! | `90s` |  | "Kyber-90s" variant — SHA-2 / AES-CTR instead of SHAKE. Removed in FIPS 203 but retained for pre-spec compatibility. |
+//! | `90s-fixslice` |  | `90s` with a bitsliced AES implementation (`aes` + `ctr` crates). |
+//! | `avx2` |  | AVX2-accelerated backend (x86_64 only). Compile-errors on other arches. |
+//! | `nasm` |  | AVX2 via NASM assembler (instead of GAS). Requires NASM installed. Implies `avx2`. |
+//! | `hazmat` |  | Re-exports the IND-CPA primitives (no Fujisaki–Okamoto transform). Advanced use only; the resulting construction is NOT IND-CCA secure. |
 //!
-//! - [`kyberlib_generate_key_pair!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_generate_key_pair.html): Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
+//! ## Architecture
 //!
-//! - [`kyberlib_encrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_encrypt_message.html): Generates cipher text and a shared secret for a given public key.
-//!
-//! - [`kyberlib_decrypt_message!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_decrypt_message.html): Generates a shared secret for a given cipher text and private key.
-//!
-//! - [`kyberlib_uake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_init.html): Initiates a Unilaterally Authenticated Key Exchange.
-//!
-//! - [`kyberlib_uake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles the output of a `kyberlib_uake_client_init()` request.
-//!
-//! - [`kyberlib_uake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_uake_server_receive()`.
-//!
-//! - [`kyberlib_ake_client_init!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_init.html): Initiates a Mutually Authenticated Key Exchange.
-//!
-//! - [`kyberlib_ake_server_receive!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_uake_server_receive.html): Handles and authenticates the output of a `kyberlib_ake_client_init()` request.
-//!
-//! - [`kyberlib_ake_client_confirm!`](https://docs.rs/kyberlib/latest/kyberlib/macro.kyberlib_ake_client_confirm.html): Decapsulates and authenticates the shared secret from the output of `kyberlib_ake_server_receive()`.
-//!
-//! See the [macros module documentation](https://docs.rs/kyberlib/latest/kyberlib/index.html#macros) for more details and usage examples.
+//! See [`api`] for the legacy free-function surface, [`ml_kem`] for
+//! the v0.0.7 typed-state API, [`kex`] for the Uake/Ake key-exchange
+//! wrappers, and [`error`] for the [`KyberLibError`] enum.
 //!
 //! ## Errors
 //!
-//! The [KyberLibError](https://docs.rs/kyberlib/latest/kyberlib/error/enum.KyberLibError.html) enum handles errors with two variants:
+//! All fallible public functions return [`KyberLibError`]. Variants:
 //!
-//! - **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
-//! - **InvalidKey** - Error when generating keys.
-//! - **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
-//! - **RandomBytesGeneration** - Error trying to fill random bytes (i.e., external (hardware) RNG modules can fail).
+//! - [`KyberLibError::InvalidInput`] — input slice length mismatch.
+//!   Typical cause: two peers using different security levels.
+//! - [`KyberLibError::InvalidKey`] — imported keypair fails the
+//!   encap/decap self-test (the public and secret halves don't
+//!   belong together).
+//! - [`KyberLibError::InvalidLength`] — buffer length below the
+//!   required copy length.
+//! - [`KyberLibError::Decapsulation`] — ciphertext failed to
+//!   authenticate. *Not* normally returned: the FIPS 203 implicit-
+//!   rejection construction returns a pseudorandom shared secret on
+//!   invalid input instead.
+//! - [`KyberLibError::RandomBytesGeneration`] — external RNG failed
+//!   (e.g. hardware RNG fault).
+//!
+//! ## Macros (legacy compatibility surface)
+//!
+//! See [`macros`] for the `kyberlib_*` macro family that wraps the
+//! free-function API for terser call sites. Prefer the typed API
+//! ([`KemCore`]) in new code.
 //!
 #![doc(
-    html_favicon_url = "https://kura.pro/kyberlib/images/favicon.ico",
+    html_favicon_url = "https://cloudcdn.pro/kyberlib/v1/favicon.ico",
     html_logo_url = "https://cloudcdn.pro/kyberlib/v1/logos/kyberlib.svg",
     html_root_url = "https://docs.rs/kyberlib"
 )]

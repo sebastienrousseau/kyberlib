@@ -1,6 +1,17 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Symmetric primitives — SHAKE-128/256 (default) or AES-256-CTR +
+//! SHA-2 (under the deprecated `90s` feature).
+//!
+//! These primitives back FIPS 203 ML-KEM's PRF/XOF/KDF surface. The
+//! module re-exports types for both backends under a uniform name so
+//! the active backend is selected at compile time via the `90s`
+//! Cargo feature. Default (no `90s`) → SHAKE; with `90s` → AES + SHA-2.
+//!
+//! End users typically don't reach into this module directly — it's
+//! exposed for backend selection inside the KEM machinery.
+
 #![allow(dead_code)]
 
 #[cfg(feature = "90s")]

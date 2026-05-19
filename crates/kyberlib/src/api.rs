@@ -1,6 +1,36 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Legacy free-function KEM API.
+//!
+//! Three top-level functions cover the ML-KEM-768 key encapsulation
+//! mechanism end-to-end:
+//!
+//! - [`keypair`] — generate a fresh (public, secret) keypair.
+//! - [`encapsulate`] — encapsulate a 32-byte shared secret against a
+//!   public key.
+//! - [`decapsulate`] — recover the shared secret from a ciphertext +
+//!   secret key.
+//!
+//! The legacy [`Keypair`] struct bundles the two halves. Prefer the
+//! [v0.0.7 typed-state API](crate::ml_kem) for new code — it
+//! prevents accidental mixing of `EncapsulationKey` / `DecapsulationKey`
+//! at the type level and redacts secret material in `Debug` output.
+//!
+//! # Example
+//!
+//! ```
+//! # fn main() -> Result<(), kyberlib::KyberLibError> {
+//! use kyberlib::{keypair, encapsulate, decapsulate};
+//!
+//! let mut rng = rand::thread_rng();
+//! let bob = keypair(&mut rng)?;
+//! let (ct, ss_a) = encapsulate(&bob.public, &mut rng)?;
+//! let ss_b = decapsulate(&ct, &bob.secret)?;
+//! assert_eq!(ss_a, ss_b);
+//! # Ok(()) }
+//! ```
+
 use crate::{
     error::KyberLibError,
     kem::*,

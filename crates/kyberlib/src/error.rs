@@ -1,6 +1,13 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Error types.
+//!
+//! Every fallible public function in kyberlib returns
+//! [`Result<T, KyberLibError>`]. The enum is `#[non_exhaustive]` so
+//! future backend-specific variants (the planned `fips` and `verified`
+//! features) can be added without a major-version bump.
+
 /// Error types for the failure modes in kyberlib.
 ///
 /// Marked `#[non_exhaustive]` (since v0.0.7, #130) so future variants

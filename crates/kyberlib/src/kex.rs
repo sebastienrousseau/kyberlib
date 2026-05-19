@@ -1,6 +1,39 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Authenticated key-exchange wrappers around the KEM core.
+//!
+//! Two protocols on top of the bare encapsulate/decapsulate surface:
+//!
+//! - [`Uake`] — **U**nilaterally **A**uthenticated **K**ey **E**xchange.
+//!   Server authenticates to client (typical TLS shape). Client is
+//!   anonymous.
+//! - [`Ake`] — Mutually **A**uthenticated **K**ey **E**xchange. Both
+//!   parties authenticate.
+//!
+//! Both protocols are three-message handshakes wrapping
+//! [`crate::encapsulate`] / [`crate::decapsulate`] plus an extra KDF
+//! pass that mixes in the authenticating keypair(s).
+//!
+//! # Example
+//!
+//! ```
+//! # fn main() -> Result<(), kyberlib::KyberLibError> {
+//! use kyberlib::{keypair, Uake};
+//!
+//! let mut rng = rand::thread_rng();
+//! let mut alice = Uake::new();
+//! let mut bob = Uake::new();
+//! let bob_keys = keypair(&mut rng)?;
+//!
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+//! let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
+//! alice.client_confirm(server_send)?;
+//!
+//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! # Ok(()) }
+//! ```
+
 use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
 use rand_core::{CryptoRng, RngCore};
 
