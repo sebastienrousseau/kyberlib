@@ -192,9 +192,9 @@ use reference::*;
 #[cfg(feature = "hazmat")]
 pub use reference::indcpa;
 
-#[cfg(feature = "wasm")]
-/// WebAssembly bindings for the KyberLib library.
-pub mod wasm;
+// WebAssembly bindings live in the dedicated `kyberlib-wasm` workspace
+// crate from v0.0.7 onwards (#144). The `wasm` Cargo feature is retained
+// as a no-op for one release for downstream compatibility.
 
 /// API for the KyberLib library.
 pub mod api;

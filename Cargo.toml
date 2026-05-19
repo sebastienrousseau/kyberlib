@@ -13,6 +13,7 @@ resolver = "2"
 members = [
     "crates/kyberlib",
     "crates/kyberlib-asm",
+    "crates/kyberlib-wasm",
 ]
 
 # Shared package metadata. Member crates inherit via `field.workspace = true`.

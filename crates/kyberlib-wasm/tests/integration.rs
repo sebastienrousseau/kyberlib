@@ -1,17 +1,21 @@
-// Copyright © 2024 kyberlib. All rights reserved.
+// Copyright © 2024-2026 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! WebAssembly integration tests. Built only when the `wasm` feature is
-//! enabled (previously the module was always compiled but the bindings
-//! pulled `wasm-bindgen` transitively; v0.0.7 makes `wasm-bindgen` optional).
+//! WebAssembly integration tests for `kyberlib-wasm`. Runs only on the
+//! `wasm32-unknown-unknown` target via `wasm-bindgen-test` (e.g.
+//! `wasm-pack test --headless --firefox` from this crate's directory).
+//!
+//! Native `cargo test` builds are skipped here — the module-level
+//! `#![cfg(target_arch = "wasm32")]` makes the file empty under host
+//! compilation, so `cargo test --workspace` from the repo root remains
+//! green without needing a wasm toolchain.
 
-#![cfg(feature = "wasm")]
+#![cfg(target_arch = "wasm32")]
 
 #[cfg(test)]
 mod tests {
-    // Import necessary items
-    use kyberlib::wasm::{Kex, Keys, Params};
     use kyberlib::{decapsulate, encapsulate, keypair, params::*};
+    use kyberlib_wasm::{Kex, Keys, Params};
     use wasm_bindgen_test::*;
 
     // Configure wasm-bindgen-test for browser execution

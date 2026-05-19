@@ -352,14 +352,23 @@ dependencies = [
  "rand",
  "rand_core",
  "sha2",
- "wasm-bindgen",
- "wasm-bindgen-test",
  "zeroize",
 ]
 
 [[package]]
 name = "kyberlib-asm"
 version = "0.0.7"
+
+[[package]]
+name = "kyberlib-wasm"
+version = "0.0.7"
+dependencies = [
+ "kyberlib",
+ "rand",
+ "rand_core",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
 
 [[package]]
 name = "libc"

@@ -1,12 +1,26 @@
-// Copyright © 2024 kyberlib. All rights reserved.
+// Copyright © 2024-2026 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! # `kyberlib-wasm`
+//!
+//! WebAssembly bindings for [`kyberlib`]. Exposes the KEM API
+//! (`keypair`, `encapsulate`, `decapsulate`) and the parameter
+//! constants as JS-callable functions via `wasm-bindgen`.
+//!
+//! Split out from the main `kyberlib` crate in v0.0.7 (issue #144) so
+//! the safe core has no `wasm-bindgen` dependency and can stay
+//! `#![forbid(unsafe_code)]` under default features.
+
 #![allow(non_snake_case)]
+#![deny(missing_docs)]
+
 extern crate alloc;
 
-use super::*;
-use crate::params::*;
 use alloc::boxed::Box;
+use kyberlib::{
+    KyberLibError, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
+};
 use rand::rngs::OsRng;
 use wasm_bindgen::prelude::*;
 
@@ -18,7 +32,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn keypair() -> Result<Keys, JsError> {
     let mut rng = OsRng {};
-    match api::keypair(&mut rng) {
+    match kyberlib::keypair(&mut rng) {
         Ok(keys) => Ok(Keys {
             pubkey: Box::new(keys.public),
             secret: Box::new(keys.secret),
@@ -46,7 +60,7 @@ pub fn encapsulate(pk: Box<[u8]>) -> Result<Kex, JsValue> {
     }
 
     let mut rng = OsRng {};
-    match api::encapsulate(&pk, &mut rng) {
+    match kyberlib::encapsulate(&pk, &mut rng) {
         Ok(kex) => Ok(Kex {
             ciphertext: Box::new(kex.0),
             sharedSecret: Box::new(kex.1),
@@ -76,7 +90,7 @@ pub fn decapsulate(
         return Err(JsValue::null());
     }
 
-    match api::decapsulate(&ct, &sk) {
+    match kyberlib::decapsulate(&ct, &sk) {
         Ok(ss) => Ok(Box::new(ss)),
         Err(_) => Err(JsValue::null()),
     }

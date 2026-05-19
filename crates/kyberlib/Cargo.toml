@@ -30,20 +30,18 @@ include = [
 ]
 
 [dependencies]
-aes          = { workspace = true, optional = true }
-ctr          = { workspace = true, optional = true }
-rand         = { workspace = true, features = ["getrandom"] }
-rand_core    = { workspace = true }
-sha2         = { workspace = true, optional = true }
-wasm-bindgen = { workspace = true, optional = true }
-zeroize      = { workspace = true }
+aes       = { workspace = true, optional = true }
+ctr       = { workspace = true, optional = true }
+rand      = { workspace = true, features = ["getrandom"] }
+rand_core = { workspace = true }
+sha2      = { workspace = true, optional = true }
+zeroize   = { workspace = true }
 
 [dev-dependencies]
-criterion         = { workspace = true }
+criterion = { workspace = true }
 # Tests / examples / benches re-enable `std` + `std_rng` on top of the
 # library-side no_std-friendly default. See SECURITY.md and CHANGELOG.
-rand              = { workspace = true, features = ["std", "std_rng", "getrandom"] }
-wasm-bindgen-test = { workspace = true }
+rand      = { workspace = true, features = ["std", "std_rng", "getrandom"] }
 
 [build-dependencies]
 cc      = { workspace = true, optional = true }
@@ -80,7 +78,10 @@ hazmat = []
 90s          = ["sha2"]
 90s-fixslice = ["90s", "aes", "ctr"]
 avx2         = ["cc"]
-wasm         = ["wasm-bindgen"]
+# `wasm` is a no-op compatibility shim — the bindings now live in the
+# dedicated `kyberlib-wasm` workspace crate (issue #144). The feature
+# will be removed in a future release.
+wasm         = []
 nasm         = ["nasm-rs", "avx2"]
 std          = ["zeroize/std"]
 # `zeroize` is a no-op opt-out feature retained for backward compatibility.
@@ -88,7 +89,7 @@ std          = ["zeroize/std"]
 zeroize = []
 
 [package.metadata.docs.rs]
-features     = ["kyber768", "std", "hazmat", "wasm"]
+features     = ["kyber768", "std", "hazmat"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [package.metadata.clippy]

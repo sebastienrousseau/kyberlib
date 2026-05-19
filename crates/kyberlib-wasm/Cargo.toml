@@ -1,0 +1,41 @@
+[package]
+name = "kyberlib-wasm"
+description = "WebAssembly bindings for kyberlib — CRYSTALS-Kyber / ML-KEM in the browser via wasm-bindgen."
+documentation = "https://docs.rs/kyberlib-wasm"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "wasm"]
+keywords = ["kyber", "kem", "post-quantum", "wasm", "wasm-bindgen"]
+
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+[lib]
+# wasm-bindgen requires cdylib for the JS-side artefact.
+crate-type = ["cdylib", "rlib"]
+name       = "kyberlib_wasm"
+path       = "src/lib.rs"
+
+[dependencies]
+kyberlib     = { path = "../kyberlib", default-features = false, features = ["kyber768"] }
+rand_core    = { workspace = true }
+rand         = { workspace = true, features = ["getrandom"] }
+wasm-bindgen = { workspace = true }
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+
+[features]
+default = []
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+default-target = "wasm32-unknown-unknown"
+targets        = ["wasm32-unknown-unknown"]
+rustdoc-args   = ["--cfg", "docsrs"]
