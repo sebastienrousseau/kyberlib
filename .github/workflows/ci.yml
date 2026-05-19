@@ -65,7 +65,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248  # stable / nightly
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334  # v2.7.3
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
       - name: Test (default features)
         run: cargo test
       - name: Test (all features)
@@ -81,7 +81,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: '1.74.0'
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Check (default features)
         run: cargo +1.74.0 check
       - name: Check (all features)
@@ -95,7 +95,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Check no_std (lib only)
         run: cargo check --lib --no-default-features --features kyber768
 
@@ -120,8 +120,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
-      - uses: obi1kenobi/cargo-semver-checks-action@9f74fe44ab2fbe4cf3e83b1d52df015b2a35c41a  # v2.5
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.9
 
   machete:
     name: cargo-machete (unused deps)
@@ -138,7 +138,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: cargo vendor
         run: |
           mkdir -p .cargo
@@ -169,7 +169,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: cargo doc (strict)
         env:
           RUSTDOCFLAGS: >-
@@ -191,7 +191,7 @@ jobs:
         with:
           toolchain: nightly
           components: miri
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - run: bash scripts/miri.sh focused
 
   fuzz-smoke:
@@ -204,7 +204,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: nightly
-      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2d8b7c4dfe5a334
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz --locked
       - name: 10-second smoke against fuzz_decap
