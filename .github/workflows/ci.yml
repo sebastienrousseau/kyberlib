@@ -192,6 +192,22 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - run: bash scripts/kyberslash-guard.sh
 
+  benches-compile:
+    name: Benchmarks (compile-only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      # Benches are gated on `--features benchmarking` and don't run on
+      # PR (timing-sensitive on shared runners — see scripts/dudect.sh
+      # for the CT-leak story). This job only compiles them so they
+      # can't bit-rot silently.
+      - name: cargo bench --no-run --features benchmarking
+        run: cargo bench -p kyberlib --no-run --features benchmarking
+
   rustdoc:
     name: rustdoc (strict)
     runs-on: ubuntu-latest

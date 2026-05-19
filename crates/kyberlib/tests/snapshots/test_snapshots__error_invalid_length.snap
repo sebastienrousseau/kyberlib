@@ -1,0 +1,7 @@
+---
+source: crates/kyberlib/tests/test_snapshots.rs
+assertion_line: 83
+expression: "format!(\"{}\", KyberLibError::InvalidLength)"
+snapshot_kind: text
+---
+The length of the input buffer is invalid.

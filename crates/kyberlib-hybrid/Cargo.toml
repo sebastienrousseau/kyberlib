@@ -7,6 +7,16 @@ categories = ["algorithms", "cryptography", "no-std"]
 keywords = ["ml-kem", "kyber", "hybrid", "post-quantum", "tls"]
 publish = false   # Phase 5.1 lands the implementation; flips publishable post-audit (#177).
 
+include = [
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/Cargo.toml",
+    "/README.md",
+    "/src/**",
+    "/tests/*.rs",
+]
+
 authors.workspace      = true
 edition.workspace      = true
 homepage.workspace     = true

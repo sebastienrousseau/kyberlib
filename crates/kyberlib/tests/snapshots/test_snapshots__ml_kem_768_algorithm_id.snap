@@ -1,0 +1,7 @@
+---
+source: crates/kyberlib/tests/test_snapshots.rs
+assertion_line: 102
+expression: "<MlKem768 as KemCore>::ALGORITHM_ID"
+snapshot_kind: text
+---
+ML-KEM-768

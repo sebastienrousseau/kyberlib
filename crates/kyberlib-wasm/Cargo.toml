@@ -14,6 +14,16 @@ repository.workspace   = true
 rust-version.workspace = true
 version.workspace      = true
 
+include = [
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/Cargo.toml",
+    "/README.md",
+    "/src/**",
+    "/tests/*.rs",
+]
+
 [lib]
 # wasm-bindgen requires cdylib for the JS-side artefact.
 crate-type = ["cdylib", "rlib"]

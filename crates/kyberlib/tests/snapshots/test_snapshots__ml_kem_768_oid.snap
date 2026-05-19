@@ -1,0 +1,7 @@
+---
+source: crates/kyberlib/tests/test_snapshots.rs
+assertion_line: 106
+expression: "<MlKem768 as KemCore>::OID"
+snapshot_kind: text
+---
+2.16.840.1.101.3.4.4.2

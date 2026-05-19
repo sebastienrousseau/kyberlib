@@ -169,6 +169,19 @@ rpath            = false
 strip            = false
 
 [profile.release]
+# Crypto code: optimise hard, trade compile time for runtime speed.
+# `lto = true` (= "fat") + `codegen-units = 1` lets LLVM inline across
+# crate boundaries — the FIPS 203 hot path (NTT, Barrett-reduce,
+# poly_compress) benefits the most because callers see the reduced
+# control-flow graph. `panic = "abort"` cuts ~5% binary size by
+# removing unwinding tables; safe because every panic in kyberlib is
+# an invariant violation we'd rather crash on than recover from.
+# `strip = "symbols"` is more aggressive than `"debuginfo"` — it
+# removes function names too, so panic stack traces in production
+# only show addresses. Acceptable because (a) this ships as an rlib
+# not a binary, (b) FIPS 203 ML-KEM has no recoverable panic paths;
+# any panic is a CI-caught bug. Bump to `"debuginfo"` if you want
+# nicer crash dumps in deployed apps that embed kyberlib.
 codegen-units    = 1
 debug            = false
 debug-assertions = false
