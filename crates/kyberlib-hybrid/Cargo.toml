@@ -28,7 +28,11 @@ secp256r1    = []
 secp384r1    = []
 
 [dependencies]
-kyberlib = { path = "../kyberlib", default-features = false, features = ["kyber768"] }
+# `version` is set explicitly even though the path-resolution is what
+# the workspace build uses — `cargo deny`'s wildcards check rejects
+# unversioned path deps, and `cargo publish` requires the version
+# stamp to be present on the manifest.
+kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
 
 [lints]
 workspace = true

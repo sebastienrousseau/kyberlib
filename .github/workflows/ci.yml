@@ -153,6 +153,14 @@ jobs:
       - name: Offline build
         run: cargo build --offline --locked --all-features
 
+  kyberslash-guard:
+    name: KyberSlash regression guard (ADR 0003)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - run: bash scripts/kyberslash-guard.sh
+
   rustdoc:
     name: rustdoc (strict)
     runs-on: ubuntu-latest

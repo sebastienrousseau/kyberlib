@@ -32,33 +32,29 @@ cd "$REPO_ROOT"
 T_THRESHOLD="${DUDECT_T_THRESHOLD:-10}"
 
 cat <<'EOF'
-:: dudect harness — currently a placeholder.
+:: dudect harness — gating conditions satisfied; runner not yet wired.
 
-The full statistical CT harness is gated on Phase 2(b) (FIPS 203
-patch) because:
+The two preconditions that blocked the harness are now both
+resolved:
 
-  1. The current `decapsulate` path implements Kyber Round 3, not
-     FIPS 203 ML-KEM. Running dudect against it would measure
-     behaviour that is about to change.
+  1. FIPS 203 spec migration is complete (Phase 2(b), commits
+     417595a / 27e4b6b / b0f3bfb). 60/60 ML-KEM-768 ACVP cases
+     pass; the cryptographic surface dudect would measure is now
+     stable.
 
-  2. The KyberSlash audit (#149) replaces every secret-dependent
-     `/` and `%` in `poly_compress` / `poly_tomsg` with Barrett-
-     style multiplication. The dudect gate is meaningful only after
-     that audit lands — beforehand it would either produce false
-     positives (on the soon-to-be-fixed div instructions) or false
-     negatives (because the broader Round-3 surface masks the
-     specific lanes we want to measure).
+  2. The KyberSlash audit is complete (ADR 0003, this commit).
+     Every secret-dependent `/` and `%` in the source tree
+     uses Barrett-style multiply-and-shift; no `udiv` / `sdiv`
+     leaks to measure.
 
-  3. Phase 2(b) adds `tests/test_ct.rs` with deterministic input
-     classes (random pk × valid c, random pk × tampered c, etc.)
-     that the harness consumes.
+What remains is the actual `dudect-bencher` integration: a Rust
+harness that exercises `decapsulate` with carefully chosen input
+classes (random pk × valid c, random pk × tampered c, etc.) and
+runs the t-statistic test from de Reijke & Bertoni (eprint
+2016/1123). That work is tracked as a follow-up to #161.
 
-To run when the harness lands:
-
-    DUDECT_T_THRESHOLD=10 bash scripts/dudect.sh
-
-Until then, this script exits 0 so CI does not break — the gate
-flips on at the same time as the Phase 2(b) commits.
+For now this script exits 0 so CI stays green. When the harness
+lands, the body below activates.
 
 EOF
 

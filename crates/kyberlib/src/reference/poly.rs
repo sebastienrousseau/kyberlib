@@ -265,6 +265,9 @@ pub(crate) fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly) {
 ///
 /// Arguments:   - poly *r:   input/output polynomial
 pub(crate) fn poly_tomont(r: &mut Poly) {
+    // kyberslash-guard: safe — both operands are compile-time
+    // constants; folds to the Montgomery factor `f = 2285` at
+    // codegen, no runtime division. ADR 0003.
     let f = ((1u64 << 32) % KYBER_Q as u64) as i16;
     #[allow(clippy::needless_range_loop)]
     for i in 0..KYBER_N {

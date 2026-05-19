@@ -29,6 +29,10 @@ pub(crate) fn montgomery_reduce(a: i32) -> i16 {
 ///
 /// Returns:   i16 in {-(q-1)/2,...,(q-1)/2} congruent to a modulo q.
 pub(crate) fn barrett_reduce(a: i16) -> i16 {
+    // kyberslash-guard: safe — both operands are compile-time
+    // constants; this folds to the Barrett magic number `v ≈ 2²⁶/q`
+    // at codegen and never executes a runtime divide instruction.
+    // ADR 0003.
     let v = ((1u32 << 26) / KYBER_Q as u32 + 1) as i32;
     let mut t = v * a as i32 + (1 << 25);
     t >>= 26;

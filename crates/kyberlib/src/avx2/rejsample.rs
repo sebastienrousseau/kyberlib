@@ -1,6 +1,9 @@
 use crate::{consts::*, params::*, symmetric::*};
 use core::arch::x86_64::*;
 
+// kyberslash-guard: safe — `const` expression evaluated at compile
+// time to size the rejection-sampling buffer. No runtime division.
+// ADR 0003.
 pub const REJ_UNIFORM_AVX_NBLOCKS: usize =
     (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES)
         / XOF_BLOCKBYTES;

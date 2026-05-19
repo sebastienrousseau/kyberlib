@@ -141,6 +141,8 @@ fn gen_at(a: &mut [Polyvec], b: &[u8]) {
 ///  - bool transposed: boolean deciding whether A or A^T is generated
 fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
     let mut ctr;
+    // kyberslash-guard: safe — `const` expression evaluated at
+    // compile time to size `buf`. No runtime division.  ADR 0003.
     const GEN_MATRIX_NBLOCKS: usize =
         (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES)
             / XOF_BLOCKBYTES;

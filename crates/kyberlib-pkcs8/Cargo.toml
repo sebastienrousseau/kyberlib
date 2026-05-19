@@ -25,7 +25,8 @@ default = []
 pem     = []   # Will pull in pem-rfc7468 when activated.
 
 [dependencies]
-kyberlib = { path = "../kyberlib", default-features = false, features = ["kyber768"] }
+# See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
+kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
 
 [lints]
 workspace = true

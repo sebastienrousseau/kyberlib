@@ -21,7 +21,8 @@ name       = "kyberlib_wasm"
 path       = "src/lib.rs"
 
 [dependencies]
-kyberlib     = { path = "../kyberlib", default-features = false, features = ["kyber768"] }
+# See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
+kyberlib     = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
 rand_core    = { workspace = true }
 rand         = { workspace = true, features = ["getrandom"] }
 wasm-bindgen = { workspace = true }

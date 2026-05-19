@@ -97,6 +97,10 @@ miri-full: ## Run the full Miri suite (slow — many minutes).
 dudect: ## Run statistical constant-time analysis on decapsulate (scaffolded — phase 2b gate).
 	bash scripts/dudect.sh
 
+# --------------------------------------------------------------- KyberSlash regression guard (ADR 0003)
+kyberslash-guard: ## Fail if any non-annotated `/ KYBER_Q` / `% KYBER_Q` appears in src (ADR 0003).
+	bash scripts/kyberslash-guard.sh
+
 # --------------------------------------------------------------- ACVP (phase 2)
 acvp: ## Run NIST ACVP ML-KEM-768 vectors (60 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
@@ -127,4 +131,4 @@ clean: ## cargo clean.
 	$(CARGO) clean
 
 # --------------------------------------------------------------- CI parity
-ci: fmt-check clippy doc test deny machete ## Run the local CI superset.
+ci: fmt-check clippy doc test deny machete kyberslash-guard ## Run the local CI superset.

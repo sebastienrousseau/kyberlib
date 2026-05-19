@@ -88,14 +88,18 @@ kyberlib's CT claims are **per-function** and per-implementation:
 | `decapsulate` (in secret key) | ✅ CT | ✅ CT (asm + intrinsics) |
 | `encapsulate` (in public key) | ✅ CT | ✅ CT |
 | `verify`, `cmov` | ✅ CT (audited bitwise) | ✅ CT |
-| `poly_compress`, `poly_tomsg` | ⚠️ KyberSlash audit in progress ([#149][i149]) | ⚠️ same |
+| `poly_compress`, `poly_tomsg` | ✅ CT (KyberSlash audit clean — [ADR 0003][adr3]) | ✅ CT (SIMD multiply-high, no divide) |
 | Key serialisation | ✅ CT in secret bytes | ✅ CT |
+
+[adr3]: https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0003-kyberslash-audit.md
 
 The CT property is validated statistically by `dudect` ([#161][i161]) — see
 `scripts/dudect.sh`. KyberSlash 1 & 2 (TCHES 2025) and the analogous
 RustCrypto/ml-dsa CVE-2026-22705 (Feb 2026) both proved that "looks CT" is
 not enough — every secret-dependent `/` or `%` is audited and replaced with
-Barrett-style multiplication.
+Barrett-style multiplication. The audit is documented in
+[ADR 0003][adr3] and enforced going forward by the
+`scripts/kyberslash-guard.sh` static check, which runs in CI on every PR.
 
 ## Supply Chain
 
