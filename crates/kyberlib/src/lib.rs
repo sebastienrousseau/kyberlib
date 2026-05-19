@@ -239,9 +239,16 @@ pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
 
+/// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
+pub mod ml_kem;
+
 pub use api::*;
 pub use error::KyberLibError;
 pub use kex::*;
+pub use ml_kem::{
+    KemCore, MlKem1024, MlKem512, MlKem768, MlKem768Ciphertext,
+    MlKem768DecapKey, MlKem768EncapKey, SharedSecret,
+};
 pub use params::{
     KYBER_90S, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
     KYBER_SECRET_KEY_BYTES, KYBER_SECURITY_PARAMETER,

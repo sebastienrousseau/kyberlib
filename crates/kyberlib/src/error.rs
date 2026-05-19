@@ -1,8 +1,14 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-/// Error types for the failure modes in Kyber key exchange.
+/// Error types for the failure modes in kyberlib.
+///
+/// Marked `#[non_exhaustive]` (since v0.0.7, #130) so future variants
+/// — e.g. backend-specific errors from the planned `fips` (#170) and
+/// `verified` (#171) features — can be added without a major-version
+/// bump.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
 pub enum KyberLibError {
     /// One or more inputs to a function are incorrectly sized. A likely cause of this is
     /// two parties using different security levels while trying to negotiate a key exchange.

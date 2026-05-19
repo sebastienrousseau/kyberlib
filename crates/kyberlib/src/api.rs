@@ -160,21 +160,30 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 ///
 /// Byte lengths of the keys are determined by the security level chosen.
 ///
-/// # Secret handling
+/// # Deprecation
 ///
-/// `Keypair` no longer derives [`Copy`] (since v0.0.7). This is a deliberate
-/// footgun fix: a `Copy` secret would defeat [`ZeroizeOnDrop`] by leaving
-/// uncleared stack copies behind whenever the value was passed by value.
+/// **Soft-deprecated since v0.0.7** in favour of the typed
+/// [`MlKem768EncapKey`](crate::MlKem768EncapKey) /
+/// [`MlKem768DecapKey`](crate::MlKem768DecapKey) split exposed via
+/// the [`KemCore`](crate::KemCore) trait. The blob form exposes the
+/// secret half through a public field; the typed split prevents that
+/// while keeping the legacy byte arrays accessible via
+/// `.as_bytes()` for serialization.
 ///
-/// [`Zeroize`] and [`ZeroizeOnDrop`] are now derived unconditionally — the
-/// `zeroize` Cargo feature is retained as a no-op opt-out and will be removed
-/// in a future release. To pass a `Keypair` around, take it by reference
-/// (`&Keypair`) or clone it explicitly (`keys.clone()`); the explicit
-/// `.clone()` makes secret duplication visible at call sites.
+/// New code should use [`MlKem768::generate`](crate::MlKem768) and
+/// the typed API. This struct will be removed in a future release.
 ///
-/// Phase 3 of the v0.0.7 roadmap (issue #154) splits this further into
-/// `EncapsulationKey` (public, `Copy`-safe) and `DecapsulationKey` (private,
-/// `!Copy`, `ZeroizeOnDrop`, with a redacted `Debug` impl).
+/// # Secret handling (legacy)
+///
+/// `Keypair` does not derive [`Copy`] (since v0.0.7) and derives
+/// [`Zeroize`] / [`ZeroizeOnDrop`] unconditionally — the `zeroize`
+/// Cargo feature is a no-op opt-out retained for one release.
+// Note: deliberately NOT `#[non_exhaustive]`. The struct is
+// soft-deprecated in favour of the typed `MlKem768EncapKey` /
+// `MlKem768DecapKey` split (see the type-level docs above); locking
+// the literal-constructor would only break existing call sites
+// without buying us safety, since the new typed API is where the
+// `#[non_exhaustive]` rigour lives.
 #[derive(Clone, Debug, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Keypair {
     /// The public key.
