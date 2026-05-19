@@ -221,7 +221,14 @@ where
         randombytes(&mut randbuf, KYBER_SYM_BYTES, _rng)?;
     }
 
-    hash_g(&mut buf, &randbuf, KYBER_SYM_BYTES);
+    // FIPS 203 §5.1 / §6.1 — `G(d || k_byte)` where `k_byte` is the
+    // module rank (2 = ML-KEM-512, 3 = ML-KEM-768, 4 = ML-KEM-1024).
+    // Kyber Round 3 used `G(d)` without the trailing byte; the byte
+    // is the domain separator NIST added in the final standard.
+    let mut g_input = [0u8; KYBER_SYM_BYTES + 1];
+    g_input[..KYBER_SYM_BYTES].copy_from_slice(&randbuf[..KYBER_SYM_BYTES]);
+    g_input[KYBER_SYM_BYTES] = KYBER_SECURITY_PARAMETER as u8;
+    hash_g(&mut buf, &g_input, KYBER_SYM_BYTES + 1);
 
     let (publicseed, noiseseed) = buf.split_at(KYBER_SYM_BYTES);
     gen_a(&mut a, publicseed);
