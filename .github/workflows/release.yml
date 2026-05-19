@@ -179,17 +179,21 @@ jobs:
           cargo install cargo-cyclonedx --locked
           sudo apt-get update && sudo apt-get install -y jq
 
-      - name: cargo package
+      - name: cargo package (kyberlib core)
         run: |
           mkdir -p dist
-          # Pre-flight: package every publishable workspace crate.
-          # `kyberlib-asm`, `kyberlib-hybrid`, `kyberlib-pkcs8` are
-          # `publish = false` today; `cargo package` would refuse them.
-          # We package only kyberlib + kyberlib-wasm.
-          for pkg in kyberlib kyberlib-wasm; do
-            cargo package --no-verify -p "$pkg" --target-dir target/
-            cp target/package/"$pkg"-*.crate dist/ || true
-          done
+          # Package only the core crate in this step. `kyberlib-wasm`
+          # has a path-dependency on `kyberlib = "<this version>"`
+          # that `cargo package` resolves against crates.io. In a
+          # dry-run, the new version isn't on the registry yet, so
+          # `cargo package -p kyberlib-wasm` fails with
+          # "no matching package found for kyberlib = ^0.0.7".
+          # The publish job below handles the kyberlib-wasm packaging
+          # AFTER `cargo publish -p kyberlib` lands the core on
+          # crates.io. The SLSA + cosign attestation runs over the
+          # one .crate file we can produce here.
+          cargo package --no-verify -p kyberlib --target-dir target/
+          cp target/package/kyberlib-*.crate dist/
           ls -la dist/
 
       - name: Generate SBOM (CycloneDX 1.5)
