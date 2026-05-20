@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 The kyberlib contributors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# `cargo xtask <subcommand>` — runs the workspace's internal
+# release-pipeline tooling under `crates/xtask/`. Wraps every
+# `scripts/*.sh` invocation in a Rust binary so contributors have
+# a single, discoverable CLI surface.
+[alias]
+xtask = "run --quiet --package xtask --release --"

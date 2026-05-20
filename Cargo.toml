@@ -16,6 +16,7 @@ members = [
     "crates/kyberlib-hybrid",
     "crates/kyberlib-pkcs8",
     "crates/kyberlib-wasm",
+    "crates/xtask",
 ]
 # `fuzz/` is its own package — excluded from the workspace because
 # cargo-fuzz requires nightly + libFuzzer and adds heavy deps we
