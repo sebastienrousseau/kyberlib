@@ -329,6 +329,11 @@ impl Hybrid for SecP384r1MlKem1024 {
 
 #[cfg(test)]
 mod tests {
+    // `super::*` is only used by tests gated on `feature = "x25519"`;
+    // under `--no-default-features --features kyber768` (one of our
+    // CI matrix cells) the cfg-gated tests vanish and the import
+    // becomes unused.
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]

@@ -584,7 +584,6 @@ pub(crate) fn poly_getnoise_eta1_generic<
     seed: &[u8],
     nonce: u8,
 ) {
-    use crate::cbd::poly_cbd_eta1_generic;
     const MAX_LENGTH: usize = 3 * KYBER_N / 4; // 192 bytes, fits eta=3
     let length = P::ETA1 * KYBER_N / 4;
     let mut buf = [0u8; MAX_LENGTH];
@@ -601,7 +600,6 @@ pub(crate) fn poly_getnoise_eta2_generic<
     seed: &[u8],
     nonce: u8,
 ) {
-    use crate::cbd::poly_cbd_eta2_generic;
     const LENGTH: usize = 2 * KYBER_N / 4; // 128
     let mut buf = [0u8; LENGTH];
     prf(&mut buf, LENGTH, seed, nonce);

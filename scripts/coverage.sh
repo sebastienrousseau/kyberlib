@@ -56,19 +56,16 @@ cargo llvm-cov clean --workspace
 #   - the workspace lib tests
 #   - the integration tests under crates/kyberlib/tests/
 #   - the new property + snapshot tests
-#   - doctests (separate `--doctests` pass appended below)
+#
+# `--doctests` requires `-Z persist-doctests` which is nightly-only.
+# We skip it on stable CI to keep the toolchain requirement loose;
+# coverage gain from doctests is typically <5pp. Run with
+# `+nightly` and `--doctests` locally for the full picture.
 echo ":: cargo llvm-cov --workspace $FEATURES_FLAG"
 cargo llvm-cov \
     --workspace \
     $FEATURES_FLAG \
-    --no-report \
-    -- --test-threads=1
-
-echo ":: cargo llvm-cov --workspace --doctests (merge)"
-cargo llvm-cov \
-    --workspace \
-    $FEATURES_FLAG \
-    --doctests \
+    --no-fail-fast \
     --no-report \
     -- --test-threads=1
 

@@ -171,7 +171,15 @@ pub const __VERIFIED_BACKEND_STUB: &str =
 // into `kyberlib-asm` so the source layout matches the safety policy
 // 1:1.
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]
-#[allow(unsafe_code)]
+// `cfg_attr` (rather than `#[allow]` directly) keeps the `allow` and
+// the cfg-gating in sync — without this, Rust 1.74's E0453 check
+// triggers `allow(unsafe_code) incompatible with previous forbid`
+// before cfg evaluation, even though the module is excluded under
+// default features.
+#[cfg_attr(
+    all(target_arch = "x86_64", feature = "avx2"),
+    allow(unsafe_code)
+)]
 mod avx2;
 #[cfg(all(target_arch = "x86_64", feature = "avx2"))]
 use avx2::*;
