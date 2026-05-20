@@ -70,28 +70,16 @@ jobs:
         # surface.
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-  # ------------------------------------------------------------------ reusable
-  ci:
-    name: Rust CI (reusable)
-    # Pinned 2026-04-18 — pipelines: fix(rust-ci): use bash array for tarpaulin
-    uses: sebastienrousseau/pipelines/.github/workflows/rust-ci.yml@99a39f7d02e76beb2b935fa07b7cd6a46d8bbc65
-    with:
-      rust-version: 'stable'
-      # The reusable workflow's clippy step runs `--all-features`,
-      # which hits AVX2/NASM build-script panics on the default
-      # runners. The in-repo `lint` job above already covers default-
-      # feature clippy + fmt.
-      run-clippy: false
-      run-fmt: true
-      # The reusable workflow's audit step uses rustsec/audit-check
-      # which needs `checks: write` permission to upsert check runs.
-      # Our `permissions: contents: read` baseline doesn't grant
-      # that. The in-repo `cargo-deny` job covers the advisory DB.
-      run-audit: false
-      run-coverage: true
-    secrets: inherit
-
-  # --------------------------------------------------------------------- local
+  # ----------------------------------------------------------------- test-matrix
+  #
+  # The previous version of this file delegated parts of the CI surface
+  # to a reusable workflow at sebastienrousseau/pipelines. That workflow
+  # hard-codes `cargo test --workspace --all-features`, which triggers
+  # the kyberlib build-script's NASM panic on every runner without
+  # NASM preinstalled (i.e. every default GitHub runner). Since the
+  # in-repo jobs below already cover fmt / clippy / tests / coverage /
+  # cargo-deny / docs / benches, the reusable workflow added no
+  # capability — only failure modes. Removed entirely.
   test-matrix:
     name: Test (${{ matrix.os }}, ${{ matrix.toolchain }})
     strategy:
@@ -135,6 +123,14 @@ jobs:
       # MSRV gate: default features only. AVX2/NASM under --all-features
       # need toolchain pieces beyond what 1.74 stock provides; documented
       # pre-existing constraint, not gating for MSRV.
+      #
+      # The committed Cargo.lock is version 4 (cargo 1.78+ format) — that's
+      # what newer cargo versions write by default. Cargo 1.74 only reads
+      # up to version 3, so we regenerate the lockfile in 1.74-compatible
+      # form first. This validates that the SOURCE still builds on 1.74;
+      # the v4 lockfile in the tree continues to drive the rest of CI.
+      - name: Regenerate lockfile in 1.74-compatible format
+        run: cargo +1.74.0 generate-lockfile
       - name: Check (default features)
         run: cargo +1.74.0 check --workspace
 
