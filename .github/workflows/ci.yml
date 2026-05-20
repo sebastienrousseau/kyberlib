@@ -30,7 +30,12 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  RUSTFLAGS: -D warnings
+  # No global `RUSTFLAGS: -D warnings` here — that flag applies to
+  # transitive dependency compilation too, so a newer-rustc warning in
+  # any upstream crate breaks our CI for an unrelated reason. Workspace
+  # code's strictness is enforced via `[workspace.lints]` in Cargo.toml
+  # (which scopes the deny to OUR crates only); per-job `cargo clippy
+  # -- -D warnings` invocations cover the lint surface on top.
 
 jobs:
   # ----------------------------------------------------------------------- lint
@@ -55,9 +60,15 @@ jobs:
         # in `[workspace.lints.clippy]` — keeping them out of `-D warnings`
         # for now so the gate doesn't flap on subjective lints. Re-evaluate
         # at v0.1 when the pedantic backlog is paid down.
+        #
+        # No `--all-features`: enabling `avx2` + `nasm` from CI's
+        # default x86_64 ubuntu-latest needs a NASM toolchain that
+        # isn't preinstalled; the AVX2 + NASM features have documented
+        # pre-existing compile issues on non-x86 hosts. Release-pipeline
+        # validation (release.yml) gates the same way — default
+        # features only, since that's the `cargo install kyberlib`
+        # surface.
         run: cargo clippy --workspace --all-targets -- -D warnings
-      - name: cargo clippy (all features)
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
   # ------------------------------------------------------------------ reusable
   ci:
@@ -96,10 +107,11 @@ jobs:
       # lock file is part of the published surface — a CI run that
       # silently resolved a different graph would mask a publish-time
       # break.
+      # No `--all-features` — see the comment on the `lint` job above.
+      # AVX2 + NASM features need a NASM toolchain not preinstalled on
+      # the default runners.
       - name: Test (default features)
         run: cargo test --locked
-      - name: Test (all features)
-        run: cargo test --locked --all-features
       - name: Test (no default features + kyber768)
         run: cargo test --locked --lib --no-default-features --features kyber768
 
@@ -112,10 +124,11 @@ jobs:
         with:
           toolchain: '1.74.0'
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      # MSRV gate: default features only. AVX2/NASM under --all-features
+      # need toolchain pieces beyond what 1.74 stock provides; documented
+      # pre-existing constraint, not gating for MSRV.
       - name: Check (default features)
-        run: cargo +1.74.0 check
-      - name: Check (all features)
-        run: cargo +1.74.0 check --all-features
+        run: cargo +1.74.0 check --workspace
 
   no-std:
     name: no_std build
@@ -181,7 +194,9 @@ jobs:
           directory = "vendor"
           EOF
       - name: Offline build
-        run: cargo build --offline --locked --all-features
+        # Default features only — AVX2/NASM excluded for the same
+        # reason as the rest of CI.
+        run: cargo build --offline --locked --workspace
 
   kyberslash-guard:
     name: KyberSlash regression guard (ADR 0003)
@@ -225,7 +240,8 @@ jobs:
             -D rustdoc::invalid_codeblock_attributes
             -D rustdoc::invalid_html_tags
             -D rustdoc::bare_urls
-        run: cargo doc --no-deps --all-features
+        # Default features only — see CI lint job's rationale.
+        run: cargo doc --no-deps --workspace
 
   miri-focused:
     name: Miri (focused, per-PR)
