@@ -360,3 +360,212 @@ pub(crate) fn poly_tomsg(msg: &mut [u8], a: Poly) {
         }
     }
 }
+
+// =============================================================================
+// Generic ports over MlKemParams (#130b)
+// =============================================================================
+
+/// Generic port of [`poly_compress`]. Drives the per-set DV
+/// (compression bit-width for the v-half of the ciphertext) off
+/// `P::DV` — 4 for ML-KEM-512/768, 5 for ML-KEM-1024.
+///
+/// # Output length
+///
+/// `r` must have space for `poly_compressed_len::<P>()` bytes:
+/// `32 * P::DV` (= 128 for DV=4, 160 for DV=5).
+#[allow(dead_code)] // Wired incrementally; see #130c.
+pub(crate) fn poly_compress_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut [u8],
+    a: Poly,
+) {
+    let mut t = [0u8; 8];
+    let mut k = 0usize;
+    let mut u: i16;
+
+    match P::DV {
+        4 =>
+        {
+            #[allow(clippy::needless_range_loop)]
+            for i in 0..KYBER_N / 8 {
+                for j in 0..8 {
+                    u = a.coeffs[8 * i + j];
+                    u += (u >> 15) & KYBER_Q as i16;
+                    let mut tmp: u32 =
+                        (((u as u16) << 4) + KYBER_Q as u16 / 2) as u32;
+                    tmp *= 315;
+                    tmp >>= 20;
+                    t[j] = ((tmp as u16) & 15) as u8;
+                }
+                r[k] = t[0] | (t[1] << 4);
+                r[k + 1] = t[2] | (t[3] << 4);
+                r[k + 2] = t[4] | (t[5] << 4);
+                r[k + 3] = t[6] | (t[7] << 4);
+                k += 4;
+            }
+        }
+        5 =>
+        {
+            #[allow(clippy::needless_range_loop)]
+            for i in 0..(KYBER_N / 8) {
+                for j in 0..8 {
+                    u = a.coeffs[8 * i + j];
+                    u += (u >> 15) & KYBER_Q as i16;
+                    let mut tmp: u32 =
+                        ((u as u32) << 5) + KYBER_Q as u32 / 2;
+                    tmp *= 315;
+                    tmp >>= 20;
+                    t[j] = ((tmp as u16) & 31) as u8;
+                }
+                r[k] = t[0] | (t[1] << 5);
+                r[k + 1] = (t[1] >> 3) | (t[2] << 2) | (t[3] << 7);
+                r[k + 2] = (t[3] >> 1) | (t[4] << 4);
+                r[k + 3] = (t[4] >> 4) | (t[5] << 1) | (t[6] << 6);
+                r[k + 4] = (t[6] >> 2) | (t[7] << 3);
+                k += 5;
+            }
+        }
+        _ => unreachable!("DV must be 4 or 5 per FIPS 203 §6"),
+    }
+}
+
+/// Generic port of [`poly_decompress`].
+#[allow(dead_code)]
+pub(crate) fn poly_decompress_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut Poly,
+    a: &[u8],
+) {
+    match P::DV {
+        4 => {
+            for (idx, i) in (0..KYBER_N / 2).enumerate() {
+                r.coeffs[2 * i] = ((((a[idx] & 15) as usize * KYBER_Q)
+                    + 8)
+                    >> 4) as i16;
+                r.coeffs[2 * i + 1] =
+                    ((((a[idx] >> 4) as usize * KYBER_Q) + 8) >> 4)
+                        as i16;
+            }
+        }
+        5 => {
+            let mut idx = 0usize;
+            let mut t = [0u8; 8];
+            #[allow(clippy::needless_range_loop)]
+            for i in 0..KYBER_N / 8 {
+                t[0] = a[idx];
+                t[1] = (a[idx] >> 5) | (a[idx + 1] << 3);
+                t[2] = a[idx + 1] >> 2;
+                t[3] = (a[idx + 1] >> 7) | (a[idx + 2] << 1);
+                t[4] = (a[idx + 2] >> 4) | (a[idx + 3] << 4);
+                t[5] = a[idx + 3] >> 1;
+                t[6] = (a[idx + 3] >> 6) | (a[idx + 4] << 2);
+                t[7] = a[idx + 4] >> 3;
+                idx += 5;
+                for j in 0..8 {
+                    r.coeffs[8 * i + j] =
+                        ((((t[j] as u32) & 31) * KYBER_Q as u32 + 16)
+                            >> 5) as i16;
+                }
+            }
+        }
+        _ => unreachable!("DV must be 4 or 5 per FIPS 203 §6"),
+    }
+}
+
+/// Compressed-poly byte length for parameter set `P`: `32 * P::DV`.
+/// 128 for ML-KEM-512/768 (DV=4), 160 for ML-KEM-1024 (DV=5).
+#[allow(dead_code)]
+pub(crate) const fn poly_compressed_len<
+    P: crate::paramsets::MlKemParams,
+>() -> usize {
+    32 * P::DV
+}
+
+#[cfg(test)]
+mod poly_generic_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    fn build_test_poly() -> Poly {
+        let mut p = Poly::new();
+        for (j, c) in p.coeffs.iter_mut().enumerate() {
+            let v = (j * 113 + 7) % (KYBER_Q + 50);
+            *c = if j % 5 == 0 {
+                -(v as i16 % KYBER_Q as i16)
+            } else {
+                v as i16 % KYBER_Q as i16
+            };
+        }
+        p
+    }
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn poly_compress_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let p = build_test_poly();
+        let mut buf_existing = [0u8; KYBER_POLY_COMPRESSED_BYTES];
+        poly_compress(&mut buf_existing, p);
+
+        let mut buf_generic = [0u8; poly_compressed_len::<MlKem768>()];
+        poly_compress_generic::<MlKem768>(&mut buf_generic, p);
+
+        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn poly_compress_matches_existing_kyber512() {
+        use crate::MlKem512;
+        let p = build_test_poly();
+        let mut buf_existing = [0u8; KYBER_POLY_COMPRESSED_BYTES];
+        poly_compress(&mut buf_existing, p);
+
+        let mut buf_generic = [0u8; poly_compressed_len::<MlKem512>()];
+        poly_compress_generic::<MlKem512>(&mut buf_generic, p);
+
+        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn poly_compress_matches_existing_kyber1024() {
+        use crate::MlKem1024;
+        let p = build_test_poly();
+        let mut buf_existing = [0u8; KYBER_POLY_COMPRESSED_BYTES];
+        poly_compress(&mut buf_existing, p);
+
+        let mut buf_generic = [0u8; poly_compressed_len::<MlKem1024>()];
+        poly_compress_generic::<MlKem1024>(&mut buf_generic, p);
+
+        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
+    }
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn poly_decompress_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let p = build_test_poly();
+        let mut buf = [0u8; KYBER_POLY_COMPRESSED_BYTES];
+        poly_compress(&mut buf, p);
+
+        let mut p_existing = Poly::new();
+        poly_decompress(&mut p_existing, &buf);
+
+        let mut p_generic = Poly::new();
+        poly_decompress_generic::<MlKem768>(&mut p_generic, &buf);
+
+        assert_eq!(p_existing.coeffs, p_generic.coeffs);
+    }
+
+    #[test]
+    fn poly_compressed_len_formula() {
+        use crate::{MlKem1024, MlKem512, MlKem768};
+        assert_eq!(poly_compressed_len::<MlKem512>(), 128);
+        assert_eq!(poly_compressed_len::<MlKem768>(), 128);
+        assert_eq!(poly_compressed_len::<MlKem1024>(), 160);
+    }
+}

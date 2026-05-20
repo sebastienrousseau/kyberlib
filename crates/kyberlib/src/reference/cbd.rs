@@ -89,3 +89,118 @@ pub(crate) fn poly_cbd_eta1(r: &mut Poly, buf: &[u8]) {
 pub(crate) fn poly_cbd_eta2(r: &mut Poly, buf: &[u8]) {
     cbd2(r, buf)
 }
+
+// =============================================================================
+// Generic ports over MlKemParams (#130b)
+// =============================================================================
+
+/// Generic port of [`poly_cbd_eta1`]. Selects cbd2 (η=2) vs cbd3 (η=3)
+/// off `P::ETA1` rather than the cfg-feature global.
+#[allow(dead_code)] // Wired incrementally; see #130c.
+pub(crate) fn poly_cbd_eta1_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut Poly,
+    buf: &[u8],
+) {
+    match P::ETA1 {
+        2 => cbd2(r, buf),
+        3 => cbd3(r, buf),
+        _ => unreachable!("ETA1 must be 2 or 3 per FIPS 203 §6"),
+    }
+}
+
+/// Generic port of [`poly_cbd_eta2`]. ETA2 is always 2 per FIPS 203,
+/// so this is just a wrapper around `cbd2` parameterised at the type
+/// level (kept symmetric with `poly_cbd_eta1_generic`).
+#[allow(dead_code)]
+pub(crate) fn poly_cbd_eta2_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut Poly,
+    buf: &[u8],
+) {
+    debug_assert_eq!(P::ETA2, 2);
+    cbd2(r, buf);
+}
+
+/// CBD buffer length for the ETA1 noise sampling under parameter `P`:
+/// `P::ETA1 * 256 / 4` bytes.
+#[allow(dead_code)]
+pub(crate) const fn cbd_eta1_buf_len<
+    P: crate::paramsets::MlKemParams,
+>() -> usize {
+    P::ETA1 * 256 / 4
+}
+
+/// CBD buffer length for the ETA2 noise sampling — always 128 bytes.
+#[allow(dead_code)]
+pub(crate) const fn cbd_eta2_buf_len<
+    P: crate::paramsets::MlKemParams,
+>() -> usize {
+    P::ETA2 * 256 / 4
+}
+
+#[cfg(test)]
+mod cbd_generic_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn cbd_eta1_matches_existing_kyber768() {
+        use crate::MlKem768;
+        // ETA1 = 2 for MlKem768 → routes to cbd2.
+        let buf = [0xA5u8; 128]; // 2 * 256 / 4 = 128
+        let mut p_existing = Poly::new();
+        poly_cbd_eta1(&mut p_existing, &buf);
+
+        let mut p_generic = Poly::new();
+        poly_cbd_eta1_generic::<MlKem768>(&mut p_generic, &buf);
+
+        assert_eq!(p_existing.coeffs, p_generic.coeffs);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn cbd_eta1_matches_existing_kyber512() {
+        use crate::MlKem512;
+        // ETA1 = 3 for MlKem512 → routes to cbd3.
+        let buf = [0xA5u8; 192]; // 3 * 256 / 4 = 192
+        let mut p_existing = Poly::new();
+        poly_cbd_eta1(&mut p_existing, &buf);
+
+        let mut p_generic = Poly::new();
+        poly_cbd_eta1_generic::<MlKem512>(&mut p_generic, &buf);
+
+        assert_eq!(p_existing.coeffs, p_generic.coeffs);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn cbd_eta1_matches_existing_kyber1024() {
+        use crate::MlKem1024;
+        let buf = [0xA5u8; 128];
+        let mut p_existing = Poly::new();
+        poly_cbd_eta1(&mut p_existing, &buf);
+
+        let mut p_generic = Poly::new();
+        poly_cbd_eta1_generic::<MlKem1024>(&mut p_generic, &buf);
+
+        assert_eq!(p_existing.coeffs, p_generic.coeffs);
+    }
+
+    #[test]
+    fn cbd_buf_lengths_match_spec() {
+        use crate::{MlKem1024, MlKem512, MlKem768};
+        // FIPS 203 §6: ETA1 × 256 / 4
+        assert_eq!(cbd_eta1_buf_len::<MlKem512>(), 192); // η₁ = 3
+        assert_eq!(cbd_eta1_buf_len::<MlKem768>(), 128); // η₁ = 2
+        assert_eq!(cbd_eta1_buf_len::<MlKem1024>(), 128); // η₁ = 2
+                                                          // ETA2 = 2 universally
+        assert_eq!(cbd_eta2_buf_len::<MlKem512>(), 128);
+        assert_eq!(cbd_eta2_buf_len::<MlKem768>(), 128);
+        assert_eq!(cbd_eta2_buf_len::<MlKem1024>(), 128);
+    }
+}
