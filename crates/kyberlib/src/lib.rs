@@ -212,6 +212,10 @@ pub mod symmetric;
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;
 
+/// Parameter-pack trait unifying ML-KEM-512 / 768 / 1024 — foundation
+/// for the const-generic refactor tracked as #130b.
+pub mod paramsets;
+
 /// IETF LAMPS object identifiers for ML-KEM parameter sets (v0.0.7
 /// — see issue #150).
 pub mod oid;
@@ -244,6 +248,7 @@ pub use params::{
     ML_KEM_SHARED_SECRET_BYTES,
     ML_KEM_SYM_BYTES,
 };
+pub use paramsets::MlKemParams;
 pub use rand_core::{CryptoRng, RngCore};
 
 // Feature hack to expose private functions for the Known Answer Tests

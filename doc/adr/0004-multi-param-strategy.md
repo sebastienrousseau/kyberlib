@@ -1,9 +1,26 @@
 # ADR 0004 — Multi-parameter-set strategy for ML-KEM
 
-* **Status:** Accepted (partial implementation landed in v0.0.7; #130c tracks the final lift)
-* **Date:** 2026-05-19
+* **Status:** Phase 3a + 3a-bis landed (v0.0.7); Phase 3b (full algorithm lift) tracked as #130c
+* **Date:** 2026-05-19, **revised 2026-05-20**
 * **Authors:** sebastienrousseau
 * **Tracking issue:** [#130b](https://github.com/sebastienrousseau/kyberlib/issues/130) / [#130c](https://github.com/sebastienrousseau/kyberlib/issues/130) (follow-up)
+
+## Revision log
+
+* **2026-05-20:** Phase 3a-bis foundation landed in `crates/kyberlib/src/paramsets.rs`.
+  The [`MlKemParams`](../../crates/kyberlib/src/paramsets.rs) trait is implemented for
+  all three markers with their full numeric pack (K, ETA1, ETA2, DU, DV, byte sizes,
+  OID, algorithm-id) and concrete associated buffer types
+  (`PublicKeyBytes`/`SecretKeyBytes`/`CiphertextBytes` as `[u8; N]` for each set).
+  10 unit tests verify the FIPS 203 formulas (`PK = K*384+32`, `CT = 32*(K*DU+DV)`)
+  and exercise the generic-dispatch surface. Downstream code can now write
+  `fn foo<P: MlKemParams>(...)` against the unified trait, even though the
+  algorithm bodies in `reference/` still rely on the cfg-gated globals.
+  Concurrent: the feature-gated `KemCore` impls for `MlKem512` and `MlKem1024`
+  landed in commit 6e6d842, so consumers who pin to one parameter set per
+  build now have a fully wired typed API for any of the three.
+  Remaining for #130c: lift the primitives in `reference/` (indcpa, poly, polyvec,
+  cbd) onto `MlKemParams` so a single build supports all three concurrently.
 
 ## Context
 
