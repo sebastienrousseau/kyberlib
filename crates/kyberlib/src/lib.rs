@@ -216,6 +216,58 @@ pub mod ml_kem;
 /// for the const-generic refactor tracked as #130b.
 pub mod paramsets;
 
+/// Internal test-surface wrappers. **Not part of the public API.**
+///
+/// Wraps the generic FIPS 203 pipeline functions for integration-test
+/// harnesses that need deterministic-seed access across all three
+/// parameter sets (e.g. NIST ACVP). Items here may change or
+/// disappear without warning — downstream code MUST NOT depend on
+/// them.
+#[doc(hidden)]
+pub mod __testing__ {
+    use crate::error::KyberLibError;
+    use crate::paramsets::MlKemParams;
+    use rand_core::{CryptoRng, RngCore};
+
+    /// Wrapper around the crate-internal `kem_keypair_generic`.
+    pub fn kem_keypair_generic<P, R>(
+        pk: &mut [u8],
+        sk: &mut [u8],
+        rng: &mut R,
+        seed: Option<(&[u8], &[u8])>,
+    ) -> Result<(), KyberLibError>
+    where
+        P: MlKemParams,
+        R: RngCore + CryptoRng,
+    {
+        crate::kem::kem_keypair_generic::<P, R>(pk, sk, rng, seed)
+    }
+
+    /// Wrapper around the crate-internal `kem_enc_generic`.
+    pub fn kem_enc_generic<P, R>(
+        ct: &mut [u8],
+        ss: &mut [u8],
+        pk: &[u8],
+        rng: &mut R,
+        seed: Option<&[u8]>,
+    ) -> Result<(), KyberLibError>
+    where
+        P: MlKemParams,
+        R: RngCore + CryptoRng,
+    {
+        crate::kem::kem_enc_generic::<P, R>(ct, ss, pk, rng, seed)
+    }
+
+    /// Wrapper around the crate-internal `kem_dec_generic`.
+    pub fn kem_dec_generic<P: MlKemParams>(
+        ss: &mut [u8],
+        ct: &[u8],
+        sk: &[u8],
+    ) {
+        crate::kem::kem_dec_generic::<P>(ss, ct, sk);
+    }
+}
+
 /// IETF LAMPS object identifiers for ML-KEM parameter sets (v0.0.7
 /// — see issue #150).
 pub mod oid;

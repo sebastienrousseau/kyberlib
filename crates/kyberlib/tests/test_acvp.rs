@@ -26,17 +26,28 @@
 //!
 //! ## What this harness measures
 //!
-//! kyberlib currently only builds for ML-KEM-768 (the `kyber768`
-//! Cargo feature is the only security-level feature enabled — see
-//! issues #130 and #158 for the planned trait-based redesign). The
-//! harness therefore reports
+//! As of Phase 3g of #130b, the harness exercises **ALL THREE**
+//! parameter sets (ML-KEM-512, ML-KEM-768, ML-KEM-1024) in a single
+//! build via the generic FIPS 203 pipeline (`kem_keypair_generic` etc.
+//! exposed via `kyberlib::__testing__`). Coverage:
 //!
-//!   - ML-KEM-768 keyGen          (25 cases),
-//!   - ML-KEM-768 encapsulation   (25 cases),
-//!   - ML-KEM-768 decapsulation   (10 cases).
+//!   ML-KEM-512:  25 keyGen + 25 encap + 10 decap = 60 vectors
+//!   ML-KEM-768:  25 keyGen + 25 encap + 10 decap = 60 vectors
+//!   ML-KEM-1024: 25 keyGen + 25 encap + 10 decap = 60 vectors
+//!                                                  =========
+//!   Total: 180 NIST ACVP vectors, all 180 pass.
 //!
-//! ML-KEM-512 and ML-KEM-1024 groups are loaded and **skipped** with
-//! an explanatory message so the partial coverage is visible.
+//! Breakdown by ACVP test type:
+//!
+//!   - keyGen        (75 cases — 25 per parameter set)
+//!   - encapsulation (75 cases — 25 per parameter set)
+//!   - decapsulation (30 cases — 10 per parameter set)
+//!
+//! Pre-Phase-3g (before commit 9261088…eabbc6d), the harness skipped
+//! ML-KEM-512 and ML-KEM-1024 because kyberlib's reference backend
+//! was cfg-gated to a single parameter set. The const-generic
+//! refactor lifts that limitation and the harness now drives every
+//! NIST vector through the matching generic monomorphization.
 //!
 //! ## Failure mode
 //!
@@ -48,18 +59,130 @@
 
 #![cfg(KYBER_SECURITY_PARAMETERat)]
 
-use kyberlib::{
-    decapsulate, encrypt_message, generate_key_pair,
-    KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
-    KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
+use kyberlib::__testing__::{
+    kem_dec_generic, kem_enc_generic, kem_keypair_generic,
 };
+use kyberlib::{MlKem1024, MlKem512, MlKem768, MlKemParams};
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 
-/// Parameter set we currently exercise. kyberlib has only
-/// `kyber768` enabled at the Cargo-feature level.
-const TARGET_SET: &str = "ML-KEM-768";
+/// Which FIPS 203 parameter set a test case is exercising.
+#[derive(Clone, Copy)]
+enum ParamSet {
+    MlKem512,
+    MlKem768,
+    MlKem1024,
+}
+
+fn parse_set(s: &str) -> Option<ParamSet> {
+    match s {
+        "ML-KEM-512" => Some(ParamSet::MlKem512),
+        "ML-KEM-768" => Some(ParamSet::MlKem768),
+        "ML-KEM-1024" => Some(ParamSet::MlKem1024),
+        _ => None,
+    }
+}
+
+fn pk_len(p: ParamSet) -> usize {
+    match p {
+        ParamSet::MlKem512 => {
+            <MlKem512 as MlKemParams>::PUBLIC_KEY_BYTES
+        }
+        ParamSet::MlKem768 => {
+            <MlKem768 as MlKemParams>::PUBLIC_KEY_BYTES
+        }
+        ParamSet::MlKem1024 => {
+            <MlKem1024 as MlKemParams>::PUBLIC_KEY_BYTES
+        }
+    }
+}
+
+fn sk_len(p: ParamSet) -> usize {
+    match p {
+        ParamSet::MlKem512 => {
+            <MlKem512 as MlKemParams>::SECRET_KEY_BYTES
+        }
+        ParamSet::MlKem768 => {
+            <MlKem768 as MlKemParams>::SECRET_KEY_BYTES
+        }
+        ParamSet::MlKem1024 => {
+            <MlKem1024 as MlKemParams>::SECRET_KEY_BYTES
+        }
+    }
+}
+
+fn ct_len(p: ParamSet) -> usize {
+    match p {
+        ParamSet::MlKem512 => {
+            <MlKem512 as MlKemParams>::CIPHERTEXT_BYTES
+        }
+        ParamSet::MlKem768 => {
+            <MlKem768 as MlKemParams>::CIPHERTEXT_BYTES
+        }
+        ParamSet::MlKem1024 => {
+            <MlKem1024 as MlKemParams>::CIPHERTEXT_BYTES
+        }
+    }
+}
+
+/// Dispatch a keygen call to the right generic monomorphization.
+fn run_keygen(
+    p: ParamSet,
+    pk: &mut [u8],
+    sk: &mut [u8],
+    rng: &mut rand::rngs::ThreadRng,
+    seed: (&[u8], &[u8]),
+) -> Result<(), kyberlib::KyberLibError> {
+    match p {
+        ParamSet::MlKem512 => {
+            kem_keypair_generic::<MlKem512, _>(pk, sk, rng, Some(seed))
+        }
+        ParamSet::MlKem768 => {
+            kem_keypair_generic::<MlKem768, _>(pk, sk, rng, Some(seed))
+        }
+        ParamSet::MlKem1024 => {
+            kem_keypair_generic::<MlKem1024, _>(pk, sk, rng, Some(seed))
+        }
+    }
+}
+
+/// Dispatch an encap call to the right generic monomorphization.
+fn run_encap(
+    p: ParamSet,
+    ct: &mut [u8],
+    ss: &mut [u8],
+    ek: &[u8],
+    rng: &mut rand::rngs::ThreadRng,
+    seed: &[u8],
+) -> Result<(), kyberlib::KyberLibError> {
+    match p {
+        ParamSet::MlKem512 => {
+            kem_enc_generic::<MlKem512, _>(ct, ss, ek, rng, Some(seed))
+        }
+        ParamSet::MlKem768 => {
+            kem_enc_generic::<MlKem768, _>(ct, ss, ek, rng, Some(seed))
+        }
+        ParamSet::MlKem1024 => {
+            kem_enc_generic::<MlKem1024, _>(ct, ss, ek, rng, Some(seed))
+        }
+    }
+}
+
+/// Dispatch a decap call to the right generic monomorphization.
+fn run_decap(p: ParamSet, ss: &mut [u8], ct: &[u8], dk: &[u8]) {
+    match p {
+        ParamSet::MlKem512 => {
+            kem_dec_generic::<MlKem512>(ss, ct, dk);
+        }
+        ParamSet::MlKem768 => {
+            kem_dec_generic::<MlKem768>(ss, ct, dk);
+        }
+        ParamSet::MlKem1024 => {
+            kem_dec_generic::<MlKem1024>(ss, ct, dk);
+        }
+    }
+}
 
 // -------------------------------------------------------------------------- JSON schema
 
@@ -244,18 +367,26 @@ fn acvp_ml_kem_keygen() {
     let expected: AcvpFile<KgExpectedGroup> =
         load_json("keyGen-expected.json");
 
-    let mut report = GroupReport::new("ML-KEM-768 keyGen");
+    let mut report_512 = GroupReport::new("ML-KEM-512 keyGen");
+    let mut report_768 = GroupReport::new("ML-KEM-768 keyGen");
+    let mut report_1024 = GroupReport::new("ML-KEM-1024 keyGen");
     let mut skipped_groups: Vec<String> = Vec::new();
     let mut rng = rand::thread_rng();
 
     for pg in &prompt.test_groups {
-        if pg.parameter_set != TARGET_SET {
+        let Some(param) = parse_set(&pg.parameter_set) else {
             skipped_groups.push(format!(
-                "tgId {} {} (kyberlib not built for this parameter set)",
+                "tgId {} {} (unknown parameter set)",
                 pg.tg_id, pg.parameter_set
             ));
             continue;
-        }
+        };
+        let report = match param {
+            ParamSet::MlKem512 => &mut report_512,
+            ParamSet::MlKem768 => &mut report_768,
+            ParamSet::MlKem1024 => &mut report_1024,
+        };
+
         let eg = expected
             .test_groups
             .iter()
@@ -274,17 +405,13 @@ fn acvp_ml_kem_keygen() {
             assert_eq!(d.len(), 32, "d should be 32 bytes");
             assert_eq!(z.len(), 32, "z should be 32 bytes");
 
-            let mut pk = vec![0u8; KYBER_PUBLIC_KEY_BYTES];
-            let mut sk = vec![0u8; KYBER_SECRET_KEY_BYTES];
-            let res = generate_key_pair(
-                &mut pk,
-                &mut sk,
-                &mut rng,
-                Some((&d, &z)),
-            );
+            let mut pk = vec![0u8; pk_len(param)];
+            let mut sk = vec![0u8; sk_len(param)];
+            let res =
+                run_keygen(param, &mut pk, &mut sk, &mut rng, (&d, &z));
             if let Err(e) = res {
                 report.fail(format!(
-                    "tcId {} generate_key_pair returned {:?}",
+                    "tcId {} keygen returned {:?}",
                     pc.tc_id, e
                 ));
                 continue;
@@ -308,15 +435,15 @@ fn acvp_ml_kem_keygen() {
     }
 
     println!("\nACVP keyGen results:");
-    report.print();
+    report_512.print();
+    report_768.print();
+    report_1024.print();
     for s in &skipped_groups {
         println!("  SKIPPED: {s}");
     }
     println!();
-    assert!(
-        report.ok(),
-        "ACVP keyGen ML-KEM-768 mismatch — see output above"
-    );
+    let all_ok = report_512.ok() && report_768.ok() && report_1024.ok();
+    assert!(all_ok, "ACVP keyGen mismatch — see output above");
 }
 
 // -------------------------------------------------------------------------- harness: encap
@@ -328,7 +455,9 @@ fn acvp_ml_kem_encap() {
     let expected: AcvpFile<EdExpectedGroup> =
         load_json("encapDecap-expected.json");
 
-    let mut report = GroupReport::new("ML-KEM-768 encapsulation");
+    let mut report_512 = GroupReport::new("ML-KEM-512 encapsulation");
+    let mut report_768 = GroupReport::new("ML-KEM-768 encapsulation");
+    let mut report_1024 = GroupReport::new("ML-KEM-1024 encapsulation");
     let mut skipped: Vec<String> = Vec::new();
     let mut rng = rand::thread_rng();
 
@@ -336,13 +465,19 @@ fn acvp_ml_kem_encap() {
         if pg.function != "encapsulation" {
             continue;
         }
-        if pg.parameter_set != TARGET_SET {
+        let Some(param) = parse_set(&pg.parameter_set) else {
             skipped.push(format!(
-                "tgId {} {} (kyberlib not built for this parameter set)",
+                "tgId {} {} (unknown parameter set)",
                 pg.tg_id, pg.parameter_set
             ));
             continue;
-        }
+        };
+        let report = match param {
+            ParamSet::MlKem512 => &mut report_512,
+            ParamSet::MlKem768 => &mut report_768,
+            ParamSet::MlKem1024 => &mut report_1024,
+        };
+
         let eg = expected
             .test_groups
             .iter()
@@ -360,24 +495,19 @@ fn acvp_ml_kem_encap() {
             let m = hex(pc.m.as_ref().expect("encap prompt has m"));
             assert_eq!(
                 ek.len(),
-                KYBER_PUBLIC_KEY_BYTES,
+                pk_len(param),
                 "tcId {} ek length",
                 pc.tc_id
             );
             assert_eq!(m.len(), 32, "m should be 32 bytes");
 
-            let mut ct = vec![0u8; KYBER_CIPHERTEXT_BYTES];
-            let mut ss = vec![0u8; KYBER_SHARED_SECRET_BYTES];
-            let res = encrypt_message(
-                &mut ct,
-                &mut ss,
-                &ek,
-                &mut rng,
-                Some(&m),
-            );
+            let mut ct = vec![0u8; ct_len(param)];
+            let mut ss = vec![0u8; 32];
+            let res =
+                run_encap(param, &mut ct, &mut ss, &ek, &mut rng, &m);
             if let Err(e) = res {
                 report.fail(format!(
-                    "tcId {} encrypt_message returned {:?}",
+                    "tcId {} encap returned {:?}",
                     pc.tc_id, e
                 ));
                 continue;
@@ -403,15 +533,15 @@ fn acvp_ml_kem_encap() {
     }
 
     println!("\nACVP encap results:");
-    report.print();
+    report_512.print();
+    report_768.print();
+    report_1024.print();
     for s in &skipped {
         println!("  SKIPPED: {s}");
     }
     println!();
-    assert!(
-        report.ok(),
-        "ACVP encapsulation ML-KEM-768 mismatch — see output above"
-    );
+    let all_ok = report_512.ok() && report_768.ok() && report_1024.ok();
+    assert!(all_ok, "ACVP encapsulation mismatch — see output above");
 }
 
 // -------------------------------------------------------------------------- harness: decap
@@ -423,20 +553,28 @@ fn acvp_ml_kem_decap() {
     let expected: AcvpFile<EdExpectedGroup> =
         load_json("encapDecap-expected.json");
 
-    let mut report = GroupReport::new("ML-KEM-768 decapsulation");
+    let mut report_512 = GroupReport::new("ML-KEM-512 decapsulation");
+    let mut report_768 = GroupReport::new("ML-KEM-768 decapsulation");
+    let mut report_1024 = GroupReport::new("ML-KEM-1024 decapsulation");
     let mut skipped: Vec<String> = Vec::new();
 
     for pg in &prompt.test_groups {
         if pg.function != "decapsulation" {
             continue;
         }
-        if pg.parameter_set != TARGET_SET {
+        let Some(param) = parse_set(&pg.parameter_set) else {
             skipped.push(format!(
-                "tgId {} {} (kyberlib not built for this parameter set)",
+                "tgId {} {} (unknown parameter set)",
                 pg.tg_id, pg.parameter_set
             ));
             continue;
-        }
+        };
+        let report = match param {
+            ParamSet::MlKem512 => &mut report_512,
+            ParamSet::MlKem768 => &mut report_768,
+            ParamSet::MlKem1024 => &mut report_1024,
+        };
+
         let eg = expected
             .test_groups
             .iter()
@@ -454,31 +592,23 @@ fn acvp_ml_kem_decap() {
             let dk = hex(pc.dk.as_ref().expect("decap prompt has dk"));
             assert_eq!(
                 c.len(),
-                KYBER_CIPHERTEXT_BYTES,
+                ct_len(param),
                 "tcId {} c length",
                 pc.tc_id
             );
             assert_eq!(
                 dk.len(),
-                KYBER_SECRET_KEY_BYTES,
+                sk_len(param),
                 "tcId {} dk length",
                 pc.tc_id
             );
 
-            let observed = match decapsulate(&c, &dk) {
-                Ok(k) => k,
-                Err(e) => {
-                    report.fail(format!(
-                        "tcId {} decapsulate returned {:?}",
-                        pc.tc_id, e
-                    ));
-                    continue;
-                }
-            };
+            let mut observed = vec![0u8; 32];
+            run_decap(param, &mut observed, &c, &dk);
 
             let expected_k =
                 hex(ec.k.as_ref().expect("decap expected k"));
-            if observed[..] == expected_k[..] {
+            if observed == expected_k {
                 report.pass();
             } else {
                 report.fail(format!(
@@ -492,13 +622,13 @@ fn acvp_ml_kem_decap() {
     }
 
     println!("\nACVP decap results:");
-    report.print();
+    report_512.print();
+    report_768.print();
+    report_1024.print();
     for s in &skipped {
         println!("  SKIPPED: {s}");
     }
     println!();
-    assert!(
-        report.ok(),
-        "ACVP decapsulation ML-KEM-768 mismatch — see output above"
-    );
+    let all_ok = report_512.ok() && report_768.ok() && report_1024.ok();
+    assert!(all_ok, "ACVP decapsulation mismatch — see output above");
 }
