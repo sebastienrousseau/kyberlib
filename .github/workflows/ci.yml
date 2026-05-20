@@ -130,9 +130,23 @@ jobs:
       # form first. This validates that the SOURCE still builds on 1.74;
       # the v4 lockfile in the tree continues to drive the rest of CI.
       - name: Regenerate lockfile in 1.74-compatible format
-        run: cargo +1.74.0 generate-lockfile
-      - name: Check (default features)
-        run: cargo +1.74.0 check --workspace
+        # The committed Cargo.lock is v4 (1.78+ format); regenerate
+        # for 1.74. Pin wasm-bindgen / web-sys / js-sys to versions
+        # that still build on 1.74 — newer wasm-bindgen (0.2.121+)
+        # requires 1.77+, but we only care about kyberlib's MSRV here,
+        # not kyberlib-wasm's (which is a satellite crate with its own
+        # MSRV expectations downstream of wasm-bindgen).
+        run: |
+          cargo +1.74.0 generate-lockfile
+          # Constrain transitive deps that ratcheted their MSRV past 1.74.
+          cargo +1.74.0 update -p wasm-bindgen --precise 0.2.100 || true
+          cargo +1.74.0 update -p web-sys --precise 0.3.77 || true
+          cargo +1.74.0 update -p js-sys --precise 0.3.77 || true
+      - name: Check (kyberlib core only)
+        # MSRV applies to the safe core surface (`kyberlib`). The
+        # satellite crates (`kyberlib-wasm`, etc.) have their own
+        # MSRV implied by their wasm-bindgen dependency floor.
+        run: cargo +1.74.0 check -p kyberlib
 
   no-std:
     name: no_std build
@@ -180,6 +194,13 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.9
+        with:
+          # Only inspect default features — semver-checks otherwise
+          # tries to build rustdoc for every feature group, which
+          # triggers the AVX2/NASM build-script panic on the default
+          # runners (see lint job comment).
+          feature-group: only-explicit-features
+          features: kyber768,std
 
   machete:
     name: cargo-machete (unused deps)
