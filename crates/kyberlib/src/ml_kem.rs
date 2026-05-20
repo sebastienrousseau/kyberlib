@@ -10,14 +10,31 @@
 //!
 //! ```text
 //!     KemCore                       — trait, sealed
-//!     ├── MlKem512        (marker — pending #130b)
-//!     ├── MlKem768        (marker — wired through to the existing primitives)
-//!     └── MlKem1024       (marker — pending #130b)
+//!     ├── MlKem512        ✅ implemented
+//!     ├── MlKem768        ✅ implemented (default)
+//!     └── MlKem1024       ✅ implemented
 //!
 //!     EncapsulationKey<P>           — `Copy`-safe public bytes
 //!     DecapsulationKey<P>           — `!Copy`, `ZeroizeOnDrop`, redacted `Debug`
-//!     Ciphertext<P>                  — opaque, fixed-size byte wrapper
-//!     SharedSecret                   — 32-byte `ZeroizeOnDrop` secret
+//!     Ciphertext<P>                 — opaque, fixed-size byte wrapper
+//!     SharedSecret                  — 32-byte `ZeroizeOnDrop` secret
+//! ```
+//!
+//! As of Phase 3e of #130b (commit `7…` — search `git log --grep
+//! "Phase 3e"`), all three parameter sets implement [`KemCore`]
+//! unconditionally. The default build supports `MlKem512`,
+//! `MlKem768`, and `MlKem1024` concurrently — pick the right one
+//! at the call site:
+//!
+//! ```
+//! # fn main() -> Result<(), kyberlib::KyberLibError> {
+//! use kyberlib::{KemCore, MlKem512, MlKem768, MlKem1024};
+//! let mut rng = rand::thread_rng();
+//! let (dk_512, ek_512)  = MlKem512::generate(&mut rng)?;
+//! let (dk_768, ek_768)  = MlKem768::generate(&mut rng)?;
+//! let (dk_1024, ek_1024) = MlKem1024::generate(&mut rng)?;
+//! # let _ = (dk_512, ek_512, dk_768, ek_768, dk_1024, ek_1024);
+//! # Ok(()) }
 //! ```
 //!
 //! ## Migration from the v0.0.6 surface
@@ -25,29 +42,22 @@
 //! The free functions [`keypair`](crate::keypair),
 //! [`encapsulate`](crate::encapsulate), [`decapsulate`](crate::decapsulate)
 //! and the [`Keypair`](crate::Keypair) struct from the old surface are
-//! retained as `#[deprecated]` shims and call into the new API
-//! internally for `MlKem768`. They'll be removed in a future release.
+//! retained as `#[deprecated]` shims for `MlKem768` only. They'll be
+//! removed in a future release.
 //!
-//! ## Status of the three marker types
+//! ## ACVP conformance
 //!
-//! [`MlKem768`] is fully wired. The implementation delegates to
-//! [`crate::keypair`] / [`crate::encapsulate`] / [`crate::decapsulate`]
-//! — which since commits `417595a`, `27e4b6b`, `b0f3bfb` are FIPS 203
-//! ML-KEM-768 conformant against the NIST ACVP corpus (60 / 60 cases,
-//! see [`tests/test_acvp.rs`][acvp]).
-//!
-//! [`MlKem512`] and [`MlKem1024`] are declared so downstream code can
-//! be written against the full type set, but they **do not yet implement
-//! [`KemCore`]**. Wiring them through requires the internal const
-//! refactor tracked in #130b — the current `crates/kyberlib/src/params.rs`
-//! constants are `cfg(feature = ...)`-gated and the build can only
-//! support one parameter set at a time. The Phase 3 follow-up lifts
-//! those constants into per-type associated values.
+//! `MlKem768` is byte-validated against 60/60 NIST ACVP test vectors
+//! (see [`tests/test_acvp.rs`][acvp]). `MlKem512` and `MlKem1024`
+//! conformance is verified structurally — the generic algorithm
+//! pipeline is byte-identical to the cfg-gated reference under each
+//! parameter set's feature (#130b commits a77b94b through 3819f7a).
+//! The ACVP harness is wired to all three under #130c.
 //!
 //! [acvp]: ../../tests/test_acvp.rs
 
 use crate::{
-    api as classic, error::KyberLibError, KYBER_CIPHERTEXT_BYTES,
+    error::KyberLibError, KYBER_CIPHERTEXT_BYTES,
     KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
     KYBER_SHARED_SECRET_BYTES,
 };
@@ -106,11 +116,10 @@ pub trait KemCore: sealed::Sealed + Sized {
 /// Module rank `k = 2`. Public key 800 B, secret key 1632 B,
 /// ciphertext 768 B, shared secret 32 B.
 ///
-/// [`KemCore`] is implemented under `--features kyber512`. Today the
-/// kyberlib internals are configured for one parameter set per build,
-/// so to use ML-KEM-512 the consumer disables `kyber768` (the default)
-/// and enables `kyber512`. Const-generic unification across all three
-/// parameter sets in a single build is tracked as #130b.
+/// [`KemCore`] is implemented unconditionally. Works in any build —
+/// no `--features kyber512` needed. The default build supports
+/// `MlKem512`, [`MlKem768`], and [`MlKem1024`] concurrently (Phase 3e
+/// of #130b — see `crates/kyberlib/src/paramsets.rs`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem512;
@@ -166,8 +175,8 @@ impl MlKem768 {
 /// Module rank `k = 4`. Public key 1568 B, secret key 3168 B,
 /// ciphertext 1568 B, shared secret 32 B.
 ///
-/// [`KemCore`] is implemented under `--features kyber1024`. See
-/// [`MlKem512`] for the per-build-feature-selection rationale.
+/// [`KemCore`] is implemented unconditionally — works alongside
+/// [`MlKem512`] and [`MlKem768`] in any build.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem1024;
@@ -426,7 +435,11 @@ impl MlKem768EncapKey {
         &self,
         rng: &mut R,
     ) -> Result<(MlKem768Ciphertext, SharedSecret), KyberLibError> {
-        let (ct, ss) = classic::encapsulate(&self.0, rng)?;
+        let mut ct = [0u8; KYBER_CIPHERTEXT_BYTES];
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_enc_generic::<MlKem768, R>(
+            &mut ct, &mut ss, &self.0, rng, None,
+        )?;
         Ok((MlKem768Ciphertext(ct), SharedSecret(ss)))
     }
 
@@ -452,11 +465,12 @@ impl MlKem768DecapKey {
     /// rejection per FIPS 203 §6.3 — returns a pseudorandom shared
     /// secret on invalid ciphertexts (never panics, never branches on
     /// validity).
+    #[must_use]
     pub fn decapsulate(&self, ct: &MlKem768Ciphertext) -> SharedSecret {
-        // The classic API returns Err only on length mismatch; here
-        // the type system guarantees the length, so we unwrap-safely.
-        let ss = classic::decapsulate(&ct.0, &self.0)
-            .expect("typed ciphertext + secret key — length-invariant guaranteed");
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_dec_generic::<MlKem768>(
+            &mut ss, &ct.0, &self.0,
+        );
         SharedSecret(ss)
     }
 
@@ -512,20 +526,22 @@ impl MlKem768Ciphertext {
     }
 }
 
-// ============================== KemCore impls (param-set-feature gated)
+// ============================== KemCore impls (Phase 3e — generic-wired)
 //
-// Each impl is gated on the corresponding `kyber{512,768,1024}` feature.
-// Today the kyberlib internals select ONE parameter set per build via
-// the same feature gates (`KYBER_SECURITY_PARAMETER`, `KYBER_PUBLIC_KEY_BYTES`,
-// etc. in `params.rs`), so only one impl is active in any single build.
-// Downstream code can still be written generically over `P: KemCore` —
-// the build picks which `P` is instantiable.
+// All three impls coexist in a single build, routing through the
+// generic FIPS 203 pipeline (`crate::kem::kem_*_generic`). Each
+// `generate` / `encapsulate` / `decapsulate` allocates its own
+// fixed-size byte buffer and hands a `&mut [u8]` to the generic
+// function. The associated `PublicKeyBytes` / `SecretKeyBytes` /
+// `CiphertextBytes` types from `MlKemParams` guarantee the array
+// sizes match FIPS 203 §6 Table 2.
 //
-// The const-generic refactor that would let all three impls coexist in
-// one build is tracked as #130b. When it lands, drop the cfg gates here
-// and the algorithm code becomes generic over the parameter pack.
+// The old `classic::*` shim path is preserved in `crate::api` for the
+// legacy free-function surface (`keypair` / `encapsulate` /
+// `decapsulate`); those still consume the cfg-gated reference. The
+// typed-state API below is FULLY generic and works across all three
+// parameter sets in any single build.
 
-#[cfg(feature = "kyber768")]
 impl KemCore for MlKem768 {
     type EncapsulationKey = MlKem768EncapKey;
     type DecapsulationKey = MlKem768DecapKey;
@@ -539,12 +555,15 @@ impl KemCore for MlKem768 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        let kp = classic::keypair(rng)?;
-        Ok((MlKem768DecapKey(kp.secret), MlKem768EncapKey(kp.public)))
+        let mut pk = [0u8; KYBER_PUBLIC_KEY_BYTES];
+        let mut sk = [0u8; KYBER_SECRET_KEY_BYTES];
+        crate::kem::kem_keypair_generic::<MlKem768, R>(
+            &mut pk, &mut sk, rng, None,
+        )?;
+        Ok((MlKem768DecapKey(sk), MlKem768EncapKey(pk)))
     }
 }
 
-#[cfg(feature = "kyber512")]
 impl MlKem512EncapKey {
     /// Encapsulate against this public key under ML-KEM-512.
     ///
@@ -555,24 +574,29 @@ impl MlKem512EncapKey {
         &self,
         rng: &mut R,
     ) -> Result<(MlKem512Ciphertext, SharedSecret), KyberLibError> {
-        let (ct, ss) = classic::encapsulate(&self.0, rng)?;
+        let mut ct = [0u8; 768];
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_enc_generic::<MlKem512, R>(
+            &mut ct, &mut ss, &self.0, rng, None,
+        )?;
         Ok((MlKem512Ciphertext(ct), SharedSecret(ss)))
     }
 }
 
-#[cfg(feature = "kyber512")]
 impl MlKem512DecapKey {
     /// Decapsulate a ciphertext under this ML-KEM-512 secret key.
     /// Implicit-rejection per FIPS 203 §6.3 — never panics, never
     /// branches on validity.
+    #[must_use]
     pub fn decapsulate(&self, ct: &MlKem512Ciphertext) -> SharedSecret {
-        let ss = classic::decapsulate(&ct.0, &self.0)
-            .expect("typed ciphertext + secret key — length-invariant guaranteed");
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_dec_generic::<MlKem512>(
+            &mut ss, &ct.0, &self.0,
+        );
         SharedSecret(ss)
     }
 }
 
-#[cfg(feature = "kyber512")]
 impl KemCore for MlKem512 {
     type EncapsulationKey = MlKem512EncapKey;
     type DecapsulationKey = MlKem512DecapKey;
@@ -586,16 +610,15 @@ impl KemCore for MlKem512 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        // Under `--features kyber512`, the classic free functions are
-        // configured with KYBER_K=2, KYBER_PUBLIC_KEY_BYTES=800, etc.
-        // The typed wrappers' byte arrays match those sizes (declared
-        // in the `sized_wrapper_types!` macro invocation).
-        let kp = classic::keypair(rng)?;
-        Ok((MlKem512DecapKey(kp.secret), MlKem512EncapKey(kp.public)))
+        let mut pk = [0u8; 800];
+        let mut sk = [0u8; 1632];
+        crate::kem::kem_keypair_generic::<MlKem512, R>(
+            &mut pk, &mut sk, rng, None,
+        )?;
+        Ok((MlKem512DecapKey(sk), MlKem512EncapKey(pk)))
     }
 }
 
-#[cfg(feature = "kyber1024")]
 impl MlKem1024EncapKey {
     /// Encapsulate against this public key under ML-KEM-1024.
     ///
@@ -607,27 +630,32 @@ impl MlKem1024EncapKey {
         rng: &mut R,
     ) -> Result<(MlKem1024Ciphertext, SharedSecret), KyberLibError>
     {
-        let (ct, ss) = classic::encapsulate(&self.0, rng)?;
+        let mut ct = [0u8; 1568];
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_enc_generic::<MlKem1024, R>(
+            &mut ct, &mut ss, &self.0, rng, None,
+        )?;
         Ok((MlKem1024Ciphertext(ct), SharedSecret(ss)))
     }
 }
 
-#[cfg(feature = "kyber1024")]
 impl MlKem1024DecapKey {
     /// Decapsulate a ciphertext under this ML-KEM-1024 secret key.
     /// Implicit-rejection per FIPS 203 §6.3 — never panics, never
     /// branches on validity.
+    #[must_use]
     pub fn decapsulate(
         &self,
         ct: &MlKem1024Ciphertext,
     ) -> SharedSecret {
-        let ss = classic::decapsulate(&ct.0, &self.0)
-            .expect("typed ciphertext + secret key — length-invariant guaranteed");
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_dec_generic::<MlKem1024>(
+            &mut ss, &ct.0, &self.0,
+        );
         SharedSecret(ss)
     }
 }
 
-#[cfg(feature = "kyber1024")]
 impl KemCore for MlKem1024 {
     type EncapsulationKey = MlKem1024EncapKey;
     type DecapsulationKey = MlKem1024DecapKey;
@@ -641,8 +669,12 @@ impl KemCore for MlKem1024 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        let kp = classic::keypair(rng)?;
-        Ok((MlKem1024DecapKey(kp.secret), MlKem1024EncapKey(kp.public)))
+        let mut pk = [0u8; 1568];
+        let mut sk = [0u8; 3168];
+        crate::kem::kem_keypair_generic::<MlKem1024, R>(
+            &mut pk, &mut sk, rng, None,
+        )?;
+        Ok((MlKem1024DecapKey(sk), MlKem1024EncapKey(pk)))
     }
 }
 
@@ -650,8 +682,57 @@ impl KemCore for MlKem1024 {
 mod tests {
     use super::*;
 
+    /// **THE public-API multi-param headline test.**
+    ///
+    /// Downstream consumers can now call `MlKem512::generate`,
+    /// `MlKem768::generate`, and `MlKem1024::generate` from the same
+    /// function under DEFAULT features. Each produces the correct
+    /// FIPS 203 §6 byte sizes, each round-trips through encap → decap
+    /// to a matching 32-byte shared secret.
+    ///
+    /// This is the user-visible delivery of #130b: the typed `KemCore`
+    /// surface is fully multi-parameter-set in one build.
     #[test]
-    #[cfg(feature = "kyber768")]
+    fn public_api_all_three_kem_cores_in_one_build() {
+        let mut rng = rand::thread_rng();
+
+        // ML-KEM-512
+        let (dk_512, ek_512) = MlKem512::generate(&mut rng).unwrap();
+        let (ct_512, ss_a_512) = ek_512.encapsulate(&mut rng).unwrap();
+        let ss_b_512 = dk_512.decapsulate(&ct_512);
+        assert_eq!(ss_a_512, ss_b_512);
+
+        // ML-KEM-768
+        let (dk_768, ek_768) = MlKem768::generate(&mut rng).unwrap();
+        let (ct_768, ss_a_768) = ek_768.encapsulate(&mut rng).unwrap();
+        let ss_b_768 = dk_768.decapsulate(&ct_768);
+        assert_eq!(ss_a_768, ss_b_768);
+
+        // ML-KEM-1024
+        let (dk_1024, ek_1024) = MlKem1024::generate(&mut rng).unwrap();
+        let (ct_1024, ss_a_1024) =
+            ek_1024.encapsulate(&mut rng).unwrap();
+        let ss_b_1024 = dk_1024.decapsulate(&ct_1024);
+        assert_eq!(ss_a_1024, ss_b_1024);
+
+        // Byte sizes match FIPS 203 §6 Table 2.
+        assert_eq!(ek_512.as_bytes().len(), 800);
+        assert_eq!(ek_768.as_bytes().len(), 1184);
+        assert_eq!(ek_1024.as_bytes().len(), 1568);
+        assert_eq!(dk_512.as_bytes().len(), 1632);
+        assert_eq!(dk_768.as_bytes().len(), 2400);
+        assert_eq!(dk_1024.as_bytes().len(), 3168);
+        assert_eq!(ct_512.as_bytes().len(), 768);
+        assert_eq!(ct_768.as_bytes().len(), 1088);
+        assert_eq!(ct_1024.as_bytes().len(), 1568);
+
+        // Three independent secrets.
+        assert_ne!(ss_a_512, ss_a_768);
+        assert_ne!(ss_a_768, ss_a_1024);
+        assert_ne!(ss_a_512, ss_a_1024);
+    }
+
+    #[test]
     fn ml_kem_768_round_trip() {
         let mut rng = rand::thread_rng();
         let (dk, ek) = MlKem768::generate(&mut rng).expect("keygen");
@@ -661,7 +742,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber512")]
     fn ml_kem_512_round_trip() {
         let mut rng = rand::thread_rng();
         let (dk, ek) = MlKem512::generate(&mut rng).expect("keygen");
@@ -671,7 +751,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber1024")]
     fn ml_kem_1024_round_trip() {
         let mut rng = rand::thread_rng();
         let (dk, ek) = MlKem1024::generate(&mut rng).expect("keygen");
