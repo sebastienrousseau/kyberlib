@@ -36,8 +36,6 @@
 - [Install](#install) — Cargo, source, WASM, `no_std`
 - [Quick Start](#quick-start) — typed `KemCore` API in ten lines
 
-**The kyberlib ecosystem** (library + four satellite crates)
-
 - [The kyberlib ecosystem](#the-kyberlib-ecosystem) — `kyberlib`, `kyberlib-asm`, `kyberlib-hybrid`, `kyberlib-pkcs8`, `kyberlib-wasm` at a glance
 
 **Library reference**
@@ -103,6 +101,31 @@ ARM targets, and any other `alloc`-capable, no-`std` host. Enabling
 `std` adds `std::error::Error` impls and the `getrandom`-backed
 default RNG.
 
+**Bring your own RNG.** Every keygen / encapsulate entry point takes
+an `&mut R` where `R: rand_core::CryptoRng + rand_core::RngCore`.
+On embedded targets you'd typically pass a hardware-RNG wrapper:
+
+```rust,ignore
+use kyberlib::{KemCore, MlKem768};
+use rand_core::{CryptoRng, RngCore};
+
+// `MyHwRng` is your platform's CSPRNG wrapper — e.g. `embedded-hal`'s
+// `rand_core` impl over an STM32 / nRF / RP2040 TRNG peripheral.
+fn handshake<R: CryptoRng + RngCore>(rng: &mut R)
+    -> Result<(), kyberlib::KyberLibError>
+{
+    let (dk, ek) = MlKem768::generate(rng)?;
+    let (ct, ss_a) = ek.encapsulate(rng)?;
+    let ss_b = dk.decapsulate(&ct);
+    debug_assert_eq!(ss_a, ss_b);
+    Ok(())
+}
+```
+
+A user-supplied `rand_core::OsRng` works on most hosted platforms;
+on bare metal, plug a vetted TRNG. The library never reaches for
+`std::*` to find randomness — the caller is always in control.
+
 ### Build from source
 
 ```bash
@@ -131,8 +154,8 @@ application needs.
 | `90s-fixslice`     |   | `aes`, `ctr` | Bitsliced AES for side-channel hardening of 90s mode | CHANGELOG |
 | `avx2`             |   | `cc` | x86_64 SIMD acceleration of the polynomial arithmetic | [`crates/kyberlib-asm/`](crates/kyberlib-asm/) |
 | `nasm`             |   | `nasm-rs`, `avx2` | NASM-assembled AVX2 (portable to non-GAS toolchains) | [`crates/kyberlib-asm/`](crates/kyberlib-asm/) |
-| `wasm`             |   | — | No-op shim retained for downstream compat — bindings live in [`kyberlib-wasm`](crates/kyberlib-wasm/) | CHANGELOG |
-| `zeroize`          |   | — | No-op; `ZeroizeOnDrop` is unconditional since v0.0.7 | CHANGELOG |
+| `wasm`             |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 downstream compatibility — real WASM bindings live in [`kyberlib-wasm`](crates/kyberlib-wasm/). Do not enable. | CHANGELOG |
+| `zeroize`          |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 backwards compatibility — `ZeroizeOnDrop` is unconditional since v0.0.7. Do not enable. | CHANGELOG |
 | `fips`             |   | (stub) | Planned `aws-lc-rs` delegation for FIPS 140-3 customers — issue [#170](https://github.com/sebastienrousseau/kyberlib/issues/170) | [SECURITY](SECURITY.md) |
 | `verified`         |   | (stub) | Planned `libcrux-ml-kem` delegation for formally-verified primitives — issue [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) | [SECURITY](SECURITY.md) |
 
@@ -193,6 +216,23 @@ Per-crate READMEs cover the surface specific to each artifact:
 - **PKCS#8**: [`crates/kyberlib-pkcs8/README.md`](crates/kyberlib-pkcs8/README.md) — OID table, encoding traits
 - **WASM**: [`crates/kyberlib-wasm/README.md`](crates/kyberlib-wasm/README.md) — JS API, bundling
 
+#### `kyberlib-hybrid` versioning policy
+
+The IETF PQC draft landscape moves fast. `kyberlib-hybrid` pins its
+wire format and codepoints to a specific draft, and bumps SemVer on
+that schedule:
+
+| Draft transition | SemVer bump | Why |
+|---|---|---|
+| `draft-04` → `draft-05`+ (same IETF working draft) | **MINOR** (0.0.x → 0.1.0) | Codepoints stable; wire-format tweaks may break interop, but the type-level API stays. |
+| Working draft → final RFC | **MAJOR** (0.x → 1.0) | IANA-permanent codepoints; we commit to the API contract. |
+| Codepoint reassignment by IANA | **MAJOR** | Breaking by definition. |
+| New construction added (e.g. ML-KEM + Ed25519) | **MINOR** | Additive. |
+
+The current pin is `draft-ietf-tls-ecdhe-mlkem-04`. CHANGELOG entries
+on `kyberlib-hybrid` always cite the active draft revision so
+downstream consumers can audit the wire-format ancestry.
+
 The rest of this README covers the **library** surface
 (`kyberlib` itself).
 
@@ -209,6 +249,12 @@ final KDF + `J(z‖c)` rejection branch) are documented in
 migration paths:
 
 ### From kyberlib 0.0.6 → 0.0.7
+
+> ⚠️ **Persisted v0.0.6 key material will NOT seamlessly drop in to v0.0.7.**
+> Round 3 and FIPS 203 differ in the keygen domain separator, the
+> encaps pre-hash, and the rejection KDF — so 0.0.6 secret keys,
+> ciphertexts, and shared secrets are wire-incompatible with 0.0.7.
+> You **must regenerate keys** on both peers in lockstep.
 
 ```diff
 -[dependencies]
@@ -364,9 +410,15 @@ inputs anywhere in the source tree.
 
 **Secrets that defend themselves.** `MlKem768DecapKey` is
 `!Copy`, `ZeroizeOnDrop`, and its `Debug` impl is redacted by
-construction. `SharedSecret` is `ZeroizeOnDrop`. The legacy
-`Keypair` blob is retained for backward compatibility but
-soft-deprecated in favour of the typed split (see
+construction. `SharedSecret` is `ZeroizeOnDrop`. In plain English:
+**the compiler enforces that secret keys cannot be accidentally
+duplicated by an `=` assignment** (no implicit memcpy), **the
+memory holding them is overwritten the moment the key goes out
+of scope** (no leftover plaintext on the stack or heap), and
+**no `println!("{:?}", key)` or panic backtrace can ever leak
+the bytes** (the formatter prints `[REDACTED N bytes]`). The
+legacy `Keypair` blob is retained for backward compatibility
+but soft-deprecated in favour of the typed split (see
 [Two APIs, one KEM](#two-apis-one-kem)).
 
 **Signed releases.** Every tagged release ships with:
