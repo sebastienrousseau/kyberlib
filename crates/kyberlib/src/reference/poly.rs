@@ -569,3 +569,96 @@ mod poly_generic_tests {
         assert_eq!(poly_compressed_len::<MlKem1024>(), 160);
     }
 }
+
+/// Generic port of [`poly_getnoise_eta1`].
+///
+/// Uses a MAX_ETA1=3 fixed-size 192-byte stack buffer, only the first
+/// `P::ETA1 * 256/4` bytes are filled by the PRF. Routes through
+/// `poly_cbd_eta1_generic::<P>` which selects cbd2 vs cbd3 off
+/// `P::ETA1`.
+#[allow(dead_code)]
+pub(crate) fn poly_getnoise_eta1_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut Poly,
+    seed: &[u8],
+    nonce: u8,
+) {
+    use crate::cbd::poly_cbd_eta1_generic;
+    const MAX_LENGTH: usize = 3 * KYBER_N / 4; // 192 bytes, fits eta=3
+    let length = P::ETA1 * KYBER_N / 4;
+    let mut buf = [0u8; MAX_LENGTH];
+    prf(&mut buf[..length], length, seed, nonce);
+    poly_cbd_eta1_generic::<P>(r, &buf[..length]);
+}
+
+/// Generic port of [`poly_getnoise_eta2`]. ETA2 is always 2.
+#[allow(dead_code)]
+pub(crate) fn poly_getnoise_eta2_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut Poly,
+    seed: &[u8],
+    nonce: u8,
+) {
+    use crate::cbd::poly_cbd_eta2_generic;
+    const LENGTH: usize = 2 * KYBER_N / 4; // 128
+    let mut buf = [0u8; LENGTH];
+    prf(&mut buf, LENGTH, seed, nonce);
+    poly_cbd_eta2_generic::<P>(r, &buf);
+}
+
+#[cfg(test)]
+mod poly_getnoise_generic_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn poly_getnoise_eta1_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let seed = [0xAAu8; KYBER_SYM_BYTES];
+        let mut p_e = Poly::new();
+        let mut p_g = Poly::new();
+        poly_getnoise_eta1(&mut p_e, &seed, 7);
+        poly_getnoise_eta1_generic::<MlKem768>(&mut p_g, &seed, 7);
+        assert_eq!(p_e.coeffs, p_g.coeffs);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn poly_getnoise_eta1_matches_existing_kyber512() {
+        use crate::MlKem512;
+        let seed = [0xAAu8; KYBER_SYM_BYTES];
+        let mut p_e = Poly::new();
+        let mut p_g = Poly::new();
+        poly_getnoise_eta1(&mut p_e, &seed, 7);
+        poly_getnoise_eta1_generic::<MlKem512>(&mut p_g, &seed, 7);
+        assert_eq!(p_e.coeffs, p_g.coeffs);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn poly_getnoise_eta1_matches_existing_kyber1024() {
+        use crate::MlKem1024;
+        let seed = [0xAAu8; KYBER_SYM_BYTES];
+        let mut p_e = Poly::new();
+        let mut p_g = Poly::new();
+        poly_getnoise_eta1(&mut p_e, &seed, 7);
+        poly_getnoise_eta1_generic::<MlKem1024>(&mut p_g, &seed, 7);
+        assert_eq!(p_e.coeffs, p_g.coeffs);
+    }
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn poly_getnoise_eta2_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let seed = [0xBBu8; KYBER_SYM_BYTES];
+        let mut p_e = Poly::new();
+        let mut p_g = Poly::new();
+        poly_getnoise_eta2(&mut p_e, &seed, 13);
+        poly_getnoise_eta2_generic::<MlKem768>(&mut p_g, &seed, 13);
+        assert_eq!(p_e.coeffs, p_g.coeffs);
+    }
+}

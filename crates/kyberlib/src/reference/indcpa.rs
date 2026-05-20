@@ -472,21 +472,14 @@ where
     // Use only the first K*K entries of the matrix workspace.
     gen_matrix_generic::<P>(&mut a[..P::K * P::K], publicseed, false);
 
-    // Sample skpv, e — only the first K slots.
+    // Sample skpv, e via the generic noise sampler — drives the PRF
+    // buffer length off `P::ETA1` (3 for ML-KEM-512, 2 otherwise).
     for i in 0..P::K {
-        // `poly_getnoise_eta1` calls `prf` with a ETA1-dependent buffer
-        // length. The buffer it needs is computed inside that function
-        // using the global KYBER_ETA1 constant. For a true generic port
-        // we'd need `poly_getnoise_eta1_generic<P>` calling
-        // `poly_cbd_eta1_generic<P>`. Phase 3d follow-up — for now this
-        // function compiles but produces output specialized to the
-        // active build's KYBER_ETA1, so it only validates against the
-        // existing `indcpa_keypair` under that same build.
-        poly_getnoise_eta1(&mut skpv[i], noiseseed, nonce);
+        poly_getnoise_eta1_generic::<P>(&mut skpv[i], noiseseed, nonce);
         nonce += 1;
     }
     for i in 0..P::K {
-        poly_getnoise_eta1(&mut e[i], noiseseed, nonce);
+        poly_getnoise_eta1_generic::<P>(&mut e[i], noiseseed, nonce);
         nonce += 1;
     }
 
@@ -660,14 +653,14 @@ pub(crate) fn indcpa_enc_generic<P: crate::paramsets::MlKemParams>(
     gen_matrix_generic::<P>(&mut at[..P::K * P::K], &seed, true);
 
     for i in 0..P::K {
-        poly_getnoise_eta1(&mut sp[i], coins, nonce);
+        poly_getnoise_eta1_generic::<P>(&mut sp[i], coins, nonce);
         nonce += 1;
     }
     for i in 0..P::K {
-        poly_getnoise_eta2(&mut ep[i], coins, nonce);
+        poly_getnoise_eta2_generic::<P>(&mut ep[i], coins, nonce);
         nonce += 1;
     }
-    poly_getnoise_eta2(&mut epp, coins, nonce);
+    poly_getnoise_eta2_generic::<P>(&mut epp, coins, nonce);
 
     polyvec_ntt_generic::<P>(&mut sp[..P::K]);
 
