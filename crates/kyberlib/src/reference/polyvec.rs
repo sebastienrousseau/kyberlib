@@ -84,6 +84,123 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
     }
 }
 
+/// Generic-over-`MlKemParams` port of [`polyvec_compress`].
+///
+/// Takes the polynomials as a `&[Poly]` slice (the caller is
+/// responsible for passing exactly `P::K` polynomials) and dispatches
+/// the per-set compression bit-width through `P::DU`.
+///
+/// This is the **first concrete proof** that the
+/// [`crate::paramsets::MlKemParams`] foundation can carry the
+/// reference backend's algorithm code without needing
+/// `feature(generic_const_exprs)`. The remaining ~14 reference
+/// primitives (`indcpa_*`, `poly_compress`, `cbd*`, `gen_matrix`,
+/// etc.) follow this same template — pass slices, drive the
+/// per-set numeric parameters off `P`, write to byte-arrays whose
+/// size is `P::*_BYTES`.
+///
+/// # Panics
+///
+/// Panics if `polys.len() != P::K` (debug-assertion in test mode;
+/// silent loop overrun otherwise — same contract as the existing
+/// `polyvec_compress`).
+///
+/// # Output length
+///
+/// `r` must have space for `polyvec_compressed_len::<P>()` bytes:
+/// `32 * P::K * P::DU` (= 320·K for DU=10, 352·K for DU=11).
+#[allow(dead_code)] // Wired in incrementally as the algorithm port lands; see #130c.
+pub(crate) fn polyvec_compress_generic<
+    P: crate::paramsets::MlKemParams,
+>(
+    r: &mut [u8],
+    polys: &[Poly],
+) {
+    debug_assert_eq!(
+        polys.len(),
+        P::K,
+        "polyvec must have K polynomials"
+    );
+
+    let mut idx = 0usize;
+
+    match P::DU {
+        10 => {
+            // ML-KEM-512 / ML-KEM-768 path: d_u = 10. Same bit-packing
+            // as the existing `#[cfg(not(feature = "kyber1024"))]` branch.
+            let mut t = [0u16; 4];
+            for poly in polys.iter() {
+                for j in 0..KYBER_N / 4 {
+                    for (k, t_k) in t.iter_mut().enumerate() {
+                        *t_k = poly.coeffs[4 * j + k] as u16;
+                        *t_k = t_k.wrapping_add(
+                            (((*t_k as i16) >> 15) & KYBER_Q as i16)
+                                as u16,
+                        );
+                        let mut tmp: u64 = ((*t_k as u64) << 10)
+                            + (KYBER_Q as u64 / 2);
+                        tmp *= 20642679;
+                        tmp >>= 36;
+                        *t_k = (tmp as u16) & 0x3ff;
+                    }
+                    r[idx] = (t[0]) as u8;
+                    r[idx + 1] = ((t[0] >> 8) | (t[1] << 2)) as u8;
+                    r[idx + 2] = ((t[1] >> 6) | (t[2] << 4)) as u8;
+                    r[idx + 3] = ((t[2] >> 4) | (t[3] << 6)) as u8;
+                    r[idx + 4] = (t[3] >> 2) as u8;
+                    idx += 5;
+                }
+            }
+        }
+        11 => {
+            // ML-KEM-1024 path: d_u = 11.
+            let mut t = [0u16; 8];
+            for poly in polys.iter() {
+                for j in 0..KYBER_N / 8 {
+                    for (k, t_k) in t.iter_mut().enumerate() {
+                        *t_k = poly.coeffs[8 * j + k] as u16;
+                        *t_k = t_k.wrapping_add(
+                            (((*t_k as i16) >> 15) & KYBER_Q as i16)
+                                as u16,
+                        );
+                        let mut tmp: u64 = ((*t_k as u64) << 11)
+                            + (KYBER_Q as u64 / 2);
+                        tmp *= 20642679;
+                        tmp >>= 36;
+                        *t_k = (tmp as u16) & 0x7ff;
+                    }
+                    r[idx] = (t[0]) as u8;
+                    r[idx + 1] = ((t[0] >> 8) | (t[1] << 3)) as u8;
+                    r[idx + 2] = ((t[1] >> 5) | (t[2] << 6)) as u8;
+                    r[idx + 3] = (t[2] >> 2) as u8;
+                    r[idx + 4] = ((t[2] >> 10) | (t[3] << 1)) as u8;
+                    r[idx + 5] = ((t[3] >> 7) | (t[4] << 4)) as u8;
+                    r[idx + 6] = ((t[4] >> 4) | (t[5] << 7)) as u8;
+                    r[idx + 7] = (t[5] >> 1) as u8;
+                    r[idx + 8] = ((t[5] >> 9) | (t[6] << 2)) as u8;
+                    r[idx + 9] = ((t[6] >> 6) | (t[7] << 5)) as u8;
+                    r[idx + 10] = (t[7] >> 3) as u8;
+                    idx += 11;
+                }
+            }
+        }
+        _ => {
+            // P::DU is fixed at the trait-impl level to 10 or 11 — see
+            // crate::paramsets. The `_` arm is unreachable in practice
+            // but `match` requires exhaustive patterns on `usize`.
+            unreachable!("DU must be 10 or 11 per FIPS 203 §6");
+        }
+    }
+}
+
+/// Compressed-polyvec byte length for parameter set `P`: `32 * P::K * P::DU`.
+#[allow(dead_code)] // Wired alongside polyvec_compress_generic.
+pub(crate) const fn polyvec_compressed_len<
+    P: crate::paramsets::MlKemParams,
+>() -> usize {
+    32 * P::K * P::DU
+}
+
 /// Name:  polyvec_decompress
 ///
 /// Description: De-serialize and decompress vector of polynomials;
@@ -245,3 +362,104 @@ pub(crate) fn polyvec_add(r: &mut Polyvec, b: &Polyvec) {
         poly_add(&mut r.vec[i], &b.vec[i]);
     }
 }
+
+#[cfg(test)]
+mod compress_generic_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    /// Build a deterministic test polyvec for the active parameter set
+    /// (this build's KYBER_SECURITY_PARAMETER, which equals
+    /// MlKem<active>::K). Uses a small but non-trivial coefficient
+    /// pattern.
+    fn build_test_polyvec() -> Polyvec {
+        let mut pv = Polyvec::new();
+        for (i, p) in pv.vec.iter_mut().enumerate() {
+            for (j, c) in p.coeffs.iter_mut().enumerate() {
+                // Pseudorandom-ish but deterministic. Keep coefficients
+                // in [0, KYBER_Q) so the (>> 15 & Q) sign-correction
+                // path is exercised on the negative side too.
+                let v = ((i + 1) * 257 + j * 23) % (KYBER_Q + 100);
+                *c = if j % 7 == 0 {
+                    -(v as i16 % KYBER_Q as i16)
+                } else {
+                    v as i16 % KYBER_Q as i16
+                };
+            }
+        }
+        pv
+    }
+
+    /// The generic port must produce byte-identical output to the
+    /// existing cfg-gated `polyvec_compress` for the current build's
+    /// parameter set. Tested under kyber768 (default); the cfg-gated
+    /// alternatives are validated when those features are selected.
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn generic_matches_existing_kyber768() {
+        use crate::MlKem768;
+
+        let pv = build_test_polyvec();
+        let mut buf_existing = [0u8; KYBER_POLYVEC_COMPRESSED_BYTES];
+        polyvec_compress(&mut buf_existing, pv);
+
+        let mut buf_generic =
+            [0u8; polyvec_compressed_len::<MlKem768>()];
+        polyvec_compress_generic::<MlKem768>(&mut buf_generic, &pv.vec);
+
+        assert_eq!(
+            buf_existing.as_slice(),
+            buf_generic.as_slice(),
+            "generic port diverges from existing polyvec_compress under \
+             kyber768 — FIPS 203 compliance regression"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn generic_matches_existing_kyber512() {
+        use crate::MlKem512;
+
+        let pv = build_test_polyvec();
+        let mut buf_existing = [0u8; KYBER_POLYVEC_COMPRESSED_BYTES];
+        polyvec_compress(&mut buf_existing, pv);
+
+        let mut buf_generic =
+            [0u8; polyvec_compressed_len::<MlKem512>()];
+        polyvec_compress_generic::<MlKem512>(&mut buf_generic, &pv.vec);
+
+        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn generic_matches_existing_kyber1024() {
+        use crate::MlKem1024;
+
+        let pv = build_test_polyvec();
+        let mut buf_existing = [0u8; KYBER_POLYVEC_COMPRESSED_BYTES];
+        polyvec_compress(&mut buf_existing, pv);
+
+        let mut buf_generic =
+            [0u8; polyvec_compressed_len::<MlKem1024>()];
+        polyvec_compress_generic::<MlKem1024>(
+            &mut buf_generic,
+            &pv.vec,
+        );
+
+        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
+    }
+
+    /// Confirms the generic length helper matches FIPS 203 §6's
+    /// `32 * K * DU` formula for all three parameter sets at compile
+    /// time.
+    #[test]
+    fn compressed_length_formula() {
+        use crate::{MlKem1024, MlKem512, MlKem768};
+        assert_eq!(polyvec_compressed_len::<MlKem512>(), 32 * 2 * 10); // 640
+        assert_eq!(polyvec_compressed_len::<MlKem768>(), 32 * 3 * 10); // 960
+        assert_eq!(polyvec_compressed_len::<MlKem1024>(), 32 * 4 * 11); // 1408
+    }
+}
+
