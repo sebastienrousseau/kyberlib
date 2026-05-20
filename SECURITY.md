@@ -66,7 +66,7 @@ Within those constraints, kyberlib defends against:
 | Class | Coverage |
 |---|---|
 | Decapsulation oracles | Implicit rejection per FIPS 203 §6.3 (no validity branch) |
-| Timing side-channels on `decapsulate` (secret-dependent) | Constant-time `verify` / `cmov` (`src/reference/verify.rs`); KyberSlash-class division audit in progress ([#149][i149]) |
+| Timing side-channels on `decapsulate` (secret-dependent) | Constant-time `verify` / `cmov` (`src/reference/verify.rs`); KyberSlash-class division audit clean ([ADR 0003][adr3]) with `scripts/kyberslash-guard.sh` regression gate in CI |
 | Memory leaks of secret material | `ZeroizeOnDrop` on `Keypair` and `DecapsulationKey`; non-`Copy` to prevent stack copies |
 | Malformed input panics | `try_from` paths return `Err(InvalidInput / InvalidLength)`; never panic on caller-controlled bytes (fuzz-validated in [#159][i159]) |
 | Algorithm confusion | OIDs registered per IETF LAMPS draft ([#150][i150]); `Algorithm` ID const string per parameter set |
@@ -134,7 +134,6 @@ Symbolic Software (eprint 2026/192, Feb 2026) found 3 bugs in libcrux's
 verified code — verification is necessary, not sufficient.
 
 [i141]: https://github.com/sebastienrousseau/kyberlib/issues/141
-[i149]: https://github.com/sebastienrousseau/kyberlib/issues/149
 [i150]: https://github.com/sebastienrousseau/kyberlib/issues/150
 [i159]: https://github.com/sebastienrousseau/kyberlib/issues/159
 [i161]: https://github.com/sebastienrousseau/kyberlib/issues/161
