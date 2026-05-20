@@ -351,3 +351,326 @@ pub(crate) fn indcpa_dec(m: &mut [u8], c: &[u8], sk: &[u8]) {
 
     poly_tomsg(m, mp);
 }
+
+// =============================================================================
+// Generic ports over MlKemParams (#130b — integration layer)
+// =============================================================================
+//
+// Strategy: take polyvec and matrix workspaces as `&mut [Poly]` slices.
+// The caller allocates a flat buffer of size `K*K` for the matrix and
+// `K` for each polyvec. Inside, indices are computed as `i * P::K + j`
+// for matrix accesses. This sidesteps the stable-Rust `[T; K*K]`
+// restriction and avoids `alloc`.
+
+/// Generic port of [`gen_matrix`].
+///
+/// `a` is a flat slice of `P::K * P::K` polynomials laid out
+/// row-major: `a[i * P::K + j]` is the (i,j)-th entry of the matrix
+/// (or its transpose if `transposed`).
+#[allow(dead_code)]
+pub(crate) fn gen_matrix_generic<P: crate::paramsets::MlKemParams>(
+    a: &mut [Poly],
+    seed: &[u8],
+    transposed: bool,
+) {
+    debug_assert_eq!(a.len(), P::K * P::K);
+
+    let mut ctr;
+    // kyberslash-guard: safe — compile-time const expression sizes buf.
+    const GEN_MATRIX_NBLOCKS: usize =
+        (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES)
+            / XOF_BLOCKBYTES;
+    let mut buf = [0u8; GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES + 2];
+    let mut buflen: usize;
+    let mut off: usize;
+    let mut state = XofState::new();
+
+    for i in 0..P::K {
+        for j in 0..P::K {
+            if transposed {
+                xof_absorb(&mut state, seed, i as u8, j as u8);
+            } else {
+                xof_absorb(&mut state, seed, j as u8, i as u8);
+            }
+            xof_squeezeblocks(&mut buf, GEN_MATRIX_NBLOCKS, &mut state);
+            buflen = GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES;
+            ctr = rej_uniform(
+                &mut a[i * P::K + j].coeffs,
+                KYBER_N,
+                &buf,
+                buflen,
+            );
+
+            while ctr < KYBER_N {
+                off = buflen % 3;
+                for k in 0..off {
+                    buf[k] = buf[buflen - off + k];
+                }
+                xof_squeezeblocks(&mut buf[off..], 1, &mut state);
+                buflen = off + XOF_BLOCKBYTES;
+                ctr += rej_uniform(
+                    &mut a[i * P::K + j].coeffs[ctr..],
+                    KYBER_N - ctr,
+                    &buf,
+                    buflen,
+                );
+            }
+        }
+    }
+}
+
+/// Maximum module rank across all FIPS 203 parameter sets. Used to
+/// size stack workspaces in the generic indcpa primitives below.
+const MAX_K: usize = 4;
+
+/// Generic port of [`indcpa_keypair`]. Drives all per-set work off
+/// `P: MlKemParams` — uses fixed `MAX_K`-sized stack workspaces and
+/// only the first `P::K` slots, sidestepping stable Rust's
+/// `[T; P::K]` restriction.
+///
+/// Stack usage: ~14 KB (matrix `[Poly; 16]` + 3 polyvecs of
+/// `[Poly; 4]`). Acceptable for non-embedded; embedded consumers
+/// stay on the cfg-gated path.
+#[allow(dead_code, clippy::needless_range_loop)]
+pub(crate) fn indcpa_keypair_generic<P, R>(
+    pk: &mut [u8],
+    sk: &mut [u8],
+    seed: Option<(&[u8], &[u8])>,
+    rng: &mut R,
+) -> Result<(), KyberLibError>
+where
+    P: crate::paramsets::MlKemParams,
+    R: CryptoRng + RngCore,
+{
+    debug_assert!(P::K <= MAX_K);
+
+    // Workspaces. MAX_K-sized so the array dims are concrete `usize`.
+    let mut a = [Poly::new(); MAX_K * MAX_K];
+    let mut skpv = [Poly::new(); MAX_K];
+    let mut pkpv = [Poly::new(); MAX_K];
+    let mut e = [Poly::new(); MAX_K];
+
+    let mut nonce = 0u8;
+    let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
+    let mut randbuf = [0u8; 2 * KYBER_SYM_BYTES];
+
+    if let Some(s) = seed {
+        randbuf[..KYBER_SYM_BYTES].copy_from_slice(s.0);
+    } else {
+        randombytes(&mut randbuf, KYBER_SYM_BYTES, rng)?;
+    }
+
+    // FIPS 203 §5.1 / §6.1: G(d || k_byte). k_byte = P::K.
+    let mut g_input = [0u8; KYBER_SYM_BYTES + 1];
+    g_input[..KYBER_SYM_BYTES]
+        .copy_from_slice(&randbuf[..KYBER_SYM_BYTES]);
+    g_input[KYBER_SYM_BYTES] = P::K as u8;
+    hash_g(&mut buf, &g_input, KYBER_SYM_BYTES + 1);
+
+    let (publicseed, noiseseed) = buf.split_at(KYBER_SYM_BYTES);
+
+    // Use only the first K*K entries of the matrix workspace.
+    gen_matrix_generic::<P>(&mut a[..P::K * P::K], publicseed, false);
+
+    // Sample skpv, e — only the first K slots.
+    for i in 0..P::K {
+        // `poly_getnoise_eta1` calls `prf` with a ETA1-dependent buffer
+        // length. The buffer it needs is computed inside that function
+        // using the global KYBER_ETA1 constant. For a true generic port
+        // we'd need `poly_getnoise_eta1_generic<P>` calling
+        // `poly_cbd_eta1_generic<P>`. Phase 3d follow-up — for now this
+        // function compiles but produces output specialized to the
+        // active build's KYBER_ETA1, so it only validates against the
+        // existing `indcpa_keypair` under that same build.
+        poly_getnoise_eta1(&mut skpv[i], noiseseed, nonce);
+        nonce += 1;
+    }
+    for i in 0..P::K {
+        poly_getnoise_eta1(&mut e[i], noiseseed, nonce);
+        nonce += 1;
+    }
+
+    polyvec_ntt_generic::<P>(&mut skpv[..P::K]);
+    polyvec_ntt_generic::<P>(&mut e[..P::K]);
+
+    // pkpv[i] = A[i] · skpv  (matrix-vector multiplication)
+    for i in 0..P::K {
+        let row_start = i * P::K;
+        let row_end = row_start + P::K;
+        polyvec_basemul_acc_montgomery_generic::<P>(
+            &mut pkpv[i],
+            &a[row_start..row_end],
+            &skpv[..P::K],
+        );
+        poly_tomont(&mut pkpv[i]);
+    }
+    polyvec_add_generic::<P>(&mut pkpv[..P::K], &e[..P::K]);
+    polyvec_reduce_generic::<P>(&mut pkpv[..P::K]);
+
+    // pack_sk: just polyvec_tobytes
+    polyvec_tobytes_generic::<P>(sk, &skpv[..P::K]);
+
+    // pack_pk: polyvec_tobytes(pk) || publicseed
+    polyvec_tobytes_generic::<P>(
+        &mut pk[..polyvec_bytes_len::<P>()],
+        &pkpv[..P::K],
+    );
+    pk[polyvec_bytes_len::<P>()
+        ..polyvec_bytes_len::<P>() + KYBER_SYM_BYTES]
+        .copy_from_slice(&publicseed[..KYBER_SYM_BYTES]);
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod indcpa_generic_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    /// gen_matrix_generic must produce the same matrix as the existing
+    /// gen_matrix under the active feature.
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn gen_matrix_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let seed = [0xA5u8; KYBER_SYM_BYTES];
+
+        // Existing path: [Polyvec; KYBER_SECURITY_PARAMETER]
+        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
+        gen_matrix(&mut a_existing, &seed, false);
+
+        // Generic path: flat [Poly; K*K] = 9 for K=3
+        let mut a_generic = [Poly::new(); 9];
+        gen_matrix_generic::<MlKem768>(&mut a_generic, &seed, false);
+
+        // Compare row-major: a_existing[i].vec[j] vs a_generic[i*K + j]
+        for i in 0..3 {
+            for j in 0..3 {
+                assert_eq!(
+                    a_existing[i].vec[j].coeffs,
+                    a_generic[i * 3 + j].coeffs,
+                    "matrix entry ({i},{j}) diverges"
+                );
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn gen_matrix_transposed_matches_existing_kyber768() {
+        use crate::MlKem768;
+        let seed = [0xC3u8; KYBER_SYM_BYTES];
+
+        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
+        gen_matrix(&mut a_existing, &seed, true);
+
+        let mut a_generic = [Poly::new(); 9];
+        gen_matrix_generic::<MlKem768>(&mut a_generic, &seed, true);
+
+        for i in 0..3 {
+            for j in 0..3 {
+                assert_eq!(
+                    a_existing[i].vec[j].coeffs,
+                    a_generic[i * 3 + j].coeffs
+                );
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "kyber512")]
+    fn gen_matrix_matches_existing_kyber512() {
+        use crate::MlKem512;
+        let seed = [0xA5u8; KYBER_SYM_BYTES];
+        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
+        gen_matrix(&mut a_existing, &seed, false);
+
+        let mut a_generic = [Poly::new(); 4]; // K=2, K*K=4
+        gen_matrix_generic::<MlKem512>(&mut a_generic, &seed, false);
+
+        for i in 0..2 {
+            for j in 0..2 {
+                assert_eq!(
+                    a_existing[i].vec[j].coeffs,
+                    a_generic[i * 2 + j].coeffs
+                );
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "kyber1024")]
+    fn gen_matrix_matches_existing_kyber1024() {
+        use crate::MlKem1024;
+        let seed = [0xA5u8; KYBER_SYM_BYTES];
+        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
+        gen_matrix(&mut a_existing, &seed, false);
+
+        let mut a_generic = [Poly::new(); 16]; // K=4, K*K=16
+        gen_matrix_generic::<MlKem1024>(&mut a_generic, &seed, false);
+
+        for i in 0..4 {
+            for j in 0..4 {
+                assert_eq!(
+                    a_existing[i].vec[j].coeffs,
+                    a_generic[i * 4 + j].coeffs
+                );
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod indcpa_integration_tests {
+    #![allow(unused_imports)]
+    use super::*;
+    use crate::paramsets::MlKemParams;
+
+    /// **The headline integration test**: indcpa_keypair_generic
+    /// driven from a fixed seed must produce byte-identical (pk, sk)
+    /// to the existing cfg-gated indcpa_keypair.
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn indcpa_keypair_generic_matches_existing_kyber768() {
+        use crate::MlKem768;
+        use rand::rngs::StdRng;
+        use rand::SeedableRng;
+
+        let seed = [0x77u8; 64];
+
+        let mut rng = StdRng::from_seed([0u8; 32]);
+        let mut pk_existing = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
+        let mut sk_existing = [0u8; KYBER_INDCPA_SECRET_KEY_BYTES];
+        indcpa_keypair(
+            &mut pk_existing,
+            &mut sk_existing,
+            Some((&seed[..32], &seed[32..])),
+            &mut rng,
+        )
+        .unwrap();
+
+        let mut rng2 = StdRng::from_seed([0u8; 32]);
+        let mut pk_generic = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
+        let mut sk_generic = [0u8; KYBER_INDCPA_SECRET_KEY_BYTES];
+        indcpa_keypair_generic::<MlKem768, _>(
+            &mut pk_generic,
+            &mut sk_generic,
+            Some((&seed[..32], &seed[32..])),
+            &mut rng2,
+        )
+        .unwrap();
+
+        assert_eq!(
+            pk_existing.as_slice(),
+            pk_generic.as_slice(),
+            "indcpa_keypair_generic pk diverges from existing — \
+             FIPS 203 compliance regression in the generic port"
+        );
+        assert_eq!(
+            sk_existing.as_slice(),
+            sk_generic.as_slice(),
+            "indcpa_keypair_generic sk diverges from existing"
+        );
+    }
+}

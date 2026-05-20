@@ -262,11 +262,11 @@ pub(crate) fn polyvec_decompress_generic<
                     idx += 11;
 
                     for (k, tk) in t.iter().enumerate() {
-                        poly.coeffs[8 * j + k] =
-                            (((tk & 0x7FF) as u32 * KYBER_Q as u32
-                                + 1024)
-                                >> 11)
-                                as i16;
+                        poly.coeffs[8 * j + k] = (((tk & 0x7FF) as u32
+                            * KYBER_Q as u32
+                            + 1024)
+                            >> 11)
+                            as i16;
                     }
                 }
             }
