@@ -163,17 +163,15 @@ jobs:
   cargo-deny:
     name: cargo-deny
     runs-on: ubuntu-latest
-    # The upstream rustsec/advisory-db has a known TOML-parse-failure
-    # entry (RUSTSEC-2026-0076.md uses CVSS 4.0, unsupported by
-    # cargo-deny ≤ 0.16). Bumping the action to the latest tag once
-    # cargo-deny 0.17+ ships will resolve. For now, treat as advisory
-    # only — the rustsec/audit-check based gate in the reusable
-    # workflow + the in-repo coverage of the dep graph cover the
-    # advisory surface.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: EmbarkStudios/cargo-deny-action@30f817c6f72275c6d54dc744fbca09ebc958599f  # v2.0.12
+      # v2.0.18 bundles cargo-deny ≥ 0.19.6 which parses CVSS 4.0
+      # advisories correctly. Earlier versions failed to load the
+      # rustsec/advisory-db at all because of RUSTSEC-2026-0076.md
+      # (libcrux-ml-dsa) which uses CVSS 4.0. PR #805 in
+      # EmbarkStudios/cargo-deny added the parser support
+      # (merged 2025-11-23, shipped in 0.19.6).
+      - uses: EmbarkStudios/cargo-deny-action@0105f7c440bc8084c17cad47fe92e63049519458  # v2.0.18
         with:
           command: check
           # `--all-features` here is for advisory/license graph
@@ -184,17 +182,22 @@ jobs:
   semver-checks:
     name: cargo-semver-checks
     runs-on: ubuntu-latest
-    # Soft-fail until v0.1 stabilises (Phase 3) — pre-1.0 patches are allowed
-    # to break. Once on 0.1.x we'll flip this to a hard gate.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
-      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.9
+      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.8
         with:
+          # Restrict to the published `kyberlib` crate. The satellite
+          # crates (kyberlib-asm, kyberlib-hybrid, kyberlib-pkcs8) all
+          # carry `publish = false`, and `cargo-semver-checks` fails on
+          # them with `failed to retrieve index of crate versions from
+          # registry` because crates.io has no record. The published
+          # crate (kyberlib 0.0.6) IS the API surface that matters for
+          # SemVer.
+          package: kyberlib
           # Only inspect default features — semver-checks otherwise
           # tries to build rustdoc for every feature group, which
           # triggers the AVX2/NASM build-script panic on the default
