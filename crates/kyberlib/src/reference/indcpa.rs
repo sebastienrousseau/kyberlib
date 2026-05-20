@@ -621,11 +621,258 @@ mod indcpa_generic_tests {
     }
 }
 
+/// Generic port of [`indcpa_enc`].
+///
+/// `c`  output ciphertext (length `P::CIPHERTEXT_BYTES` — same as
+///      `polyvec_compressed_len::<P>() + poly_compressed_len::<P>()`)
+/// `m`  input message (32 bytes)
+/// `pk` input public key (length `polyvec_bytes_len::<P>() + 32`)
+/// `coins` 32-byte coin seed (deterministic randomness)
+#[allow(dead_code, clippy::needless_range_loop)]
+pub(crate) fn indcpa_enc_generic<P: crate::paramsets::MlKemParams>(
+    c: &mut [u8],
+    m: &[u8],
+    pk: &[u8],
+    coins: &[u8],
+) {
+    debug_assert!(P::K <= MAX_K);
+
+    let mut at = [Poly::new(); MAX_K * MAX_K];
+    let mut sp = [Poly::new(); MAX_K];
+    let mut pkpv = [Poly::new(); MAX_K];
+    let mut ep = [Poly::new(); MAX_K];
+    let mut b = [Poly::new(); MAX_K];
+
+    let (mut v, mut k, mut epp) =
+        (Poly::new(), Poly::new(), Poly::new());
+    let mut seed = [0u8; KYBER_SYM_BYTES];
+    let mut nonce = 0u8;
+
+    // unpack_pk into pkpv + seed
+    polyvec_frombytes_generic::<P>(&mut pkpv[..P::K], pk);
+    let pv_bytes = polyvec_bytes_len::<P>();
+    seed[..KYBER_SYM_BYTES]
+        .copy_from_slice(&pk[pv_bytes..pv_bytes + KYBER_SYM_BYTES]);
+
+    poly_frommsg(&mut k, m);
+
+    // Transposed matrix
+    gen_matrix_generic::<P>(&mut at[..P::K * P::K], &seed, true);
+
+    for i in 0..P::K {
+        poly_getnoise_eta1(&mut sp[i], coins, nonce);
+        nonce += 1;
+    }
+    for i in 0..P::K {
+        poly_getnoise_eta2(&mut ep[i], coins, nonce);
+        nonce += 1;
+    }
+    poly_getnoise_eta2(&mut epp, coins, nonce);
+
+    polyvec_ntt_generic::<P>(&mut sp[..P::K]);
+
+    // b[i] = at[i] · sp
+    for i in 0..P::K {
+        let row_start = i * P::K;
+        let row_end = row_start + P::K;
+        polyvec_basemul_acc_montgomery_generic::<P>(
+            &mut b[i],
+            &at[row_start..row_end],
+            &sp[..P::K],
+        );
+    }
+    // v = pkpv · sp
+    polyvec_basemul_acc_montgomery_generic::<P>(
+        &mut v,
+        &pkpv[..P::K],
+        &sp[..P::K],
+    );
+
+    polyvec_invntt_tomont_generic::<P>(&mut b[..P::K]);
+    poly_invntt_tomont(&mut v);
+
+    polyvec_add_generic::<P>(&mut b[..P::K], &ep[..P::K]);
+    poly_add(&mut v, &epp);
+    poly_add(&mut v, &k);
+    polyvec_reduce_generic::<P>(&mut b[..P::K]);
+    poly_reduce(&mut v);
+
+    // pack_ciphertext: polyvec_compress(b) || poly_compress(v)
+    let pv_compressed_bytes = polyvec_compressed_len::<P>();
+    polyvec_compress_generic::<P>(
+        &mut c[..pv_compressed_bytes],
+        &b[..P::K],
+    );
+    poly_compress_generic::<P>(&mut c[pv_compressed_bytes..], v);
+}
+
+/// Generic port of [`indcpa_dec`].
+///
+/// `m`  output decrypted message (32 bytes)
+/// `c`  input ciphertext (length `P::CIPHERTEXT_BYTES`)
+/// `sk` input secret key (length `polyvec_bytes_len::<P>()`)
+#[allow(dead_code, clippy::needless_range_loop)]
+pub(crate) fn indcpa_dec_generic<P: crate::paramsets::MlKemParams>(
+    m: &mut [u8],
+    c: &[u8],
+    sk: &[u8],
+) {
+    debug_assert!(P::K <= MAX_K);
+
+    let mut b = [Poly::new(); MAX_K];
+    let mut skpv = [Poly::new(); MAX_K];
+    let (mut v, mut mp) = (Poly::new(), Poly::new());
+
+    // unpack_ciphertext: polyvec_decompress(b) + poly_decompress(v)
+    let pv_compressed_bytes = polyvec_compressed_len::<P>();
+    polyvec_decompress_generic::<P>(
+        &mut b[..P::K],
+        &c[..pv_compressed_bytes],
+    );
+    poly_decompress_generic::<P>(&mut v, &c[pv_compressed_bytes..]);
+
+    // unpack_sk
+    polyvec_frombytes_generic::<P>(&mut skpv[..P::K], sk);
+
+    polyvec_ntt_generic::<P>(&mut b[..P::K]);
+    polyvec_basemul_acc_montgomery_generic::<P>(
+        &mut mp,
+        &skpv[..P::K],
+        &b[..P::K],
+    );
+    poly_invntt_tomont(&mut mp);
+
+    poly_sub(&mut mp, &v);
+    poly_reduce(&mut mp);
+
+    poly_tomsg(m, mp);
+}
+
 #[cfg(test)]
 mod indcpa_integration_tests {
     #![allow(unused_imports)]
     use super::*;
     use crate::paramsets::MlKemParams;
+
+    /// indcpa_enc_generic must produce byte-identical ciphertext to
+    /// the existing indcpa_enc under the active feature.
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn indcpa_enc_generic_matches_existing_kyber768() {
+        use crate::MlKem768;
+        use rand::rngs::StdRng;
+        use rand::SeedableRng;
+
+        // Setup: generate a keypair, get a real pk.
+        let mut rng = StdRng::from_seed([1u8; 32]);
+        let mut pk = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
+        let mut sk = [0u8; KYBER_INDCPA_SECRET_KEY_BYTES];
+        let kp_seed = [0x42u8; 64];
+        indcpa_keypair(
+            &mut pk,
+            &mut sk,
+            Some((&kp_seed[..32], &kp_seed[32..])),
+            &mut rng,
+        )
+        .unwrap();
+
+        let msg = [0xCDu8; KYBER_SYM_BYTES];
+        let coins = [0x66u8; KYBER_SYM_BYTES];
+
+        let mut c_existing = [0u8; KYBER_INDCPA_BYTES];
+        indcpa_enc(&mut c_existing, &msg, &pk, &coins);
+
+        let mut c_generic = [0u8; KYBER_INDCPA_BYTES];
+        indcpa_enc_generic::<MlKem768>(
+            &mut c_generic,
+            &msg,
+            &pk,
+            &coins,
+        );
+
+        assert_eq!(
+            c_existing.as_slice(),
+            c_generic.as_slice(),
+            "indcpa_enc_generic ciphertext diverges from existing"
+        );
+    }
+
+    /// indcpa_dec_generic must produce byte-identical message to
+    /// indcpa_dec, including under the IND-CPA security property
+    /// (round-trip from indcpa_enc).
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn indcpa_dec_generic_matches_existing_kyber768() {
+        use crate::MlKem768;
+        use rand::rngs::StdRng;
+        use rand::SeedableRng;
+
+        // Setup
+        let mut rng = StdRng::from_seed([7u8; 32]);
+        let mut pk = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
+        let mut sk = [0u8; KYBER_INDCPA_SECRET_KEY_BYTES];
+        let kp_seed = [0x88u8; 64];
+        indcpa_keypair(
+            &mut pk,
+            &mut sk,
+            Some((&kp_seed[..32], &kp_seed[32..])),
+            &mut rng,
+        )
+        .unwrap();
+
+        let msg = [0xEFu8; KYBER_SYM_BYTES];
+        let coins = [0x99u8; KYBER_SYM_BYTES];
+
+        let mut c = [0u8; KYBER_INDCPA_BYTES];
+        indcpa_enc(&mut c, &msg, &pk, &coins);
+
+        // Two decryptions; must produce identical messages, both equal
+        // to the original (IND-CPA correctness).
+        let mut m_existing = [0u8; KYBER_SYM_BYTES];
+        indcpa_dec(&mut m_existing, &c, &sk);
+
+        let mut m_generic = [0u8; KYBER_SYM_BYTES];
+        indcpa_dec_generic::<MlKem768>(&mut m_generic, &c, &sk);
+
+        assert_eq!(m_existing, m_generic, "decrypted messages differ");
+        assert_eq!(m_generic, msg, "IND-CPA correctness violated");
+    }
+
+    /// **End-to-end IND-CPA round-trip** via the all-generic path.
+    #[test]
+    #[cfg(feature = "kyber768")]
+    fn indcpa_round_trip_all_generic_kyber768() {
+        use crate::MlKem768;
+        use rand::rngs::StdRng;
+        use rand::SeedableRng;
+
+        let mut rng = StdRng::from_seed([0u8; 32]);
+        let kp_seed = [0xAAu8; 64];
+
+        let mut pk = [0u8; KYBER_INDCPA_PUBLIC_KEY_BYTES];
+        let mut sk = [0u8; KYBER_INDCPA_SECRET_KEY_BYTES];
+        indcpa_keypair_generic::<MlKem768, _>(
+            &mut pk,
+            &mut sk,
+            Some((&kp_seed[..32], &kp_seed[32..])),
+            &mut rng,
+        )
+        .unwrap();
+
+        let msg = [0x55u8; KYBER_SYM_BYTES];
+        let coins = [0xBBu8; KYBER_SYM_BYTES];
+
+        let mut c = [0u8; KYBER_INDCPA_BYTES];
+        indcpa_enc_generic::<MlKem768>(&mut c, &msg, &pk, &coins);
+
+        let mut m_recovered = [0u8; KYBER_SYM_BYTES];
+        indcpa_dec_generic::<MlKem768>(&mut m_recovered, &c, &sk);
+
+        assert_eq!(
+            m_recovered, msg,
+            "all-generic IND-CPA round-trip failed"
+        );
+    }
 
     /// **The headline integration test**: indcpa_keypair_generic
     /// driven from a fixed seed must produce byte-identical (pk, sk)
