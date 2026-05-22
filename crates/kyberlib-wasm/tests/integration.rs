@@ -30,50 +30,86 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    // Test the encapsulate function
+    // Test the encapsulate function.
+    //
+    // Note (v0.0.7): `kyberlib::encapsulate` only validates the
+    // public key's BYTE LENGTH — not its mathematical structure.
+    // Any length-correct byte string (including all zeros) is
+    // accepted as a public key by the spec. The legitimate failure
+    // mode is wrong-length input; we test that here.
     #[wasm_bindgen_test]
     fn test_encapsulate() {
-        // Generate a public key with invalid size
-        let pk = vec![0u8; KYBER_PUBLIC_KEY_BYTES].into_boxed_slice();
         let mut rng = rand::rngs::OsRng {};
 
-        // Test encapsulation with invalid input sizes
-        let result = encapsulate(&pk, &mut rng);
-        assert!(result.is_err());
+        // Wrong length — must surface InvalidInput.
+        let bad_pk =
+            vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1].into_boxed_slice();
+        assert!(
+            encapsulate(&bad_pk, &mut rng).is_err(),
+            "encap must reject a too-short public key"
+        );
 
-        // Generate a valid key pair
-        let keypair_result = keypair(&mut rng);
-        assert!(keypair_result.is_ok());
+        // Length-valid (even if all-zero) pk → encapsulation
+        // succeeds. The byte structure is the caller's concern.
+        let valid_len_pk =
+            vec![0u8; KYBER_PUBLIC_KEY_BYTES].into_boxed_slice();
+        assert!(
+            encapsulate(&valid_len_pk, &mut rng).is_ok(),
+            "encap must accept any length-correct pk byte string"
+        );
 
-        // Test encapsulation with valid input sizes
-        let result = encapsulate(&pk, &mut rng);
-        assert!(result.is_ok());
+        // Realistic happy path with a fresh keypair.
+        let keys = keypair(&mut rng).expect("keypair must succeed");
+        assert!(
+            encapsulate(&keys.public, &mut rng).is_ok(),
+            "encap must succeed against a freshly-generated pk"
+        );
     }
 
-    // Test the decapsulate function
+    // Test the decapsulate function.
+    //
+    // Note (v0.0.7): per FIPS 203 §6.3 **implicit rejection**,
+    // decapsulating a length-valid but tampered/wrong ciphertext
+    // returns a *pseudorandom* shared secret rather than an error.
+    // This is the property that defeats Bleichenbacher-style
+    // decapsulation oracles. So `decapsulate` ONLY errors on
+    // length-mismatched input, never on bad bytes.
     #[wasm_bindgen_test]
     fn test_decapsulate() {
-        // Generate invalid ciphertext and secret key
-        let ct = vec![0u8; KYBER_CIPHERTEXT_BYTES].into_boxed_slice();
+        let mut rng = rand::rngs::OsRng {};
+
+        // Wrong length — must surface InvalidInput.
+        let bad_ct =
+            vec![0u8; KYBER_CIPHERTEXT_BYTES - 1].into_boxed_slice();
         let sk = vec![0u8; KYBER_SECRET_KEY_BYTES].into_boxed_slice();
+        assert!(
+            decapsulate(&bad_ct, &sk).is_err(),
+            "decap must reject a too-short ciphertext"
+        );
 
-        // Test decapsulation with invalid input sizes
-        let result = decapsulate(&ct, &sk);
-        assert!(result.is_err());
+        // Length-valid ciphertext + length-valid sk → decap
+        // returns Ok with a pseudorandom 32-byte secret (implicit
+        // rejection). No error.
+        let valid_len_ct =
+            vec![0u8; KYBER_CIPHERTEXT_BYTES].into_boxed_slice();
+        let ss = decapsulate(&valid_len_ct, &sk)
+            .expect("implicit rejection must NOT surface an error");
+        assert_eq!(
+            ss.len(),
+            KYBER_SHARED_SECRET_BYTES,
+            "implicit-rejection output is still 32 bytes"
+        );
 
-        // Generate a valid key pair
-        let keypair_result = keypair(&mut rand::rngs::OsRng {});
-        assert!(keypair_result.is_ok());
-        let keys = keypair_result.unwrap();
-
-        // Test encapsulation with valid input sizes
-        let result =
-            encapsulate(&keys.public, &mut rand::rngs::OsRng {});
-        assert!(result.is_ok());
-
-        // Test decapsulation with valid input sizes
-        let result = decapsulate(&ct, &keys.secret);
-        assert!(result.is_ok());
+        // Realistic happy path: fresh keys → fresh kex → decap.
+        let keys = keypair(&mut rng).expect("keypair must succeed");
+        let (ct, ss_sender) = encapsulate(&keys.public, &mut rng)
+            .expect("encap must succeed");
+        let ss_receiver =
+            decapsulate(&ct, &keys.secret).expect("decap must succeed");
+        assert_eq!(
+            ss_sender, ss_receiver,
+            "valid round-trip must recover the same shared secret"
+        );
     }
 
     // Test the Keys struct
@@ -149,42 +185,66 @@ mod tests {
         );
     }
 
-    // Test the Kex::new() method with an invalid public key size
+    // Test that `encapsulate` rejects wrong-length public keys.
+    //
+    // Note: the original test relied on `std::panic::catch_unwind`
+    // to catch the panic from `Kex::new()`, which calls
+    // `encapsulate(pk).expect(...)`. That doesn't work on
+    // `wasm32-unknown-unknown` because wasm panics abort rather
+    // than unwind. We test the same property by calling the
+    // non-panicking free function `encapsulate` directly.
     #[wasm_bindgen_test]
-    fn test_kex_new_invalid_pubkey_size() {
-        // Generate an invalid public key with incorrect size
+    fn test_encapsulate_rejects_short_public_key() {
         let invalid_pk =
             vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1].into_boxed_slice();
-
-        // Call Kex::new() with the invalid public key and expect a panic
-        let _ = std::panic::catch_unwind(|| {
-            let _ = Kex::new(invalid_pk);
-        })
-        .unwrap_err();
+        let mut rng = rand::rngs::OsRng {};
+        assert!(
+            encapsulate(&invalid_pk, &mut rng).is_err(),
+            "encapsulate must reject a too-short public key"
+        );
     }
 
-    // Test the decapsulate() function with mismatched ciphertext and secret key
+    // Test decapsulation with a ciphertext encapsulated against a
+    // DIFFERENT key pair than the one we hold.
+    //
+    // Per FIPS 203 §6.3 **implicit rejection**, this returns a
+    // pseudorandom 32-byte secret — NOT an error. The receiver
+    // can't distinguish "tampered ciphertext" from "honest
+    // ciphertext" via the decap return channel; the only way to
+    // detect a mismatch is to compare the recovered secret
+    // against an out-of-band authentication tag.
+    //
+    // This test asserts the implicit-rejection contract.
     #[wasm_bindgen_test]
     fn test_decapsulate_mismatched_inputs() {
-        // Generate a key pair
-        let keys = match Keys::new() {
+        let alice = match Keys::new() {
+            Ok(keys) => keys,
+            Err(_) => return,
+        };
+        let kex_for_alice = Kex::new(alice.pubkey());
+
+        // Eve holds a different key pair and tries to decap the
+        // ciphertext intended for Alice.
+        let eve = match Keys::new() {
             Ok(keys) => keys,
             Err(_) => return,
         };
 
-        // Encapsulate with the public key to get a valid ciphertext
-        let kex = Kex::new(keys.pubkey());
+        let eve_ss =
+            decapsulate(&kex_for_alice.ciphertext(), &eve.secret())
+                .expect("implicit rejection MUST NOT surface an error");
 
-        // Generate a different key pair
-        let different_keys = match Keys::new() {
-            Ok(keys) => keys,
-            Err(_) => return,
-        };
-
-        // Call decapsulate() with mismatched ciphertext and secret key
-        let result =
-            decapsulate(&kex.ciphertext(), &different_keys.secret());
-        assert!(result.is_err());
+        assert_eq!(
+            eve_ss.len(),
+            KYBER_SHARED_SECRET_BYTES,
+            "implicit-rejection output is still 32 bytes"
+        );
+        assert_ne!(
+            eve_ss.as_ref(),
+            kex_for_alice.sharedSecret().as_ref(),
+            "Eve must NOT recover Alice's shared secret (would be \
+             a confidentiality break)"
+        );
     }
 
     // Test the decapsulate() function with a valid ciphertext and secret key
