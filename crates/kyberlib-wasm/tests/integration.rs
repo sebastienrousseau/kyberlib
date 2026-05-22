@@ -317,12 +317,21 @@ mod tests {
                 &mut self,
                 _dest: &mut [u8],
             ) -> Result<(), rand_core::Error> {
-                Err(rand_core::Error::new("MockRng error"))
+                // `rand_core::Error::new` was removed in 0.6 — the
+                // public constructor surface is now `From<NonZeroU32>`.
+                // The error code itself is opaque to callers; any
+                // non-zero value identifies "synthetic test failure".
+                Err(rand_core::Error::from(
+                    core::num::NonZeroU32::new(
+                        rand_core::Error::CUSTOM_START + 1,
+                    )
+                    .unwrap(),
+                ))
             }
         }
         impl rand_core::CryptoRng for MockRng {}
 
-        // Call encapsulate() with the valid public key and the mock RNG
+        // Call encapsulate() with the valid public key and the mock RNG.
         let result = encapsulate(&keys.pubkey(), &mut MockRng);
         assert!(result.is_err());
     }

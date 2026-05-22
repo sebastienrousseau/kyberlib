@@ -47,9 +47,14 @@ getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 wasm-bindgen-test = { workspace = true }
-# Native-side bench harness — measures the Rust-side marshalling
-# layer (`Box<[u8]>` allocation, getter copy-out) against a baseline
-# native `kyberlib` call, so we can size the wasm-bindgen overhead.
+
+# `criterion` is only compiled for native targets — it pulls `rayon`
+# which `compile_error!`s on `wasm32-unknown-unknown` ("Rayon cannot
+# be used when targeting wasi32"). The bench harness in `benches/api.rs`
+# runs natively to measure the marshalling overhead vs `kyberlib`
+# core; the browser-side WASM cost is measured separately in the
+# `wasm-pack test` CI job, not here.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 criterion = { workspace = true }
 
 [[bench]]
