@@ -2,7 +2,7 @@
 name = "kyberlib"
 description = "A robust, audit-friendly Rust implementation of FIPS 203 ML-KEM (the standardised CRYSTALS-Kyber post-quantum KEM)."
 documentation = "https://docs.rs/kyberlib"
-readme = "../../README.md"
+readme = "README.md"
 categories = ["algorithms", "cryptography", "no-std"]
 keywords = ["ml-kem", "kyber", "kem", "post-quantum", "fips203"]
 build = "build.rs"
@@ -20,6 +20,7 @@ include = [
     "/CHANGELOG.md",
     "/LICENSE-APACHE",
     "/LICENSE-MIT",
+    "/README.md",
     "/SECURITY.md",
     "/build.rs",
     "/Cargo.toml",
