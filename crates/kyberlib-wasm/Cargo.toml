@@ -71,3 +71,17 @@ workspace = true
 default-target = "wasm32-unknown-unknown"
 targets        = ["wasm32-unknown-unknown"]
 rustdoc-args   = ["--cfg", "docsrs"]
+
+# `wasm-pack` bundles its own `wasm-opt` (currently version_116).
+# Rust's stable codegen emits `memory.fill` / `memory.copy` ops
+# from the "bulk memory" wasm proposal — stable since 2020 but
+# off-by-default in the bundled `wasm-opt`. Pass the flag through
+# explicitly so the release-target build doesn't error with
+# "unexpected false: Bulk memory operations require bulk memory".
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O3", "--enable-bulk-memory"]
+
+# Same flag for the dev profile, so local `wasm-pack build` works
+# without surprises during iteration.
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = ["-O0", "--enable-bulk-memory"]
