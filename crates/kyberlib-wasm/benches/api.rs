@@ -64,8 +64,7 @@ fn bench_encapsulate(c: &mut Criterion) {
 
     g.bench_function("wasm/encapsulate", |b| {
         b.iter(|| {
-            let kex =
-                kyberlib_wasm::encapsulate(pk.clone()).unwrap();
+            let kex = kyberlib_wasm::encapsulate(pk.clone()).unwrap();
             black_box(kex);
         });
     });
@@ -91,11 +90,8 @@ fn bench_decapsulate(c: &mut Criterion) {
 
     g.bench_function("wasm/decapsulate", |b| {
         b.iter(|| {
-            let ss = kyberlib_wasm::decapsulate(
-                ct.clone(),
-                sk.clone(),
-            )
-            .unwrap();
+            let ss = kyberlib_wasm::decapsulate(ct.clone(), sk.clone())
+                .unwrap();
             black_box(ss);
         });
     });

@@ -37,6 +37,14 @@ rand_core    = { workspace = true }
 rand         = { workspace = true, features = ["getrandom"] }
 wasm-bindgen = { workspace = true }
 
+# On `wasm32-unknown-unknown`, the transitive `getrandom` dep needs
+# its `js` feature opt-in to route through `crypto.getRandomValues`
+# (browsers) and `crypto.randomBytes` (Node.js). Without this,
+# `getrandom 0.2.x` `compile_error!`s on the wasm target. See
+# https://docs.rs/getrandom/#webassembly-support.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
 [dev-dependencies]
 wasm-bindgen-test = { workspace = true }
 # Native-side bench harness — measures the Rust-side marshalling

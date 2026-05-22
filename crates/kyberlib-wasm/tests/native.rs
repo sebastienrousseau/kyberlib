@@ -26,10 +26,7 @@ fn params_match_kyberlib_core() {
     assert_eq!(Params::publicKeyBytes(), KYBER_PUBLIC_KEY_BYTES);
     assert_eq!(Params::secretKeyBytes(), KYBER_SECRET_KEY_BYTES);
     assert_eq!(Params::ciphertextBytes(), KYBER_CIPHERTEXT_BYTES);
-    assert_eq!(
-        Params::sharedSecretBytes(),
-        KYBER_SHARED_SECRET_BYTES,
-    );
+    assert_eq!(Params::sharedSecretBytes(), KYBER_SHARED_SECRET_BYTES,);
 }
 
 #[test]
@@ -77,7 +74,8 @@ fn round_trip_matches_kyberlib_byte_shapes() {
 
 #[test]
 fn encapsulate_rejects_wrong_length_public_key() {
-    let short = vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1].into_boxed_slice();
+    let short =
+        vec![0u8; KYBER_PUBLIC_KEY_BYTES - 1].into_boxed_slice();
     assert!(
         encapsulate(short).is_err(),
         "encap must reject a public key shorter than FIPS 203 §6 spec"
