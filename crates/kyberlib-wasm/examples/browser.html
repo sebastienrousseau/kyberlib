@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: Apache-2.0 OR MIT
+
+  Browser example for kyberlib-wasm — runnable from a static-file
+  server after running:
+
+      wasm-pack build crates/kyberlib-wasm --release --target web
+
+  Then serve this directory and open browser.html in a modern browser
+  (any of Chrome/Edge/Firefox/Safari 16+).
+
+  The example walks through the full ML-KEM-768 round-trip and prints
+  each intermediate byte length plus the final shared-secret match.
+  Output goes to both the on-page log and the browser console — open
+  DevTools to see the structured logs.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>kyberlib-wasm — browser example</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, monospace;
+           padding: 1.5rem; max-width: 720px; line-height: 1.4; }
+    pre  { background: #f4f4f4; padding: 1rem; border-radius: 6px;
+           overflow-x: auto; }
+    .ok  { color: #2a7d2a; font-weight: 600; }
+    .err { color: #b00020; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>kyberlib-wasm — browser round-trip</h1>
+  <p>
+    This page runs FIPS 203 ML-KEM-768 entirely in WebAssembly, with
+    entropy sourced from <code>crypto.getRandomValues</code> via the
+    browser's CSPRNG. The output below is a complete keygen →
+    encapsulate → decapsulate cycle.
+  </p>
+  <pre id="log">Loading WASM module…</pre>
+
+  <script type="module">
+    // Replace this path with whatever your bundler / static-file
+    // server resolves to. The default `wasm-pack build --target web`
+    // output lands in `pkg/kyberlib_wasm.js`.
+    import init, { keypair, encapsulate, decapsulate }
+      from '../pkg/kyberlib_wasm.js';
+
+    const log = document.getElementById('log');
+    const append = (line, cls) => {
+      const span = document.createElement('span');
+      if (cls) span.className = cls;
+      span.textContent = line + '\n';
+      log.appendChild(span);
+      console.log(line);
+    };
+
+    try {
+      // (1) Load and instantiate the .wasm blob. `init()` returns a
+      //     Promise; nothing else in the module works until it
+      //     resolves.
+      await init();
+      log.textContent = '';   // clear the loading message
+      append('WASM module loaded.');
+
+      // (2) Receiver-side: generate a key pair. The `keypair()`
+      //     wrapper consults `crypto.getRandomValues` internally
+      //     for the FIPS 203 §5.1 `(d, z)` seeds — you don't pass
+      //     entropy from JS.
+      const keys = keypair();
+      append(`pubkey = ${keys.pubkey.length} bytes`);
+      append(`secret = ${keys.secret.length} bytes`);
+
+      // (3) Sender-side: encapsulate against the receiver's public
+      //     key. The wrapper consults the CSPRNG for the §6.2 `m`
+      //     value.
+      const exchange = encapsulate(keys.pubkey);
+      append(`ciphertext = ${exchange.ciphertext.length} bytes`);
+      append(`sharedSecret_sender = ${exchange.sharedSecret.length} bytes`);
+
+      // (4) Receiver-side: decapsulate. FIPS 203 §6.3 implicit
+      //     rejection means this can't fail with a length-valid
+      //     ciphertext — it returns the same secret on a valid CT,
+      //     a pseudorandom one on a tampered CT.
+      const recovered = decapsulate(exchange.ciphertext, keys.secret);
+      append(`sharedSecret_receiver = ${recovered.length} bytes`);
+
+      // (5) Confirm both sides agree byte-for-byte.
+      const match = recovered.every(
+        (b, i) => b === exchange.sharedSecret[i]
+      );
+      append('');
+      if (match) {
+        append('shared secrets match ✓', 'ok');
+      } else {
+        append('shared secrets DO NOT match ✗', 'err');
+      }
+
+      // (6) Release the WASM-heap allocations promptly. JS GC would
+      //     eventually reclaim them, but in tight loops you want
+      //     this to be explicit.
+      keys.free();
+      exchange.free();
+    } catch (err) {
+      append('error: ' + err.message, 'err');
+      console.error(err);
+    }
+  </script>
+</body>
+</html>

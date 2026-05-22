@@ -39,6 +39,14 @@ wasm-bindgen = { workspace = true }
 
 [dev-dependencies]
 wasm-bindgen-test = { workspace = true }
+# Native-side bench harness — measures the Rust-side marshalling
+# layer (`Box<[u8]>` allocation, getter copy-out) against a baseline
+# native `kyberlib` call, so we can size the wasm-bindgen overhead.
+criterion = { workspace = true }
+
+[[bench]]
+name    = "api"
+harness = false   # criterion provides its own main via `criterion_main!`
 
 [features]
 default = []

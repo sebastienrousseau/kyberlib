@@ -802,6 +802,7 @@ dependencies = [
 name = "kyberlib-wasm"
 version = "0.0.7"
 dependencies = [
+ "criterion",
  "kyberlib",
  "rand 0.8.6",
  "rand_core 0.6.4",

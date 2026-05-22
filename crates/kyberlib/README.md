@@ -464,17 +464,23 @@ Runnable Rust examples live in [`examples/`](examples/):
 
 | Example | What it shows |
 |---|---|
-| `examples/keygen.rs` | Minimal keygen / encap / decap with the typed API |
+| `examples/kem.rs` | Minimal keygen / encap / decap with the legacy free-function API |
 | `examples/uake.rs` | Unilaterally-authenticated KEX (`Uake`) round-trip |
 | `examples/ake.rs` | Mutually-authenticated KEX (`Ake`) round-trip |
+| `examples/typed_kem.rs` | Same round-trip with the typed `KemCore` / `MlKem768` surface |
+| `examples/deterministic_seed.rs` | Deterministic keygen from a 64-byte seed (KAT-friendly) |
+| `examples/no_std_demo.rs` | `#![no_std]`-compatible round-trip with a caller-supplied RNG |
 
 Each example is commented to explain *why* each step is needed,
 not just *what* the code does. Run with:
 
 ```bash
-cargo run --example keygen
+cargo run --example kem
 cargo run --example uake
 cargo run --example ake
+cargo run --example typed_kem
+cargo run --example deterministic_seed
+cargo run --example no_std_demo
 ```
 
 Copy-pasteable recipe collection: [`doc/cookbook.md`](doc/cookbook.md)

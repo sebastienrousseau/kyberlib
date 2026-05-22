@@ -295,6 +295,39 @@ jobs:
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - run: bash scripts/miri.sh focused
 
+  # --------------------------------------------------------------- wasm-pack
+  # `kyberlib-wasm` exposes the KEM API to JS via `wasm-bindgen`. The
+  # `tests/integration.rs` suite is gated on `#[cfg(target_arch =
+  # "wasm32")]` and only runs under a real wasm-bindgen runtime —
+  # `cargo test` on a native target compiles it to a no-op. This job
+  # runs the actual wasm32 surface against headless Firefox via
+  # `wasm-pack test`.
+  wasm-pack:
+    name: wasm-pack test (kyberlib-wasm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Install wasm-pack
+        # Pin a known-good release. wasm-pack is a tiny binary; no
+        # need to build from source.
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: wasm-pack test --headless --firefox
+        # Firefox ships in `ubuntu-latest` runners by default; Chrome
+        # requires a separate setup step. Firefox is enough — the
+        # wasm32 surface is browser-agnostic at the WebAssembly
+        # spec level.
+        run: wasm-pack test --headless --firefox crates/kyberlib-wasm
+      - name: wasm-pack build smoke (release, --target web)
+        # Final sanity check that the release-target build produces
+        # a usable `pkg/` directory — what npm consumers get.
+        run: wasm-pack build --release --target web crates/kyberlib-wasm
+
   # ----------------------------------------------------------------- coverage
   # cargo-llvm-cov gives line + branch coverage in a single
   # instrumented build pass. Faster + more accurate than tarpaulin
