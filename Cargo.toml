@@ -47,7 +47,7 @@ zeroize = { version = "1.7.0", features = ["derive"] }
 
 [dev-dependencies]
 # Dependencies for testing
-criterion = "0.5.1"
+criterion = "0.8.2"
 wasm-bindgen-test = "0.3.43"
 
 # benchmarking = ["criterion"]
