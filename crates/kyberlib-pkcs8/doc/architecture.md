@@ -1,5 +1,7 @@
 # Architecture
 
+> Last Updated: 2026-05-22
+
 `kyberlib-pkcs8` provides PKCS#8 `PrivateKeyInfo`,
 SubjectPublicKeyInfo (SPKI), and PEM encoding for the ML-
 KEM key material produced by `kyberlib`. The encoded

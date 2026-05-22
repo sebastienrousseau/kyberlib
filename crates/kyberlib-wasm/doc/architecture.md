@@ -1,5 +1,7 @@
 # Architecture
 
+> Last Updated: 2026-05-22
+
 `kyberlib-wasm` is the WebAssembly binding crate for
 `kyberlib`. It exposes a small JS-callable surface
 (`keypair`, `encapsulate`, `decapsulate`) via

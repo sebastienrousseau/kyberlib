@@ -1,5 +1,7 @@
 # Release process
 
+> Last Updated: 2026-05-22
+
 Checklist for maintainers cutting a new kyberlib release. Walks
 through everything from version bump to crates.io publish + signed
 GitHub Release.

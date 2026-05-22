@@ -6,6 +6,8 @@
 
 <h1 align="center">kyberlib</h1>
 
+<p align="center"><em>Last Updated: 2026-05-22</em></p>
+
 <p align="center">
   A pure-Rust FIPS 203 ML-KEM (post-quantum key-encapsulation)
   library — ACVP-conformant for ML-KEM-768, hybrid-ready, audited

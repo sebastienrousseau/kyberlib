@@ -1,5 +1,7 @@
 # kyberlib-hybrid
 
+> Last Updated: 2026-05-22
+
 > **Skeleton.** Hybrid PQ + classical KEMs over `kyberlib`. Not yet usable.
 
 Per [`draft-ietf-tls-ecdhe-mlkem-04`](https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/):

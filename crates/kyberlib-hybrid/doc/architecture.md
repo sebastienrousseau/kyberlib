@@ -1,5 +1,7 @@
 # Architecture
 
+> Last Updated: 2026-05-22
+
 `kyberlib-hybrid` provides the IETF TLS WG's hybrid
 post-quantum + classical KEM constructions on top of
 `kyberlib` and (for the classical halves) `x25519-dalek`,

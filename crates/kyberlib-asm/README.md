@@ -1,5 +1,7 @@
 # kyberlib-asm
 
+> Last Updated: 2026-05-22
+
 > **Placeholder.** The AVX2 / NEON / SVE2 acceleration backends for
 > [`kyberlib`](https://crates.io/crates/kyberlib).
 

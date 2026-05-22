@@ -1,5 +1,7 @@
 # kyberlib-wasm
 
+> Last Updated: 2026-05-22
+
 WebAssembly bindings for [`kyberlib`](https://crates.io/crates/kyberlib),
 the FIPS 203 ML-KEM (post-quantum key encapsulation mechanism)
 Rust library.

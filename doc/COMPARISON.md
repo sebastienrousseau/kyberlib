@@ -1,5 +1,7 @@
 # kyberlib vs. the 2026 Rust ML-KEM landscape
 
+> Last Updated: 2026-05-22
+
 > Audit-quality comparison of kyberlib against the four other Rust ML-KEM
 > implementations that are realistically deployable in 2026. Updated for
 > the v0.0.7 enterprise-upgrade cut. Honest about kyberlib's current

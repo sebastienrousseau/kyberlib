@@ -1,5 +1,7 @@
 # Cookbook
 
+> Last Updated: 2026-05-22
+
 Copy-pasteable recipes for the most common integration shapes. Each
 recipe is a complete, runnable Rust file — no `// ...` elision. The
 goal is "find your scenario, paste, edit".

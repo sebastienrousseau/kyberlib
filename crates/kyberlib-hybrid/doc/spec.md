@@ -1,5 +1,7 @@
 # Wire-format specification
 
+> Last Updated: 2026-05-22
+
 Byte-accurate description of every wire-format string this
 crate emits and consumes. Tracks
 [`draft-ietf-tls-ecdhe-mlkem-04`][draft] (Feb 2026).

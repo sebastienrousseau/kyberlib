@@ -1,5 +1,7 @@
 # Roadmap
 
+> Last Updated: 2026-05-22
+
 Tracking the multi-phase work to take `kyberlib-asm` from
 the v0.0.7 skeleton to a publishable acceleration crate.
 See [`architecture.md`](./architecture.md) for the design

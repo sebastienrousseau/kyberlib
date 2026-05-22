@@ -1,5 +1,7 @@
 # Migration from kyberlib 0.0.6
 
+> Last Updated: 2026-05-22
+
 Explicit before/after walkthrough of the breaking and notable
 behavioural changes in v0.0.7. For the *new* features (the typed-
 state API, multi-parameter-set support in one build), see

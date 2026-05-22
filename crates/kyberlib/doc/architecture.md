@@ -1,5 +1,7 @@
 # Architecture
 
+> Last Updated: 2026-05-22
+
 How the `kyberlib` crate is laid out, the mental model required to
 understand it, and why each module exists. Targeted at advanced users
 and new contributors. For *using* the library, see

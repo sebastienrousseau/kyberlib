@@ -1,5 +1,7 @@
 # Architecture
 
+> Last Updated: 2026-05-22
+
 `kyberlib-asm` is the planned home for `kyberlib`'s
 machine-specific acceleration backends: AVX2 + GFNI on
 x86_64, NEON on aarch64, SVE2 on aarch64 server parts, and

@@ -1,5 +1,7 @@
 # Safety
 
+> Last Updated: 2026-05-22
+
 What kyberlib promises about memory safety, undefined behaviour,
 panic-freedom, constant-time execution, and secret handling — and
 where the bodies are buried.

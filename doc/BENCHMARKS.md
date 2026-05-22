@@ -1,5 +1,7 @@
 # Benchmarks
 
+> Last Updated: 2026-05-22
+
 Headline criterion numbers for `kyberlib`'s ML-KEM-768 surface, plus
 the methodology and reproduction recipe. Numbers refresh on every
 release; the canonical board is the `bench` CI job's criterion HTML

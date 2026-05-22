@@ -1,5 +1,7 @@
 # Guide
 
+> Last Updated: 2026-05-22
+
 Practical how-to for integrating `kyberlib-hybrid` into a
 TLS stack or a bespoke handshake protocol. For the
 byte-level wire format see [`spec.md`](./spec.md); for the

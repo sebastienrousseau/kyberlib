@@ -1,5 +1,7 @@
 # Encoding specification
 
+> Last Updated: 2026-05-22
+
 Byte-level reference for the PKCS#8, SPKI, and PEM
 artefacts this crate produces. Tracks IETF
 [`draft-ietf-lamps-kyber-certificates`][lamps].

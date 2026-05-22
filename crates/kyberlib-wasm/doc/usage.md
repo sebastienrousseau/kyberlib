@@ -1,5 +1,7 @@
 # Usage
 
+> Last Updated: 2026-05-22
+
 Practical guide for consuming `kyberlib-wasm` from
 JavaScript, TypeScript, Deno, Bun, and Cloudflare Workers.
 For the design rationale see
