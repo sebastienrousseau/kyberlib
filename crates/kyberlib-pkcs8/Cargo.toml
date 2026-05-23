@@ -1,0 +1,32 @@
+[package]
+name = "kyberlib-pkcs8"
+description = "PKCS#8 / SubjectPublicKeyInfo / PEM encoding for kyberlib ML-KEM keys (skeleton)."
+documentation = "https://docs.rs/kyberlib-pkcs8"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "encoding", "no-std"]
+keywords = ["kyber", "ml-kem", "pkcs8", "spki", "pem"]
+publish = false
+
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+[lib]
+name = "kyberlib_pkcs8"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[features]
+default = []
+pem     = []   # Will pull in pem-rfc7468 when activated.
+
+[dependencies]
+# See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
+kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
+
+[lints]
+workspace = true

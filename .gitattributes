@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Rust source
+*.rs text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+# Shell scripts and automation
+*.sh text eol=lf
+Makefile text eol=lf
+.editorconfig text eol=lf
+
+# License files
+LICENSE* text eol=lf
+
+# Lock file — always LF, always diff
+Cargo.lock text eol=lf -merge
+
+# Binaries
+*.png binary
+*.jpg binary
+*.ico binary

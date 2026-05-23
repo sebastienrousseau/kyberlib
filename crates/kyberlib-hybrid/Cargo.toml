@@ -1,0 +1,59 @@
+[package]
+name = "kyberlib-hybrid"
+description = "Hybrid PQ + classical KEMs over kyberlib — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (skeleton; FIPS 203 ML-KEM conformance pending)."
+documentation = "https://docs.rs/kyberlib-hybrid"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "no-std"]
+keywords = ["ml-kem", "kyber", "hybrid", "post-quantum", "tls"]
+publish = false   # Phase 5.1 lands the implementation; flips publishable post-audit (#177).
+
+include = [
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/Cargo.toml",
+    "/README.md",
+    "/src/**",
+    "/tests/*.rs",
+]
+
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+[lib]
+name = "kyberlib_hybrid"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[features]
+default = ["x25519"]
+# Per-share enable. All three hybrids will eventually be on-demand.
+x25519       = ["dep:x25519-dalek"]
+secp256r1    = []
+secp384r1    = []
+
+[dependencies]
+# `version` is set explicitly even though the path-resolution is what
+# the workspace build uses — `cargo deny`'s wildcards check rejects
+# unversioned path deps, and `cargo publish` requires the version
+# stamp to be present on the manifest.
+kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
+# X25519 classical KEM. Activated only when the `x25519` feature is on.
+x25519-dalek = { workspace = true, optional = true }
+rand_core    = { workspace = true }
+zeroize      = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+features     = ["x25519"]
+rustdoc-args = ["--cfg", "docsrs"]

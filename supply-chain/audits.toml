@@ -1,0 +1,16 @@
+# cargo-vet audits for kyberlib.
+#
+# This file records audits we have performed ourselves on dependencies
+# that aren't covered by the imports in `config.toml`. Empty at the
+# v0.0.7 cut — the audit population work is tracked in issue #165.
+#
+# Schema reference: https://mozilla.github.io/cargo-vet/audit-criteria.html
+
+cargo-vet-version = "0.10"
+
+[criteria]
+# (No custom criteria defined yet. We may add `safe-to-deploy-fips` or
+# similar once the FIPS path lands in phase 5.)
+
+[audits]
+# (Empty — to be populated as part of #165.)

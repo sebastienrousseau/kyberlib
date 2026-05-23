@@ -1,0 +1,26 @@
+# Internal release-pipeline tooling for the kyberlib workspace.
+# Wraps the shell scripts under `scripts/` in a Rust binary so
+# contributors only have to remember `cargo xtask <subcommand>`.
+#
+# Excluded from `[workspace.package]` inheritance (the satellites
+# all carry the same metadata, but `xtask` is intentionally
+# unpublished + uncategorised so it stays a developer-only tool).
+
+[package]
+name        = "xtask"
+version     = "0.0.1"
+edition     = "2021"
+license     = "MIT OR Apache-2.0"
+description = "Internal release-pipeline tooling for the kyberlib workspace"
+authors     = ["The kyberlib contributors <contact@kyberlib.com>"]
+publish     = false
+
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+
+[lints]
+workspace = true

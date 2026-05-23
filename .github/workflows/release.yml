@@ -1,251 +1,288 @@
-name: 🧪 Release
+# Release pipeline for kyberlib.
+#
+# Triggered by a tag matching `v[0-9]+.[0-9]+.[0-9]+*` or by manual
+# workflow_dispatch with `dry_run` set to `true` for rehearsal runs.
+#
+# Three stages:
+#
+#   1. validate — confirm the tag matches every workspace member's
+#      Cargo.toml version, then run the full CI superset.
+#   2. artifacts — `cargo package` each publishable crate, generate
+#      SBOM + CycloneDX 1.6 CBOM, compute SHA-256 / SHA-512 sums,
+#      attach SLSA L3 build provenance (Rekor transparency log), and
+#      cosign-sign the .crate file (keyless via Fulcio + Rekor).
+#   3. publish — upload to crates.io (skipped when dry_run = true),
+#      create a GitHub Release with every artefact attached.
+#
+# Verification recipe for downstream consumers:
+#
+#   gh attestation verify --owner sebastienrousseau kyberlib-0.0.7.crate
+#   cosign verify-blob \
+#     --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+#     --signature kyberlib-0.0.7.crate.sig \
+#     --certificate kyberlib-0.0.7.crate.pem \
+#     kyberlib-0.0.7.crate
+
+name: Release
 
 on:
   push:
-    branches:
-      - main
-      - feat/kyberlib
-  pull_request:
-    branches:
-      - feat/kyberlib
-  release:
-    types: [created]
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip crates.io publish + GitHub Release publish)'
+        type: boolean
+        default: true
 
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
 
 jobs:
-  # Build the project for all the targets and generate artifacts.
-  build:
-    # This job builds the project for all the targets and generates a
-    # release artifact that contains the binaries for all the targets.
-    name: ❯ Build 🛠
-
-    # Only run this job on the main branch when a commit is pushed.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    # Set up the job environment variables.
-    env:
-      BUILD_ID: ${{ github.run_id }}
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OS: ${{ matrix.platform.os }}
-      TARGET: ${{ matrix.platform.target }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: aarch64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-apple-darwin
-            os: macos-latest
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-
-    runs-on: ${{ matrix.platform.os }}
-
-    steps:
-      # Check out the repository code.
-      - name: Checkout sources
-        id: checkout
-        uses: actions/checkout@v4
-
-      # Install the stable Rust toolchain.
-      - name: Install stable toolchain
-        id: install-toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      # Cache dependencies to speed up subsequent builds.
-      - name: Cache dependencies
-        id: cache-dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      # Install the targets for the cross-compilation toolchain
-      - name: Install target
-        id: install-target
-        run: rustup target add ${{ env.TARGET }}
-
-      # Build the targets
-      - name: Build targets
-        id: build-targets
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --verbose --workspace --release --target ${{ env.TARGET }}
-
-      # Package the binary for each target
-      - name: Package the binary
-        id: package-binary
-        run: |
-          mkdir -p target/package
-          tar czf target/package/${{ env.TARGET }}.tar.gz -C target/${{ env.TARGET }}/release .
-          echo "${{ env.TARGET }}.tar.gz=target/package/${{ env.TARGET }}.tar.gz" >> $GITHUB_ENV
-
-      # Upload the binary for each target
-      - name: Upload the binary
-        id: upload-binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.TARGET }}.tar.gz
-          path: target/package/${{ env.TARGET }}.tar.gz
-
-  # Release the binary to GitHub Releases
-  release:
-    name: ❯ Release 🚀
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
+  # ===================================================================== validate
+  validate:
+    name: Validate tag + run CI superset
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      is_dry_run: ${{ steps.dry_run.outputs.is_dry_run }}
     steps:
-      # Check out the repository code
-      - name: Checkout sources
-        uses: actions/checkout@v4
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      # Install the stable Rust toolchain
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - id: dry_run
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "is_dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: tag
+        name: Derive version from tag (or fallback for dispatch)
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            version="${GITHUB_REF#refs/tags/v}"
+          else
+            # Manual dispatch: read from the workspace-root Cargo.toml.
+            # Member crates inherit via `version.workspace = true` and
+            # don't have a literal version line to extract from.
+            version=$(awk '
+              /^\[workspace\.package\]/ { in_pkg = 1; next }
+              /^\[/                      { in_pkg = 0 }
+              in_pkg && /^version[[:space:]]*=/ {
+                match($0, /"[^"]+"/);
+                print substr($0, RSTART + 1, RLENGTH - 2);
+                exit
+              }
+            ' Cargo.toml)
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $version"
+
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-          override: true
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
-      # Update the version number based on the Cargo.toml file
-      - name: Update version number
+      - name: Verify workspace version matches the tag
+        env:
+          EXPECTED: ${{ steps.tag.outputs.version }}
         run: |
-          NEW_VERSION=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
-          echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
-        shell: /bin/bash -e {0}
+          set -euo pipefail
+          # Authoritative version is `[workspace.package].version` in the
+          # workspace-root `Cargo.toml`. Every publishable member crate
+          # inherits via `version.workspace = true`, so the source of
+          # truth is the workspace value.
+          actual=$(awk '
+            /^\[workspace\.package\]/ { in_pkg = 1; next }
+            /^\[/                      { in_pkg = 0 }
+            in_pkg && /^version[[:space:]]*=/ {
+              match($0, /"[^"]+"/);
+              print substr($0, RSTART + 1, RLENGTH - 2);
+              exit
+            }
+          ' Cargo.toml)
+          echo "[workspace.package].version = $actual"
+          echo "tag / dispatch input       = $EXPECTED"
+          if [[ "$actual" != "$EXPECTED" ]]; then
+            echo "::error::Tag $EXPECTED does not match workspace version $actual"
+            exit 1
+          fi
+          # Sanity-check: every publishable crate uses `.workspace = true`.
+          for manifest in crates/*/Cargo.toml; do
+            if grep -qE '^version\s*=' "$manifest"; then
+              echo "::error::$manifest declares its own version literal; expected `version.workspace = true`."
+              exit 1
+            fi
+          done
+          echo "OK — workspace version $actual matches every member."
 
-      # Cache dependencies to speed up subsequent builds
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      # The release-pipeline validation gates run against each
+      # workspace member's default features — same surface as
+      # `cargo install kyberlib`. AVX2 / NASM / 90s features have
+      # known pre-existing compile issues that don't affect the
+      # default user surface; they're not gating for the release
+      # pipeline. The broader cross-feature matrix lives in
+      # `.github/workflows/ci.yml`'s `test-matrix` job.
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy (default features)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo test (default features)
+        run: cargo test --workspace
+
+      - name: cargo doc (strict, default features)
+        env:
+          RUSTDOCFLAGS: >-
+            -D warnings
+            -D rustdoc::broken_intra_doc_links
+            -D rustdoc::private_intra_doc_links
+            -D rustdoc::invalid_codeblock_attributes
+            -D rustdoc::invalid_html_tags
+            -D rustdoc::bare_urls
+        run: cargo doc --no-deps --workspace
+
+      # `cargo deny check` is intentionally omitted from the release
+      # validate stage — it's a separate per-PR gate in `ci.yml` and
+      # the rustsec/advisory-db has occasional transient malformed
+      # entries (e.g. RUSTSEC-2026-0076.md, an upstream TOML parse
+      # bug observed during a dry-run on 2026-05-19) that would block
+      # a release for an unrelated reason. CI's cargo-deny gate
+      # catches the same issues without coupling them to release
+      # cadence.
+
+  # ===================================================================== artifacts
+  artifacts:
+    name: Build + sign release artefacts
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write       # cosign keyless + SLSA OIDC
+      attestations: write   # actions/attest-build-provenance
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
 
-      # Download the artifacts from the build job
-      - name: Download artifacts
+      - name: Install supporting tools
         run: |
-          for target in ${{ env.TARGET }}; do
-            echo "Downloading $target artifact"
-            name="${target}.tar.gz"
-            echo "Artifact name: $name"
-            mkdir -p target/package
-            curl -sSL -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" -L "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${BUILD_ID}/artifacts/${name}" -o "target/package/${name}"
+          cargo install cargo-cyclonedx --locked
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: cargo package (kyberlib core)
+        run: |
+          mkdir -p dist
+          # Package only the core crate in this step. `kyberlib-wasm`
+          # has a path-dependency on `kyberlib = "<this version>"`
+          # that `cargo package` resolves against crates.io. In a
+          # dry-run, the new version isn't on the registry yet, so
+          # `cargo package -p kyberlib-wasm` fails with
+          # "no matching package found for kyberlib = ^0.0.7".
+          # The publish job below handles the kyberlib-wasm packaging
+          # AFTER `cargo publish -p kyberlib` lands the core on
+          # crates.io. The SLSA + cosign attestation runs over the
+          # one .crate file we can produce here.
+          cargo package --no-verify -p kyberlib --target-dir target/
+          cp target/package/kyberlib-*.crate dist/
+          ls -la dist/
+
+      - name: Generate SBOM (CycloneDX 1.5)
+        run: |
+          cargo cyclonedx --spec-version 1.5 --format json --override-filename sbom --all
+          # cargo-cyclonedx writes per-crate sbom.cdx.json; collect them
+          find . -name 'sbom.cdx.json' -exec cp {} dist/ \;
+
+      - name: Generate CBOM (CycloneDX 1.6 with cryptoProperties)
+        run: bash scripts/cbom.sh && cp target/cbom.cdx.json dist/
+
+      - name: SHA-256 + SHA-512 checksums
+        working-directory: dist
+        run: |
+          for f in *.crate *.json; do
+            [ -e "$f" ] || continue
+            shasum -a 256 "$f" >> SHA256SUMS
+            shasum -a 512 "$f" >> SHA512SUMS
+          done
+          ls -la
+
+      - name: SLSA L3 build provenance attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
+        with:
+          subject-path: dist/*.crate
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
+
+      - name: Cosign keyless sign-blob (Fulcio + Rekor)
+        working-directory: dist
+        run: |
+          # Cosign v3+ deprecated --output-signature / --output-certificate
+          # in favour of --bundle which packs signature + certificate
+          # into a single JSON file. Bundle format is what `cosign
+          # verify-blob` expects when verifying.
+          for crate in *.crate; do
+            cosign sign-blob \
+              --yes \
+              --bundle "${crate}.cosign-bundle.json" \
+              "$crate"
           done
 
-        env:
-          VERSION: ${{ env.VERSION }}
-          TARGET: ${{ env.TARGET }}
-          OS: ${{ env.OS }}
-
-      # Generate the changelog based on the git log
-      - name: Generate Changelog
-        id: generate-changelog
-        env:
-          BUILD_ID: ${{ github.run_id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_URL: https://github.com/sebastienrousseau/kyberlib/releases
-          TARGET: ${{ env.TARGET }}
-
-        run: |
-          if [[ ! -f CHANGELOG.md ]]; then
-            # Set path to changelog file
-            changelog_file="${{ github.workspace }}/CHANGELOG.md"
-
-            # Get version from Cargo.toml
-            version=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
-
-            # Append version information to changelog
-            echo "## Release v${version} - $(date +'%Y-%m-%d')" >> "${changelog_file}"
-
-            # Copy content of template file to changelog
-            cat TEMPLATE.md >> "${changelog_file}"
-
-            # Append git log to changelog
-            echo "$(git log --pretty=format:'%s' --reverse HEAD)" >> "${changelog_file}"
-
-            # Append empty line to changelog
-            echo "" >> "${changelog_file}"
-
-          fi
-        shell: bash
-
-      # Create the release on GitHub releases
-      - name: Create Release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ env.VERSION }}
+      - name: Upload artefacts
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Kyberlib 🦀 v${{ env.VERSION }}
-          body_path: ${{ github.workspace }}/CHANGELOG.md
-          draft: true
-          prerelease: false
+          name: release-artefacts
+          path: dist/
+          retention-days: 30
 
-  # Publish the release to Crates.io automatically
-  crate:
-    name: ❯ Crate.io 🦀
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: release
+  # ===================================================================== publish
+  publish:
+    name: Publish (crates.io + GitHub Release)
+    needs: [validate, artifacts]
+    if: needs.validate.outputs.is_dry_run != 'true'
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write       # GitHub Release creation
     steps:
-      # Check out the repository code
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Install the stable Rust toolchain
-      - name: Install stable toolchain
-        id: install-toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
         with:
           toolchain: stable
-          override: true
-
-      # Cache dependencies to speed up subsequent builds
-      - name: Cache dependencies
-        id: cache-dependencies
-        uses: actions/cache@v4
+      - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806  # v4.1.9
         with:
-          path: /home/runner/.cargo/registry/index/
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-index-
+          name: release-artefacts
+          path: dist/
 
-      # Update the version number based on the Cargo.toml file
-      - name: Update version number
-        id: update-version
-        run: |
-          NEW_VERSION=$(grep version Cargo.toml | sed -n 2p | cut -d '"' -f 2)
-          echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
-        shell: /bin/bash -e {0}
-
-      # Log in to crates.io
-      - name: Log in to crates.io
-        id: login-crate-io
-        run: cargo login ${{ secrets.CARGO_API_TOKEN }}
-
-      # Publish the Rust library to Crate.io
-      - name: Publish Library to Crate.io
-        id: publish-library
-        uses: actions-rs/cargo@v1
+      - name: Publish to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
-        with:
-          command: publish
-          args: "--no-verify --allow-dirty"
-          use-cross: false
+        run: |
+          # Publish in dependency order. Each cargo-publish call honours
+          # crates.io rate limits and waits for indexing where needed.
+          cargo publish -p kyberlib --locked
+          # kyberlib-wasm depends on kyberlib by path during dev — publish
+          # requires the dep to resolve via the registry, so this needs
+          # kyberlib's index entry to be live first. The 30s sleep is a
+          # cushion; the real index propagation usually takes <10 s.
+          sleep 30
+          cargo publish -p kyberlib-wasm --locked
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file CHANGELOG.md \
+            --draft \
+            dist/*

@@ -1,0 +1,87 @@
+[package]
+name = "kyberlib-wasm"
+description = "WebAssembly bindings for kyberlib — FIPS 203 ML-KEM (CRYSTALS-Kyber) in the browser via wasm-bindgen."
+documentation = "https://docs.rs/kyberlib-wasm"
+readme = "README.md"
+categories = ["algorithms", "cryptography", "wasm"]
+keywords = ["ml-kem", "kyber", "post-quantum", "wasm", "wasm-bindgen"]
+
+authors.workspace      = true
+edition.workspace      = true
+homepage.workspace     = true
+license.workspace      = true
+repository.workspace   = true
+rust-version.workspace = true
+version.workspace      = true
+
+include = [
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/Cargo.toml",
+    "/README.md",
+    "/src/**",
+    "/tests/*.rs",
+]
+
+[lib]
+# wasm-bindgen requires cdylib for the JS-side artefact.
+crate-type = ["cdylib", "rlib"]
+name       = "kyberlib_wasm"
+path       = "src/lib.rs"
+
+[dependencies]
+# See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
+kyberlib     = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
+rand_core    = { workspace = true }
+rand         = { workspace = true, features = ["getrandom"] }
+wasm-bindgen = { workspace = true }
+
+# On `wasm32-unknown-unknown`, the transitive `getrandom` dep needs
+# its `js` feature opt-in to route through `crypto.getRandomValues`
+# (browsers) and `crypto.randomBytes` (Node.js). Without this,
+# `getrandom 0.2.x` `compile_error!`s on the wasm target. See
+# https://docs.rs/getrandom/#webassembly-support.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+
+# `criterion` is only compiled for native targets — it pulls `rayon`
+# which `compile_error!`s on `wasm32-unknown-unknown` ("Rayon cannot
+# be used when targeting wasi32"). The bench harness in `benches/api.rs`
+# runs natively to measure the marshalling overhead vs `kyberlib`
+# core; the browser-side WASM cost is measured separately in the
+# `wasm-pack test` CI job, not here.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name    = "api"
+harness = false   # criterion provides its own main via `criterion_main!`
+
+[features]
+default = []
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+default-target = "wasm32-unknown-unknown"
+targets        = ["wasm32-unknown-unknown"]
+rustdoc-args   = ["--cfg", "docsrs"]
+
+# `wasm-pack` bundles its own `wasm-opt` (currently version_116).
+# Rust's stable codegen emits `memory.fill` / `memory.copy` ops
+# from the "bulk memory" wasm proposal — stable since 2020 but
+# off-by-default in the bundled `wasm-opt`. Pass the flag through
+# explicitly so the release-target build doesn't error with
+# "unexpected false: Bulk memory operations require bulk memory".
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O3", "--enable-bulk-memory"]
+
+# Same flag for the dev profile, so local `wasm-pack build` works
+# without surprises during iteration.
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = ["-O0", "--enable-bulk-memory"]

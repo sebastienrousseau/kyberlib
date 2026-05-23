@@ -1,0 +1,7 @@
+---
+source: crates/kyberlib/tests/test_snapshots.rs
+assertion_line: 79
+expression: "format!(\"{}\", KyberLibError::InvalidKey)"
+snapshot_kind: text
+---
+The secret and public key given does not match.

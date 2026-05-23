@@ -1,0 +1,7 @@
+---
+source: crates/kyberlib/tests/test_snapshots.rs
+assertion_line: 87
+expression: "format!(\"{}\", KyberLibError::Decapsulation)"
+snapshot_kind: text
+---
+Decapsulation Failure, unable to obtain shared secret from ciphertext

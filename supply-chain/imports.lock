@@ -1,0 +1,7 @@
+# cargo-vet lock file. Auto-managed by `cargo vet`. Hand edits will be
+# overwritten the next time `cargo vet check` runs against fresh imports.
+#
+# Empty at the v0.0.7 cut. Will be populated on first `cargo vet
+# --locked` run after the bootstrap exemption list is in place (#165).
+
+cargo-vet-version = "0.10"

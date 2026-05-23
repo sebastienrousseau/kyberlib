@@ -1,0 +1,84 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "crates/**/*.rs"
+      - "crates/**/Cargo.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build rustdoc (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+
+      - name: cargo doc --no-deps --workspace (strict)
+        env:
+          RUSTDOCFLAGS: >-
+            -D warnings
+            -D rustdoc::broken_intra_doc_links
+            -D rustdoc::private_intra_doc_links
+            -D rustdoc::invalid_codeblock_attributes
+            -D rustdoc::invalid_html_tags
+            -D rustdoc::bare_urls
+        run: cargo doc --no-deps --workspace
+
+      - name: Inject root index.html redirect to kyberlib/
+        run: |
+          cat > target/doc/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>kyberlib — FIPS 203 ML-KEM for Rust</title>
+            <meta http-equiv="refresh" content="0; url=kyberlib/index.html">
+            <link rel="canonical" href="kyberlib/index.html">
+          </head>
+          <body>
+            <p>Redirecting to <a href="kyberlib/index.html">the kyberlib crate documentation</a>.</p>
+          </body>
+          </html>
+          EOF
+
+      - name: Disable Jekyll on Pages (preserve _* dirs)
+        run: touch target/doc/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: target/doc
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

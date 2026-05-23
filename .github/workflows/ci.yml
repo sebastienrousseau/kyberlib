@@ -1,0 +1,378 @@
+# CI for kyberlib
+#
+# Per the v0.0.7 enterprise-upgrade plan (issue #141), the reusable workflow
+# below is pinned to a commit SHA (not @main) — pinning to a moving branch
+# is a supply-chain risk because the upstream branch could be hijacked.
+# When bumping, update both the SHA and the comment date.
+#
+# The local jobs (cargo-deny, semver-checks, machete, reuse, msrv, no_std,
+# vendor-build) compensate for what the reusable workflow does not yet cover.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+  pull_request:
+    branches:
+      - main
+      - "feat/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # No global `RUSTFLAGS: -D warnings` here — that flag applies to
+  # transitive dependency compilation too, so a newer-rustc warning in
+  # any upstream crate breaks our CI for an unrelated reason. Workspace
+  # code's strictness is enforced via `[workspace.lints]` in Cargo.toml
+  # (which scopes the deny to OUR crates only); per-job `cargo clippy
+  # -- -D warnings` invocations cover the lint surface on top.
+
+jobs:
+  # ----------------------------------------------------------------------- lint
+  # Local clippy + fmt gate. The reusable workflow (below) also runs
+  # these, but we keep an explicit in-repo copy so the lint policy lives
+  # next to the code that has to satisfy it — readers don't need to
+  # cross-reference an external pipeline.
+  lint:
+    name: Lint (fmt + clippy strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: cargo fmt --all -- --check
+        run: cargo fmt --all -- --check
+      - name: cargo clippy --workspace --all-targets -- -D warnings
+        # `pedantic`, `nursery`, `cargo` cohorts are enabled at `warn`
+        # in `[workspace.lints.clippy]` — keeping them out of `-D warnings`
+        # for now so the gate doesn't flap on subjective lints. Re-evaluate
+        # at v0.1 when the pedantic backlog is paid down.
+        #
+        # No `--all-features`: enabling `avx2` + `nasm` from CI's
+        # default x86_64 ubuntu-latest needs a NASM toolchain that
+        # isn't preinstalled; the AVX2 + NASM features have documented
+        # pre-existing compile issues on non-x86 hosts. Release-pipeline
+        # validation (release.yml) gates the same way — default
+        # features only, since that's the `cargo install kyberlib`
+        # surface.
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # ----------------------------------------------------------------- test-matrix
+  #
+  # The previous version of this file delegated parts of the CI surface
+  # to a reusable workflow at sebastienrousseau/pipelines. That workflow
+  # hard-codes `cargo test --workspace --all-features`, which triggers
+  # the kyberlib build-script's NASM panic on every runner without
+  # NASM preinstalled (i.e. every default GitHub runner). Since the
+  # in-repo jobs below already cover fmt / clippy / tests / coverage /
+  # cargo-deny / docs / benches, the reusable workflow added no
+  # capability — only failure modes. Removed entirely.
+  test-matrix:
+    name: Test (${{ matrix.os }}, ${{ matrix.toolchain }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        toolchain: [stable]
+        include:
+          - os: ubuntu-latest
+            toolchain: nightly
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248  # stable / nightly
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+      # `--locked` ensures we test the exact graph committed in
+      # `Cargo.lock`. The workspace ships a cdylib (kyberlib-wasm) so the
+      # lock file is part of the published surface — a CI run that
+      # silently resolved a different graph would mask a publish-time
+      # break.
+      # No `--all-features` — see the comment on the `lint` job above.
+      # AVX2 + NASM features need a NASM toolchain not preinstalled on
+      # the default runners.
+      - name: Test (default features)
+        run: cargo test --locked
+      - name: Test (no default features + kyber768)
+        run: cargo test --locked --lib --no-default-features --features kyber768
+
+  msrv:
+    name: MSRV (Rust 1.74)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: '1.74.0'
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      # MSRV gate: default features only. AVX2/NASM under --all-features
+      # need toolchain pieces beyond what 1.74 stock provides; documented
+      # pre-existing constraint, not gating for MSRV.
+      #
+      # The committed Cargo.lock is version 4 (cargo 1.78+ format) — that's
+      # what newer cargo versions write by default. Cargo 1.74 only reads
+      # up to version 3, so we regenerate the lockfile in 1.74-compatible
+      # form first. This validates that the SOURCE still builds on 1.74;
+      # the v4 lockfile in the tree continues to drive the rest of CI.
+      - name: Regenerate lockfile in 1.74-compatible format
+        # The committed Cargo.lock is v4 (1.78+ format); regenerate
+        # for 1.74. Pin wasm-bindgen / web-sys / js-sys to versions
+        # that still build on 1.74 — newer wasm-bindgen (0.2.121+)
+        # requires 1.77+, but we only care about kyberlib's MSRV here,
+        # not kyberlib-wasm's (which is a satellite crate with its own
+        # MSRV expectations downstream of wasm-bindgen).
+        run: |
+          cargo +1.74.0 generate-lockfile
+          # Constrain transitive deps that ratcheted their MSRV past 1.74.
+          cargo +1.74.0 update -p wasm-bindgen --precise 0.2.100 || true
+          cargo +1.74.0 update -p web-sys --precise 0.3.77 || true
+          cargo +1.74.0 update -p js-sys --precise 0.3.77 || true
+      - name: Check (kyberlib core only)
+        # MSRV applies to the safe core surface (`kyberlib`). The
+        # satellite crates (`kyberlib-wasm`, etc.) have their own
+        # MSRV implied by their wasm-bindgen dependency floor.
+        run: cargo +1.74.0 check -p kyberlib
+
+  no-std:
+    name: no_std build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Check no_std (lib only)
+        run: cargo check --lib --no-default-features --features kyber768
+
+  cargo-deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      # v2.0.18 bundles cargo-deny ≥ 0.19.6 which parses CVSS 4.0
+      # advisories correctly. Earlier versions failed to load the
+      # rustsec/advisory-db at all because of RUSTSEC-2026-0076.md
+      # (libcrux-ml-dsa) which uses CVSS 4.0. PR #805 in
+      # EmbarkStudios/cargo-deny added the parser support
+      # (merged 2025-11-23, shipped in 0.19.6).
+      - uses: EmbarkStudios/cargo-deny-action@0105f7c440bc8084c17cad47fe92e63049519458  # v2.0.18
+        with:
+          command: check
+          # `--all-features` here is for advisory/license graph
+          # traversal, not compilation — safe even though the AVX2
+          # feature can't be built on the runner.
+          arguments: --all-features
+
+  semver-checks:
+    name: cargo-semver-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.8
+        with:
+          # Restrict to the published `kyberlib` crate. The satellite
+          # crates (kyberlib-asm, kyberlib-hybrid, kyberlib-pkcs8) all
+          # carry `publish = false`, and `cargo-semver-checks` fails on
+          # them with `failed to retrieve index of crate versions from
+          # registry` because crates.io has no record. The published
+          # crate (kyberlib 0.0.6) IS the API surface that matters for
+          # SemVer.
+          package: kyberlib
+          # Only inspect default features — semver-checks otherwise
+          # tries to build rustdoc for every feature group, which
+          # triggers the AVX2/NASM build-script panic on the default
+          # runners (see lint job comment).
+          feature-group: only-explicit-features
+          features: kyber768,std
+
+  machete:
+    name: cargo-machete (unused deps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: bnjbvr/cargo-machete@b54422fa3319b3cac180f6030b663fe57af51635  # v0.7.0
+
+  vendor-build:
+    name: Vendor + offline build (air-gap simulation)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: cargo vendor
+        run: |
+          mkdir -p .cargo
+          cargo vendor --versioned-dirs vendor > .cargo/config.toml.vendor
+          cat >> .cargo/config.toml <<'EOF'
+          [source.crates-io]
+          replace-with = "vendored-sources"
+
+          [source.vendored-sources]
+          directory = "vendor"
+          EOF
+      - name: Offline build
+        # Default features only — AVX2/NASM excluded for the same
+        # reason as the rest of CI.
+        run: cargo build --offline --locked --workspace
+
+  kyberslash-guard:
+    name: KyberSlash regression guard (ADR 0003)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - run: bash scripts/kyberslash-guard.sh
+
+  benches-compile:
+    name: Benchmarks (compile-only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      # Benches are gated on `--features benchmarking` and don't run on
+      # PR (timing-sensitive on shared runners — see scripts/dudect.sh
+      # for the CT-leak story). This job only compiles them so they
+      # can't bit-rot silently.
+      - name: cargo bench --no-run --features benchmarking
+        run: cargo bench -p kyberlib --no-run --features benchmarking
+
+  rustdoc:
+    name: rustdoc (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: cargo doc (strict)
+        env:
+          RUSTDOCFLAGS: >-
+            -D warnings
+            -D rustdoc::broken_intra_doc_links
+            -D rustdoc::private_intra_doc_links
+            -D rustdoc::invalid_codeblock_attributes
+            -D rustdoc::invalid_html_tags
+            -D rustdoc::bare_urls
+        # Default features only — see CI lint job's rationale.
+        run: cargo doc --no-deps --workspace
+
+  miri-focused:
+    name: Miri (focused, per-PR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: nightly
+          components: miri
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - run: bash scripts/miri.sh focused
+
+  # --------------------------------------------------------------- wasm-pack
+  # `kyberlib-wasm` exposes the KEM API to JS via `wasm-bindgen`. The
+  # `tests/integration.rs` suite is gated on `#[cfg(target_arch =
+  # "wasm32")]` and only runs under a real wasm-bindgen runtime —
+  # `cargo test` on a native target compiles it to a no-op. This job
+  # runs the actual wasm32 surface against headless Firefox via
+  # `wasm-pack test`.
+  wasm-pack:
+    name: wasm-pack test (kyberlib-wasm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Install wasm-pack
+        # Pin a known-good release. wasm-pack is a tiny binary; no
+        # need to build from source.
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: wasm-pack test --headless --firefox
+        # Firefox ships in `ubuntu-latest` runners by default; Chrome
+        # requires a separate setup step. Firefox is enough — the
+        # wasm32 surface is browser-agnostic at the WebAssembly
+        # spec level.
+        run: wasm-pack test --headless --firefox crates/kyberlib-wasm
+      - name: wasm-pack build smoke (release, --target web)
+        # Final sanity check that the release-target build produces
+        # a usable `pkg/` directory — what npm consumers get.
+        run: wasm-pack build --release --target web crates/kyberlib-wasm
+
+  # ----------------------------------------------------------------- coverage
+  # cargo-llvm-cov gives line + branch coverage in a single
+  # instrumented build pass. Faster + more accurate than tarpaulin
+  # for #[cfg(feature = ...)]-heavy code. The threshold gate fails
+  # the PR when line coverage drops below the configured floor.
+  coverage:
+    name: Coverage (llvm-cov, gate >=80%)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COVERAGE_THRESHOLD: 80
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: stable
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@213ccc1a076163c093f914550b94feb90fab916d  # v2 (HEAD as of 2026-05-20)
+        with:
+          tool: cargo-llvm-cov
+      - name: Run coverage gate
+        run: bash scripts/coverage.sh --ci
+      - name: Upload to codecov
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
+        if: always()
+        with:
+          files: target/coverage/lcov.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  fuzz-smoke:
+    name: Fuzz smoke (10s)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true   # Soft gate until corpus is seeded; tighten later.
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: 10-second smoke against fuzz_decap
+        working-directory: fuzz
+        run: cargo +nightly fuzz run fuzz_decap -- -runs=0 -max_total_time=10

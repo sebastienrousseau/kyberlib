@@ -1,0 +1,32 @@
+# cargo-about config for kyberlib.
+#
+# `cargo about generate` uses this to produce a license-attribution
+# NOTICE file for the workspace. Pair with `about.hbs` (Handlebars
+# template) to control formatting. Run from the repo root:
+#
+#   cargo install cargo-about
+#   cargo about generate about.hbs > NOTICE.html
+#
+# CI does not yet run this; phase 6 (#173) will add it to the release
+# pipeline so each tagged release ships with a NOTICE file alongside
+# the SBOM / CBOM / cosign signature.
+
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "0BSD",
+    "CC0-1.0",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+    "MPL-2.0",
+]
+
+ignore-build-dependencies = false
+ignore-dev-dependencies   = true
+filter-noassertion        = true

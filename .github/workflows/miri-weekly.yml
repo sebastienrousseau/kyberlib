@@ -1,0 +1,39 @@
+name: miri-weekly
+
+# Full Miri sweep (incl. big-endian cross-target) — too slow for
+# per-PR gating, so we run it on a weekly schedule against `main`.
+# The per-PR focused subset still lives in ci.yml::miri-focused.
+#
+# Schedule: every Monday 03:17 UTC (off-peak; avoids the top-of-hour
+# spike on GitHub-hosted runners).
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  miri-full:
+    name: Miri (full sweep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - uses: dtolnay/rust-toolchain@be73d7920c329f220ce78e0234b8f96b7ae60248
+        with:
+          toolchain: nightly
+          components: miri
+
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+
+      - name: bash scripts/miri.sh full
+        run: bash scripts/miri.sh full
+
+      - name: Post-run note on miri.sh exit
+        if: failure()
+        run: |
+          echo "::warning::Weekly Miri sweep failed. Investigate provenance / UB / cross-endian regressions on \`main\`."

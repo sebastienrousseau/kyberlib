@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: Apache-2.0 OR MIT
+
+  AES-GCM-over-ML-KEM hybrid encryption example.
+
+  Walks through the canonical browser-side pattern:
+
+    1. Sender encapsulates a fresh 32-byte shared secret against the
+       receiver's ML-KEM-768 public key (kyberlib-wasm).
+    2. Sender uses that 32-byte secret as the key for AES-256-GCM
+       (WebCrypto's `crypto.subtle`) and encrypts a plaintext.
+    3. Receiver decapsulates the ML-KEM ciphertext to recover the
+       same 32-byte secret, then uses it to decrypt the AES-GCM
+       payload.
+
+  ML-KEM is a KEM — a key encapsulation mechanism — not a cipher.
+  Pairing it with an authenticated cipher like AES-GCM is the
+  intended deployment pattern.
+
+  Build with: wasm-pack build crates/kyberlib-wasm --release --target web
+  Serve the directory and open this page in a modern browser.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>kyberlib-wasm + WebCrypto AES-GCM example</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, monospace;
+           padding: 1.5rem; max-width: 720px; line-height: 1.4; }
+    pre  { background: #f4f4f4; padding: 1rem; border-radius: 6px;
+           overflow-x: auto; }
+    .ok  { color: #2a7d2a; font-weight: 600; }
+    .err { color: #b00020; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>kyberlib-wasm + WebCrypto AES-GCM</h1>
+  <p>
+    The 32-byte shared secret produced by FIPS 203 ML-KEM feeds
+    directly into AES-256-GCM as a key. This page demonstrates the
+    end-to-end pattern.
+  </p>
+  <pre id="log">Loading…</pre>
+
+  <script type="module">
+    import init, { keypair, encapsulate, decapsulate }
+      from '../pkg/kyberlib_wasm.js';
+
+    const log = document.getElementById('log');
+    const append = (line, cls) => {
+      const span = document.createElement('span');
+      if (cls) span.className = cls;
+      span.textContent = line + '\n';
+      log.appendChild(span);
+      console.log(line);
+    };
+
+    /**
+     * Sender side: encapsulates a shared secret against
+     * `recipientPubkey` and uses it as the AES-GCM key to encrypt
+     * `plaintext`. Returns the ML-KEM ciphertext, the AES nonce,
+     * and the encrypted bytes.
+     */
+    async function encryptForRecipient(recipientPubkey, plaintext) {
+      const { ciphertext, sharedSecret } = encapsulate(recipientPubkey);
+
+      // Import the 32-byte ML-KEM shared secret as a non-extractable
+      // AES-256-GCM key. Non-extractable means JS can't pull the
+      // bytes back out — only the WebCrypto runtime sees them.
+      const key = await crypto.subtle.importKey(
+        'raw', sharedSecret,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt']
+      );
+
+      // A 12-byte nonce is standard for AES-GCM. NEVER reuse a
+      // nonce under the same key — either source it fresh from
+      // `crypto.getRandomValues` (here) or derive deterministically
+      // via a counter.
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+
+      const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        new TextEncoder().encode(plaintext)
+      );
+
+      return {
+        mlKemCiphertext: ciphertext,
+        iv,
+        encrypted: new Uint8Array(encrypted),
+      };
+    }
+
+    /**
+     * Receiver side: decapsulates the ML-KEM ciphertext with
+     * `secretKey` to recover the AES key, then decrypts.
+     */
+    async function decryptForRecipient(
+      mlKemCiphertext, iv, encrypted, secretKey,
+    ) {
+      const sharedSecret = decapsulate(mlKemCiphertext, secretKey);
+
+      const key = await crypto.subtle.importKey(
+        'raw', sharedSecret,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+
+      const plaintext = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encrypted
+      );
+
+      return new TextDecoder().decode(plaintext);
+    }
+
+    try {
+      await init();
+      log.textContent = '';
+      append('WASM module loaded.');
+
+      // (1) Receiver generates a long-lived (or per-session) ML-KEM
+      //     key pair. The pubkey is published; the secret stays
+      //     local.
+      const recipientKeys = keypair();
+      append('Generated recipient ML-KEM-768 key pair.');
+
+      // (2) Sender encrypts a message for the recipient.
+      const message = 'Hello, post-quantum world!';
+      const sent = await encryptForRecipient(
+        recipientKeys.pubkey, message,
+      );
+      append(`Encrypted ${sent.encrypted.length} bytes (incl. \
+GCM tag); ML-KEM CT = ${sent.mlKemCiphertext.length} bytes.`);
+
+      // (3) Recipient decrypts. In a real protocol you'd transmit
+      //     `mlKemCiphertext`, `iv`, and `encrypted` over the wire;
+      //     this demo just hands them across in-memory.
+      const recovered = await decryptForRecipient(
+        sent.mlKemCiphertext, sent.iv, sent.encrypted,
+        recipientKeys.secret,
+      );
+
+      append('');
+      if (recovered === message) {
+        append(`Recovered plaintext: ${recovered}`, 'ok');
+      } else {
+        append(`Recovered ${recovered} (expected ${message})`, 'err');
+      }
+
+      recipientKeys.free();
+    } catch (err) {
+      append('error: ' + err.message, 'err');
+      console.error(err);
+    }
+  </script>
+</body>
+</html>
