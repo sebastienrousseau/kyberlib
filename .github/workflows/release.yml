@@ -264,7 +264,7 @@ jobs:
 
       - name: Publish to crates.io
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
         run: |
           # Publish in dependency order. Each cargo-publish call honours
           # crates.io rate limits and waits for indexing where needed.

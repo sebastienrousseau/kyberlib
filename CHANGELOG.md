@@ -10,10 +10,10 @@ versioning and support policy.
 
 ## [Unreleased]
 
-Tracking the v0.0.7 enterprise upgrade — see issue [#126][i126] for the
-seven-phase roadmap and per-task issues `#127`–`#179`.
+(Work for the next milestones lives on `feat/v0.0.8-byoe` and
+`feat/v0.0.9-fips` per ADRs 0005 and 0006.)
 
-## [0.0.7] — Unreleased
+## [0.0.7] — 2026-05-22
 
 This release retargets kyberlib for enterprise consumption: FIPS 203
 conformance, RustCrypto-style trait API, multi-crate workspace, supply-chain
