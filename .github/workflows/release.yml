@@ -113,14 +113,20 @@ jobs:
             echo "::error::Tag $EXPECTED does not match workspace version $actual"
             exit 1
           fi
-          # Sanity-check: every publishable crate uses `.workspace = true`.
+          # Sanity-check: every PUBLISHABLE crate uses `.workspace = true`.
+          # Skip crates marked `publish = false` — they don't need to
+          # track the workspace version (e.g. `xtask`, skeleton sidecars).
           for manifest in crates/*/Cargo.toml; do
+            if grep -qE '^publish\s*=\s*false' "$manifest"; then
+              echo "skip (publish=false): $manifest"
+              continue
+            fi
             if grep -qE '^version\s*=' "$manifest"; then
-              echo "::error::$manifest declares its own version literal; expected `version.workspace = true`."
+              echo "::error::$manifest declares its own version literal; expected version.workspace = true."
               exit 1
             fi
           done
-          echo "OK — workspace version $actual matches every member."
+          echo "OK — workspace version $actual matches every publishable member."
 
       # The release-pipeline validation gates run against each
       # workspace member's default features — same surface as
