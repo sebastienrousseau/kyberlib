@@ -56,7 +56,7 @@ serde_json       = { version = "1.0",   default-features = false, features = ["a
 x25519-dalek     = { version = "2.0",   default-features = false, features = ["zeroize", "static_secrets"] }
 # Property-based / snapshot testing (dev-only).
 proptest         = { version = "1.5" }
-rand_chacha      = { version = "0.3" }
+rand_chacha      = { version = "0.10" }
 insta            = { version = "1.40", features = ["yaml"] }
 # Welch's t-test runner for constant-time analysis (eprint 2016/1123).
 # `default-features = false` keeps the ctgrind backend off (we use the

@@ -770,7 +770,7 @@ dependencies = [
  "nasm-rs",
  "proptest",
  "rand 0.8.6",
- "rand_chacha 0.3.1",
+ "rand_chacha 0.10.0",
  "rand_core 0.6.4",
  "serde",
  "serde_json",
