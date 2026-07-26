@@ -123,38 +123,24 @@ jobs:
       # MSRV gate: default features only. AVX2/NASM under --all-features
       # need toolchain pieces beyond what 1.74 stock provides; documented
       # pre-existing constraint, not gating for MSRV.
-      #
-      # The committed Cargo.lock is version 4 (cargo 1.78+ format) — that's
-      # what newer cargo versions write by default. Cargo 1.74 only reads
-      # up to version 3, so we regenerate the lockfile in 1.74-compatible
-      # form first. This validates that the SOURCE still builds on 1.74;
-      # the v4 lockfile in the tree continues to drive the rest of CI.
-      - name: Regenerate lockfile in 1.74-compatible format
-        # The committed Cargo.lock is v4 (1.78+ format); regenerate
-        # for 1.74. Pin wasm-bindgen / web-sys / js-sys to versions
-        # that still build on 1.74 — newer wasm-bindgen (0.2.121+)
-        # requires 1.77+, but we only care about kyberlib's MSRV here,
-        # not kyberlib-wasm's (which is a satellite crate with its own
-        # MSRV expectations downstream of wasm-bindgen).
+      - name: Check (kyberlib core on 1.74)
+        # MSRV applies to the published core surface (`kyberlib`). The
+        # satellite crates (kyberlib-wasm, etc.) track modern wasm-bindgen /
+        # edition-2024 deps and carry their own MSRV downstream — out of
+        # scope here.
+        #
+        # The committed Cargo.lock is v4 (cargo 1.78+ format); cargo 1.74
+        # only reads up to v3. Its pinned versions are already MSRV-safe
+        # (e.g. zeroize_derive 1.4.2, edition 2021). Newer transitive
+        # crates in the lock (wasm-bindgen 0.2.12x, edition-2024
+        # zeroize_derive 1.5.0) are only reachable from the satellites and
+        # are never *built* by `check -p kyberlib`, so we convert the lock
+        # format in place — WITHOUT re-resolving to newest, which would pull
+        # those edition-2024 manifests that 1.74 cannot parse. `--locked`
+        # guarantees the exact committed graph is what gets validated.
         run: |
-          # The wasm satellite (publish=false) pulls wasm-bindgen-test,
-          # which hard-pins js-sys/wasm-bindgen to their newest coupled
-          # release (e.g. js-sys =0.3.103). That collides with criterion's
-          # web-sys floor under 1.74 resolution and makes the precise pins
-          # below unsatisfiable. kyberlib core does NOT depend on
-          # wasm-bindgen, so exclude the satellite for the MSRV check; its
-          # own MSRV lives downstream of wasm-bindgen and is out of scope.
-          perl -0pi -e 's{^\s*"crates/kyberlib-wasm",\n}{}m' Cargo.toml
-          cargo +1.74.0 generate-lockfile
-          # Constrain transitive deps that ratcheted their MSRV past 1.74.
-          cargo +1.74.0 update -p wasm-bindgen --precise 0.2.100 || true
-          cargo +1.74.0 update -p web-sys --precise 0.3.77 || true
-          cargo +1.74.0 update -p js-sys --precise 0.3.77 || true
-      - name: Check (kyberlib core only)
-        # MSRV applies to the safe core surface (`kyberlib`). The
-        # satellite crates (`kyberlib-wasm`, etc.) have their own
-        # MSRV implied by their wasm-bindgen dependency floor.
-        run: cargo +1.74.0 check -p kyberlib
+          perl -0pi -e 's/^version = 4$/version = 3/m' Cargo.lock
+          cargo +1.74.0 check -p kyberlib --locked
 
   no-std:
     name: no_std build
