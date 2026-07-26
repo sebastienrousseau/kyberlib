@@ -42,7 +42,7 @@ secp384r1    = []
 # the workspace build uses — `cargo deny`'s wildcards check rejects
 # unversioned path deps, and `cargo publish` requires the version
 # stamp to be present on the manifest.
-kyberlib = { path = "../kyberlib", version = "0.0.7", default-features = false, features = ["kyber768"] }
+kyberlib = { path = "../kyberlib", version = "0.0.8", default-features = false, features = ["kyber768"] }
 # X25519 classical KEM. Activated only when the `x25519` feature is on.
 x25519-dalek = { workspace = true, optional = true }
 rand_core    = { workspace = true }

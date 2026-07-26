@@ -62,8 +62,8 @@ fn shared_secret_partial_eq_is_consistent() {
             .unwrap();
     let ss_b = client.decapsulate(&server_share).unwrap();
 
-    assert!(ss_a == ss_b);
-    assert!(ss_a == ss_a.clone());
+    assert_eq!(ss_a, ss_b);
+    assert_eq!(ss_a, ss_a.clone());
 }
 
 #[test]

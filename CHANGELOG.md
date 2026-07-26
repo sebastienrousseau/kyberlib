@@ -8,7 +8,7 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
-## [Unreleased]
+## [0.0.8] — 2026-07-24
 
 (Work for the next milestones lives on `feat/v0.0.8-byoe` and
 `feat/v0.0.9-fips` per ADRs 0005 and 0006.)

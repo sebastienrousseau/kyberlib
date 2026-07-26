@@ -69,7 +69,7 @@
 
 ```toml
 [dependencies]
-kyberlib = "0.0.7"
+kyberlib = "0.0.8"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.74 (the declared MSRV).
@@ -94,7 +94,7 @@ satellite crates each have their own channels (see
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.7", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.8", default-features = false, features = ["kyber768"] }
 ```
 
 Requires `alloc` (because of `Vec` buffers in the rejection sampler).
@@ -164,7 +164,7 @@ application needs.
 ```toml
 # Example: production server with x86_64 SIMD acceleration
 [dependencies]
-kyberlib = { version = "0.0.7", features = ["avx2"] }
+kyberlib = { version = "0.0.8", features = ["avx2"] }
 ```
 
 ---
@@ -262,7 +262,7 @@ migration paths:
 -[dependencies]
 -kyberlib = "0.0.6"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.8"
 ```
 
 ```diff
@@ -286,7 +286,7 @@ with every other FIPS 203 endpoint.
 -[dependencies]
 -pqcrypto-kyber = "0.8"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.8"
 ```
 
 ```diff
@@ -311,7 +311,7 @@ key material.
 -[dependencies]
 -ml-kem = "0.3"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.8"
 ```
 
 ```diff
@@ -335,7 +335,7 @@ differences listed in [`doc/COMPARISON.md`](doc/COMPARISON.md).
 -[dependencies]
 -libcrux-ml-kem = "0.0"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.8"
 ```
 
 Function-name table:
@@ -360,7 +360,7 @@ formal-verification provenance.
 -[dependencies]
 -oqs = "0.10"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.8"
 ```
 
 ```diff
