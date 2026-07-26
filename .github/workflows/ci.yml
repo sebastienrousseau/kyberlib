@@ -137,6 +137,14 @@ jobs:
         # not kyberlib-wasm's (which is a satellite crate with its own
         # MSRV expectations downstream of wasm-bindgen).
         run: |
+          # The wasm satellite (publish=false) pulls wasm-bindgen-test,
+          # which hard-pins js-sys/wasm-bindgen to their newest coupled
+          # release (e.g. js-sys =0.3.103). That collides with criterion's
+          # web-sys floor under 1.74 resolution and makes the precise pins
+          # below unsatisfiable. kyberlib core does NOT depend on
+          # wasm-bindgen, so exclude the satellite for the MSRV check; its
+          # own MSRV lives downstream of wasm-bindgen and is out of scope.
+          perl -0pi -e 's{^\s*"crates/kyberlib-wasm",\n}{}m' Cargo.toml
           cargo +1.74.0 generate-lockfile
           # Constrain transitive deps that ratcheted their MSRV past 1.74.
           cargo +1.74.0 update -p wasm-bindgen --precise 0.2.100 || true

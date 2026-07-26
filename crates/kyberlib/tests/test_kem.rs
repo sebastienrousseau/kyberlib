@@ -27,7 +27,7 @@ fn keypair_encap_decap_invalid_ciphertext() {
     let keys = keypair(&mut rng).unwrap();
     let (mut ct, ss) = encapsulate(&keys.public, &mut rng).unwrap();
     ct[..4].copy_from_slice(&[255u8; 4]);
-    assert!(decapsulate(&ct, &keys.secret).unwrap() != ss);
+    assert_ne!(decapsulate(&ct, &keys.secret).unwrap(), ss);
 }
 
 #[test]
