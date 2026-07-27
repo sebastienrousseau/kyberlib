@@ -53,7 +53,7 @@ serde_json       = { version = "1.0",   default-features = false, features = ["a
 # `default-features = false` keeps the dep no_std-friendly; the
 # downstream crate re-enables features it needs (e.g. zeroize via the
 # `static_secrets` feature for symmetric secret-key storage).
-x25519-dalek     = { version = "2.0",   default-features = false, features = ["zeroize", "static_secrets"] }
+x25519-dalek     = { version = "3.0",   default-features = false, features = ["zeroize", "static_secrets"] }
 # Property-based / snapshot testing (dev-only).
 proptest         = { version = "1.5" }
 rand_chacha      = { version = "0.3" }
