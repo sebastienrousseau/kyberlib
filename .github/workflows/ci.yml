@@ -165,7 +165,7 @@ jobs:
       # (libcrux-ml-dsa) which uses CVSS 4.0. PR #805 in
       # EmbarkStudios/cargo-deny added the parser support
       # (merged 2025-11-23, shipped in 0.19.6).
-      - uses: EmbarkStudios/cargo-deny-action@6c8f9facfa5047ec02d8485b6bf52b587b7777d1  # v2.0.18
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25  # v2.1.1
         with:
           command: check
           # `--all-features` here is for advisory/license graph
