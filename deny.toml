@@ -27,14 +27,6 @@ ignore = [
     # No security impact (rendering-layer crate). Re-evaluate when our
     # dev-deps' major versions drop the dependency.
     { id = "RUSTSEC-2021-0139", reason = "transitive dev-dep only; no runtime exposure" },
-    # atty unmaintained — same situation as ansi_term, replaced by
-    # std::io::IsTerminal since Rust 1.70 but transitive dev-deps still
-    # carry it.
-    { id = "RUSTSEC-2024-0375", reason = "transitive dev-dep only; no runtime exposure" },
-    # atty potential-unaligned-read (unsound) — Windows-only path; we
-    # don't ship Windows binaries from this crate, and the dev-dep path
-    # doesn't expose the vulnerable function.
-    { id = "RUSTSEC-2021-0145", reason = "Windows-only, transitive dev-dep only" },
 ]
 
 # ---------------------------------------------------------------------------- licenses

@@ -11,6 +11,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/atty-compat",
     "crates/kyberlib",
     "crates/kyberlib-asm",
     "crates/kyberlib-hybrid",
@@ -32,7 +33,7 @@ homepage     = "https://kyberlib.com"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/sebastienrousseau/kyberlib"
 rust-version = "1.74"
-version      = "0.0.8"
+version      = "0.0.9"
 
 # Shared dependency pins. Members inherit via `dep = { workspace = true }`.
 [workspace.dependencies]
@@ -62,6 +63,12 @@ insta            = { version = "1.40", features = ["yaml"] }
 # `default-features = false` keeps the ctgrind backend off (we use the
 # native counter-based timing).
 dudect-bencher   = { version = "0.7" }
+
+[patch.crates-io]
+# clap 2 (through dudect-bencher) only needs atty's three-stream API.
+# This MSRV-compatible shim implements that API with Rust's sound
+# `std::io::IsTerminal`, removing RUSTSEC-2021-0145 from the graph.
+atty = { path = "crates/atty-compat" }
 
 # Workspace-level lints. Members opt in with `[lints] workspace = true`.
 # Specific lints carry explicit positive priority so they override the
