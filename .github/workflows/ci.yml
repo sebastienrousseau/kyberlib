@@ -341,7 +341,7 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@18b1216eba7f8039b0f8d131d5473787f0edce68  # v2 (HEAD as of 2026-05-20)
+        uses: taiki-e/install-action@6a1bd70eaac3c8bdf093356838d7ee09fda951cf  # v2 (HEAD as of 2026-05-20)
         with:
           tool: cargo-llvm-cov
       - name: Run coverage gate
