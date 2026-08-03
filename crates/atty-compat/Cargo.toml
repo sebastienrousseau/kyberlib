@@ -1,0 +1,11 @@
+[package]
+name = "atty"
+version = "0.2.15"
+edition = "2021"
+rust-version = "1.74"
+license = "MIT"
+description = "Sound compatibility implementation of the atty 0.2 API"
+publish = false
+
+[lib]
+path = "src/lib.rs"

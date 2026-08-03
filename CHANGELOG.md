@@ -8,6 +8,20 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.9] - 2026-08-03
+
+### Security
+
+- Replaced the vulnerable `atty` transitive dependency used by the
+  dudect benchmark harness with an MSRV-compatible compatibility crate
+  backed by the sound standard-library `IsTerminal` API.
+- Pinned `zeroize_derive` to 1.4.2 so the declared Rust 1.74 MSRV can
+  parse and build the complete locked dependency graph.
+
+### Changed
+
+- Updated workspace and inter-crate versions to 0.0.9.
+
 ## [0.0.8] — 2026-07-24
 
 (Work for the next milestones lives on `feat/v0.0.8-byoe` and
