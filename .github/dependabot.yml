@@ -14,6 +14,16 @@ updates:
     labels: ["dependencies", "rust"]
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # zeroize 1.9 and zeroize_derive 1.5 ship as edition 2024,
+      # which needs Rust >= 1.85. This crate declares rust-version
+      # 1.74, so taking them makes the MSRV job fail at manifest
+      # parse time -- before compiling a single line. Unpin these
+      # when the MSRV is raised deliberately, not to clear a bump.
+      - dependency-name: "zeroize"
+        versions: [">=1.9"]
+      - dependency-name: "zeroize_derive"
+        versions: [">=1.5"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
