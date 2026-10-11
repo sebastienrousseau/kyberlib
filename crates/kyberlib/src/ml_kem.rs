@@ -39,9 +39,9 @@
 //!
 //! ## Migration from the v0.0.6 surface
 //!
-//! The free functions [`keypair`](crate::keypair),
-//! [`encapsulate`](crate::encapsulate), [`decapsulate`](crate::decapsulate)
-//! and the [`Keypair`](crate::Keypair) struct from the old surface are
+//! The free functions [`keypair`],
+//! [`encapsulate`], [`decapsulate`]
+//! and the [`Keypair`] struct from the old surface are
 //! retained as `#[deprecated]` shims for `MlKem768` only. They'll be
 //! removed in a future release.
 //!
@@ -56,6 +56,9 @@
 //!
 //! [acvp]: ../../tests/test_acvp.rs
 
+#[cfg(doc)]
+#[allow(deprecated)]
+use crate::{decapsulate, encapsulate, keypair, Keypair};
 use crate::{
     error::KyberLibError, KYBER_CIPHERTEXT_BYTES,
     KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,

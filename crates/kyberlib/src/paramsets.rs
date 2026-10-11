@@ -27,8 +27,8 @@
 //!
 //! ## Implementation strategy
 //!
-//! Three marker types [`MlKem512`](crate::MlKem512),
-//! [`MlKem768`](crate::MlKem768), [`MlKem1024`](crate::MlKem1024)
+//! Three marker types [`MlKem512`],
+//! [`MlKem768`], [`MlKem1024`]
 //! implement [`MlKemParams`]. Algorithm code that takes
 //! `P: MlKemParams` then has access to `P::K`, `P::ETA1`, etc. as
 //! `const` values and uses `P::PublicKeyBytes` as the concrete byte
@@ -39,7 +39,7 @@
 //! This module ships the **trait + impls** so downstream code can be
 //! written against the unified parameter surface, but the algorithm
 //! code in [`crate::reference`] has NOT yet been ported to consume
-//! the trait. The three [`KemCore`](crate::KemCore) impls remain
+//! the trait. The three [`KemCore`] impls remain
 //! Cargo-feature-gated for now. The mechanical port of the reference
 //! backend — `indcpa_keypair`, `indcpa_enc`, `indcpa_dec`,
 //! `crypto_kem_keypair`, `crypto_kem_enc`, `crypto_kem_dec`, plus the
@@ -59,6 +59,8 @@
 //!    `const fn` size calculations.
 
 use crate::error::KyberLibError;
+#[cfg(doc)]
+use crate::{KemCore, MlKem1024, MlKem512, MlKem768};
 use core::fmt::Debug;
 
 mod sealed {
@@ -74,8 +76,8 @@ mod sealed {
 /// needs to specialise to one of the three ML-KEM variants.
 ///
 /// Implemented by the zero-sized marker types
-/// [`MlKem512`](crate::MlKem512), [`MlKem768`](crate::MlKem768),
-/// [`MlKem1024`](crate::MlKem1024). Sealed: third-party crates cannot
+/// [`MlKem512`], [`MlKem768`],
+/// [`MlKem1024`]. Sealed: third-party crates cannot
 /// add new implementations.
 ///
 /// All associated constants come from FIPS 203 §6 ("Parameter sets")
