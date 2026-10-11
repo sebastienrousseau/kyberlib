@@ -8,6 +8,14 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.10] - 2026-10-11
+
+### Changed
+
+- Bumped workspace crates to version 0.0.10.
+- Updated dependencies: thiserror (2.0.21), log (0.4.34), clap (4.5.32).
+- Updated GitHub Actions: actions/cache (v4.3.0), actions/upload-artifact (v4.6.2), actions/download-artifact (v4.3.1), crate-ci/typos (v1.43.3).
+
 ## [0.0.9] - 2026-08-03
 
 ### Security
