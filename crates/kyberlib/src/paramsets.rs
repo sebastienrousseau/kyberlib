@@ -60,7 +60,7 @@
 
 use crate::error::KyberLibError;
 #[cfg(doc)]
-use crate::{KemCore, MlKem512, MlKem768, MlKem1024};
+use crate::{KemCore, MlKem1024, MlKem512, MlKem768};
 use core::fmt::Debug;
 
 mod sealed {

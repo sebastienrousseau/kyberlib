@@ -56,14 +56,14 @@
 //!
 //! [acvp]: ../../tests/test_acvp.rs
 
+#[cfg(doc)]
+#[allow(deprecated)]
+use crate::{decapsulate, encapsulate, keypair, Keypair};
 use crate::{
     error::KyberLibError, KYBER_CIPHERTEXT_BYTES,
     KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
     KYBER_SHARED_SECRET_BYTES,
 };
-#[cfg(doc)]
-#[allow(deprecated)]
-use crate::{decapsulate, encapsulate, keypair, Keypair};
 use core::fmt;
 use rand_core::{CryptoRng, RngCore};
 use zeroize::{Zeroize, ZeroizeOnDrop};
