@@ -8,7 +8,7 @@
 //! [`crate::api`] and [`crate::ml_kem`]. The single helper exported
 //! here ([`randombytes`](crate::rng::randombytes)) wraps
 //! `RngCore::try_fill_bytes` to surface kyberlib's
-//! [`KyberLibError::RandomBytesGeneration`](crate::KyberLibError::RandomBytesGeneration)
+//! [`KyberLibError::RandomBytesGeneration`]
 //! variant on external-RNG faults.
 
 use crate::KyberLibError;

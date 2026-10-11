@@ -39,9 +39,9 @@
 //!
 //! ## Migration from the v0.0.6 surface
 //!
-//! The free functions [`keypair`](crate::keypair),
-//! [`encapsulate`](crate::encapsulate), [`decapsulate`](crate::decapsulate)
-//! and the [`Keypair`](crate::Keypair) struct from the old surface are
+//! The free functions [`keypair`],
+//! [`encapsulate`], [`decapsulate`]
+//! and the [`Keypair`] struct from the old surface are
 //! retained as `#[deprecated]` shims for `MlKem768` only. They'll be
 //! removed in a future release.
 //!
@@ -61,6 +61,9 @@ use crate::{
     KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES,
     KYBER_SHARED_SECRET_BYTES,
 };
+#[cfg(doc)]
+#[allow(deprecated)]
+use crate::{decapsulate, encapsulate, keypair, Keypair};
 use core::fmt;
 use rand_core::{CryptoRng, RngCore};
 use zeroize::{Zeroize, ZeroizeOnDrop};
