@@ -16,7 +16,7 @@
 ## 1. Project at a glance
 
 * **Name:** kyberlib
-* **Language:** Rust (edition 2021, MSRV 1.74)
+* **Language:** Rust (edition 2021, MSRV 1.89)
 * **License:** MIT OR Apache-2.0 (dual)
 * **Repository:** <https://github.com/sebastienrousseau/kyberlib>
 * **Audit target branch / tag:** `feat/v0.0.7` → will be tagged

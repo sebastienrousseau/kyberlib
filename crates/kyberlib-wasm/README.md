@@ -82,7 +82,7 @@ side.
 kyberlib-wasm = "0.0.7"
 ```
 
-You need [Rust](https://rustup.rs/) stable ≥ 1.74 (the declared
+You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
 MSRV) and the `wasm32-unknown-unknown` target. The crate compiles
 to a `cdylib`; downstream consumers usually invoke it through
 `wasm-pack` rather than `cargo` directly.
@@ -112,7 +112,7 @@ your own npm scope.
 
 ### MSRV
 
-The declared MSRV is **Rust 1.74**, matching the rest of the
+The declared MSRV is **Rust 1.89**, matching the rest of the
 kyberlib workspace. A dedicated `msrv` CI job gates this on every
 PR.
 

@@ -109,7 +109,7 @@ Does not run by default.
 
 * `.github/workflows/ci.yml` — the per-PR gates: clippy, fmt, test,
   cargo-deny, cargo-machete, semver-checks, miri, fuzz-smoke,
-  msrv (1.74), no_std, vendor-build, kyberslash-guard, rustdoc strict.
+  msrv (1.89), no_std, vendor-build, kyberslash-guard, rustdoc strict.
 * `.github/workflows/release.yml` — tag-triggered with SLSA L3
   attestation + cosign keyless signing + CycloneDX SBOM/CBOM.
 
@@ -136,8 +136,8 @@ cargo build -p kyberlib --lib --no-default-features --features kyber768
 # All features
 cargo build --workspace --all-features
 
-# MSRV 1.74
-cargo +1.74.0 check --workspace --all-features
+# MSRV 1.89
+cargo +1.89.0 check --workspace --all-features
 
 # Vendor / air-gap simulation
 cargo vendor --versioned-dirs vendor

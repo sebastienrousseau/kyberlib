@@ -72,7 +72,7 @@
 kyberlib = "0.0.10"
 ```
 
-You need [Rust](https://rustup.rs/) stable ≥ 1.74 (the declared MSRV).
+You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared MSRV).
 Works on Linux, macOS, and Windows on x86_64 and aarch64.
 
 ### Channels
@@ -138,7 +138,7 @@ make ci          # fmt + clippy + doc + test + deny + machete + kyberslash-guard
 
 ### MSRV
 
-The declared MSRV is **Rust 1.74** for the core (`crates/kyberlib`).
+The declared MSRV is **Rust 1.89** for the core (`crates/kyberlib`).
 A dedicated `msrv` CI job gates this on every PR. Satellite crates
 inherit the same floor.
 

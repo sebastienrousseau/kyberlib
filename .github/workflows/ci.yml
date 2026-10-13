@@ -112,35 +112,24 @@ jobs:
         run: cargo test --locked --lib --no-default-features --features kyber768
 
   msrv:
-    name: MSRV (Rust 1.74)
+    name: MSRV (Rust 1.89)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
         with:
-          toolchain: '1.74.0'
+          toolchain: '1.89.0'
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       # MSRV gate: default features only. AVX2/NASM under --all-features
-      # need toolchain pieces beyond what 1.74 stock provides; documented
+      # need toolchain pieces beyond what stock rustc provides; documented
       # pre-existing constraint, not gating for MSRV.
-      - name: Check (kyberlib core on 1.74)
-        # MSRV applies to the published core surface (`kyberlib`). The
-        # satellite crates (kyberlib-wasm, etc.) track modern wasm-bindgen /
-        # edition-2024 deps and carry their own MSRV downstream — out of
-        # scope here.
-        #
-        # The committed Cargo.lock is v4 (cargo 1.78+ format); cargo 1.74
-        # only reads up to v3. Its pinned versions are already MSRV-safe
-        # (e.g. zeroize_derive 1.4.2, edition 2021). Newer transitive
-        # crates in the lock (wasm-bindgen 0.2.12x, edition-2024
-        # zeroize_derive 1.5.0) are only reachable from the satellites and
-        # are never *built* by `check -p kyberlib`, so we convert the lock
-        # format in place — WITHOUT re-resolving to newest, which would pull
-        # those edition-2024 manifests that 1.74 cannot parse. `--locked`
-        # guarantees the exact committed graph is what gets validated.
-        run: |
-          perl -0pi -e 's/^version = 4$/version = 3/m' Cargo.lock
-          cargo +1.74.0 check -p kyberlib --locked
+      - name: Check (kyberlib core on 1.89)
+        # MSRV applies to the published core surface (`kyberlib`); the
+        # satellites declare the same floor. `+1.89.0` because
+        # rust-toolchain.toml selects stable and would otherwise win.
+        # Cargo 1.89 reads the committed v4 lock as is, so the graph
+        # validated is exactly the committed one.
+        run: cargo +1.89.0 check -p kyberlib --locked
 
   no-std:
     name: no_std build

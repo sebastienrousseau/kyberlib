@@ -8,6 +8,17 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.11] - Unreleased
+
+### Changed
+
+- **The MSRV is now Rust 1.89** (was 1.74), the floor shared by the
+  maintainer's Rust crates. `rust-version`, `clippy.toml`, the `msrv` CI
+  job, `make msrv`, the READMEs, CONTRIBUTING.md and the audit documents
+  move together. The `msrv` job no longer rewrites `Cargo.lock` to the v3
+  format, and Dependabot no longer holds back `zeroize` 1.9 and
+  `zeroize_derive` 1.5, both of which were there only for Rust 1.74.
+
 ## [0.0.10] - 2026-10-11
 
 ### Changed
