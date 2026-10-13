@@ -111,6 +111,39 @@ jobs:
       - name: Test (no default features + kyber768)
         run: cargo test --locked --lib --no-default-features --features kyber768
 
+  cargo-vet:
+    name: cargo-vet
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
+        with:
+          # rust-toolchain.toml would select stable anyway; named here
+          # because a SHA-pinned action cannot read it from the ref.
+          toolchain: stable
+      # Pinned: releases before 0.10 reject a `[[trusted.*]]` entry that
+      # names a `trusted-publisher` instead of a `user-id`.
+      - uses: taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe # v2.87.15, installs cargo-vet
+        with:
+          tool: cargo-vet@0.10.2
+      - run: cargo vet --locked
+      # Exemptions may shrink, never grow. A new dependency arrives with
+      # an audit or a trust entry, not with another exemption.
+      - name: Exemption ratchet
+        run: |
+          set -euo pipefail
+          baseline="$(tr -d '[:space:]' < supply-chain/exemptions-baseline.txt)"
+          current="$(cargo vet --locked 2>&1 | grep -oE '[0-9]+ exempted' | grep -oE '[0-9]+' || true)"
+          current="${current:-0}"
+          echo "exempted: $current (baseline $baseline)"
+          if [ "$current" -gt "$baseline" ]; then
+            echo "::error::exemptions grew from $baseline to $current"
+            exit 1
+          fi
+
   msrv:
     name: MSRV (Rust 1.89)
     runs-on: ubuntu-latest
