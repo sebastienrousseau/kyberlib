@@ -32,7 +32,7 @@ edition      = "2021"
 homepage     = "https://kyberlib.com"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/sebastienrousseau/kyberlib"
-rust-version = "1.74"
+rust-version = "1.89"
 version      = "0.0.10"
 
 # Shared dependency pins. Members inherit via `dep = { workspace = true }`.

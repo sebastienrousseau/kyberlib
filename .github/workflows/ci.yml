@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
           components: clippy, rustfmt
@@ -94,7 +94,7 @@ jobs:
     continue-on-error: ${{ matrix.toolchain == 'nightly' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de  # stable / nightly
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f  # stable / nightly
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6  # v2.9.2
@@ -111,43 +111,65 @@ jobs:
       - name: Test (no default features + kyber768)
         run: cargo test --locked --lib --no-default-features --features kyber768
 
+  cargo-vet:
+    name: cargo-vet
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
+        with:
+          # rust-toolchain.toml would select stable anyway; named here
+          # because a SHA-pinned action cannot read it from the ref.
+          toolchain: stable
+      # Pinned: releases before 0.10 reject a `[[trusted.*]]` entry that
+      # names a `trusted-publisher` instead of a `user-id`.
+      - uses: taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe # v2.87.15, installs cargo-vet
+        with:
+          tool: cargo-vet@0.10.2
+      - run: cargo vet --locked
+      # Exemptions may shrink, never grow. A new dependency arrives with
+      # an audit or a trust entry, not with another exemption.
+      - name: Exemption ratchet
+        run: |
+          set -euo pipefail
+          baseline="$(tr -d '[:space:]' < supply-chain/exemptions-baseline.txt)"
+          current="$(cargo vet --locked 2>&1 | grep -oE '[0-9]+ exempted' | grep -oE '[0-9]+' || true)"
+          current="${current:-0}"
+          echo "exempted: $current (baseline $baseline)"
+          if [ "$current" -gt "$baseline" ]; then
+            echo "::error::exemptions grew from $baseline to $current"
+            exit 1
+          fi
+
   msrv:
-    name: MSRV (Rust 1.74)
+    name: MSRV (Rust 1.89)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
-          toolchain: '1.74.0'
+          toolchain: '1.89.0'
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       # MSRV gate: default features only. AVX2/NASM under --all-features
-      # need toolchain pieces beyond what 1.74 stock provides; documented
+      # need toolchain pieces beyond what stock rustc provides; documented
       # pre-existing constraint, not gating for MSRV.
-      - name: Check (kyberlib core on 1.74)
-        # MSRV applies to the published core surface (`kyberlib`). The
-        # satellite crates (kyberlib-wasm, etc.) track modern wasm-bindgen /
-        # edition-2024 deps and carry their own MSRV downstream — out of
-        # scope here.
-        #
-        # The committed Cargo.lock is v4 (cargo 1.78+ format); cargo 1.74
-        # only reads up to v3. Its pinned versions are already MSRV-safe
-        # (e.g. zeroize_derive 1.4.2, edition 2021). Newer transitive
-        # crates in the lock (wasm-bindgen 0.2.12x, edition-2024
-        # zeroize_derive 1.5.0) are only reachable from the satellites and
-        # are never *built* by `check -p kyberlib`, so we convert the lock
-        # format in place — WITHOUT re-resolving to newest, which would pull
-        # those edition-2024 manifests that 1.74 cannot parse. `--locked`
-        # guarantees the exact committed graph is what gets validated.
-        run: |
-          perl -0pi -e 's/^version = 4$/version = 3/m' Cargo.lock
-          cargo +1.74.0 check -p kyberlib --locked
+      - name: Check (kyberlib core on 1.89)
+        # MSRV applies to the published core surface (`kyberlib`); the
+        # satellites declare the same floor. `+1.89.0` because
+        # rust-toolchain.toml selects stable and would otherwise win.
+        # Cargo 1.89 reads the committed v4 lock as is, so the graph
+        # validated is exactly the committed one.
+        run: cargo +1.89.0 check -p kyberlib --locked
 
   no-std:
     name: no_std build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
@@ -178,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
@@ -211,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
@@ -244,7 +266,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
@@ -260,7 +282,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
@@ -282,7 +304,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: nightly
           components: miri
@@ -302,7 +324,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
@@ -335,13 +357,13 @@ jobs:
       COVERAGE_THRESHOLD: 80
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: stable
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@4076c08d76dba979c11a7285295b0716c1d67908  # v2 (HEAD as of 2026-05-20)
+        uses: taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe  # v2 (HEAD as of 2026-05-20)
         with:
           tool: cargo-llvm-cov
       - name: Run coverage gate
@@ -361,7 +383,7 @@ jobs:
     continue-on-error: true   # Soft gate until corpus is seeded; tighten later.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: nightly
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6

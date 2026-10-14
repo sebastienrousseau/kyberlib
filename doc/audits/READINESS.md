@@ -75,7 +75,7 @@
 |------|:------:|-------|
 | Workspace test count | ✅ | 148 tests + 25 doctests, all green |
 | Cross-platform CI (Linux, macOS, Windows) | ✅ | `ci.yml` matrix |
-| MSRV gate (1.74) | ✅ | dedicated job |
+| MSRV gate (1.89) | ✅ | dedicated job |
 | no_std gate | ✅ | `cargo check -p kyberlib --lib --no-default-features --features kyber768` |
 | Vendor / air-gap build simulation | ✅ | `vendor-build` job |
 | Strict rustdoc | ✅ | `RUSTDOCFLAGS="-D warnings -D rustdoc::broken_intra_doc_links ..."` |

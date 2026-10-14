@@ -69,7 +69,7 @@
 kyberlib = "0.0.7"
 ```
 
-You need [Rust](https://rustup.rs/) stable ≥ 1.74 (the declared MSRV).
+You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared MSRV).
 Works on Linux, macOS, and Windows on x86_64 and aarch64.
 
 ### Build from source
@@ -121,7 +121,7 @@ on bare metal, plug a vetted TRNG. `kyberlib` never reaches for
 
 ### MSRV
 
-The declared MSRV is **Rust 1.74**. A dedicated `msrv` CI job gates
+The declared MSRV is **Rust 1.89**. A dedicated `msrv` CI job gates
 this on every PR.
 
 ---
