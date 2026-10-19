@@ -143,11 +143,11 @@ checksum = "c4512299f36f043ab09a583e57bceb5a5aab7a73db1805848e8fef3c9e8c78b3"
 
 [[package]]
 name = "block-buffer"
-version = "0.10.4"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
+checksum = "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa"
 dependencies = [
- "generic-array",
+ "hybrid-array",
 ]
 
 [[package]]
@@ -482,12 +482,12 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.10.7"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
+checksum = "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2"
 dependencies = [
  "block-buffer",
- "crypto-common 0.1.6",
+ "crypto-common 0.2.2",
 ]
 
 [[package]]
@@ -1323,12 +1323,12 @@ dependencies = [
 
 [[package]]
 name = "sha2"
-version = "0.10.8"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "793db75ad2bcafc3ffa7c68b215fee268f537982cd901d132f89c6343f3a3dc8"
+checksum = "47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19"
 dependencies = [
  "cfg-if",
- "cpufeatures 0.2.12",
+ "cpufeatures 0.3.0",
  "digest",
 ]
 
