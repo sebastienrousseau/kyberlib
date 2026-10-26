@@ -292,13 +292,33 @@ jobs:
           sleep 30
           cargo publish -p kyberlib-wasm --locked
 
-      - name: Create GitHub Release
+      # One public release per tag, titled "kyberlib <version>" (never
+      # "v<version>"). If the release already exists (notes written by
+      # hand and published first), attach the signed artefacts to it
+      # instead of opening a second, draft release; otherwise create it
+      # published, with this version's CHANGELOG section as the notes.
+      - name: Publish artefacts on the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          gh release create "v${VERSION}" \
-            --title "v${VERSION}" \
-            --notes-file CHANGELOG.md \
-            --draft \
-            dist/*
+          tag="v${VERSION}"
+          title="kyberlib ${VERSION}"
+          if gh release view "${tag}" --json tagName >/dev/null 2>&1; then
+            gh release upload "${tag}" dist/* --clobber
+            gh release edit "${tag}" --title "${title}"
+          else
+            notes="${RUNNER_TEMP}/release-notes.md"
+            awk -v head="## [${VERSION}]" \
+              'index($0, head) == 1 { found = 1; next }
+               found && /^## \[/ { exit }
+               found { print }' CHANGELOG.md > "${notes}"
+            if [ ! -s "${notes}" ]; then
+              echo "::error::CHANGELOG.md has no section for ${VERSION}"
+              exit 1
+            fi
+            gh release create "${tag}" dist/* \
+              --verify-tag \
+              --title "${title}" \
+              --notes-file "${notes}"
+          fi
