@@ -349,6 +349,12 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-07-23"
 end = "2027-10-14"
 
+[[trusted.block-buffer]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/utils"
+start = "2026-02-24"
+end = "2027-10-26"
+
 [[trusted.clap]]
 criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
@@ -390,6 +396,12 @@ criteria = "safe-to-run"
 user-id = 33035 # Taiki Endo (taiki-e)
 start = "2020-10-12"
 end = "2027-10-14"
+
+[[trusted.ctr]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/block-modes"
+start = "2026-02-27"
+end = "2027-10-26"
 
 [[trusted.curve25519-dalek]]
 criteria = "safe-to-deploy"

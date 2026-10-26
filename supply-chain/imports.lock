@@ -50,6 +50,11 @@ user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
 
+[[publisher.block-buffer]]
+version = "0.12.1"
+when = "2026-06-11"
+trusted-publisher = "github:RustCrypto/utils"
+
 [[publisher.bumpalo]]
 version = "3.16.0"
 when = "2024-04-08"
@@ -112,6 +117,11 @@ when = "2024-01-08"
 user-id = 33035
 user-login = "taiki-e"
 user-name = "Taiki Endo"
+
+[[publisher.ctr]]
+version = "0.10.1"
+when = "2026-05-20"
+trusted-publisher = "github:RustCrypto/block-modes"
 
 [[publisher.curve25519-dalek]]
 version = "4.1.3"

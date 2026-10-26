@@ -47,11 +47,6 @@ version = "0.5.1"
 criteria = "safe-to-run"
 suggest = false
 
-[[exemptions.ctr]]
-version = "0.9.2"
-criteria = "safe-to-deploy"
-suggest = false
-
 [[exemptions.serde]]
 version = "1.0.229"
 criteria = "safe-to-run"
