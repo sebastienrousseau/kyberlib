@@ -14,6 +14,8 @@
 
 #![allow(dead_code)]
 
+use core::fmt;
+
 #[cfg(feature = "90s")]
 use crate::aes256ctr::*;
 #[cfg(not(feature = "90s"))]
@@ -51,12 +53,24 @@ pub type XofState = KeccakState;
 pub type XofState = Aes256CtrCtx;
 
 /// Keccak state for absorbing data
-#[derive(Copy, Clone, Debug, Default)]
+///
+/// The lanes hold data derived from whatever was absorbed, which may be
+/// a seed or key, so `Debug` redacts them and shows only `pos`.
+#[derive(Copy, Clone, Default)]
 pub struct KeccakState {
     /// State array for Keccak
     pub s: [u64; 25],
     /// Position in the state array
     pub pos: usize,
+}
+
+impl fmt::Debug for KeccakState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("KeccakState")
+            .field("s", &format_args!("[REDACTED {} bytes]", 25 * 8))
+            .field("pos", &self.pos)
+            .finish()
+    }
 }
 
 impl KeccakState {

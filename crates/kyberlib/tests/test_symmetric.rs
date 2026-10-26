@@ -128,6 +128,65 @@ mod tests {
         assert_ne!(out, [0u8; SHAKE128_RATE]);
     }
 
+    // Regression: `KeccakState` derived `Debug`, which printed the
+    // 25 sponge lanes. After absorbing a key or seed they are derived
+    // from that input, so they are redacted like other secrets.
+    #[cfg(not(feature = "90s"))]
+    #[test]
+    fn test_keccak_state_debug_redacts_lanes() {
+        use kyberlib::params::KYBER_SYM_BYTES;
+        use kyberlib::symmetric::{kyber_shake128_absorb, KeccakState};
+
+        let mut state = KeccakState::new();
+        kyber_shake128_absorb(
+            &mut state,
+            &[0xA5; KYBER_SYM_BYTES],
+            1,
+            2,
+        );
+        assert_ne!(state.s, [0u64; 25]);
+
+        let compact = format!("{state:?}");
+        assert_eq!(
+            compact,
+            format!(
+                "KeccakState {{ s: [REDACTED 200 bytes], pos: {} }}",
+                state.pos
+            )
+        );
+        let pretty = format!("{state:#?}");
+        for lane in state.s.iter().filter(|lane| **lane > 9) {
+            let lane = lane.to_string();
+            assert!(!compact.contains(&lane), "{compact}");
+            assert!(!pretty.contains(&lane), "{pretty}");
+        }
+    }
+
+    // Regression: in 90s mode `XofState` is `Aes256CtrCtx`, which
+    // derived `Debug` and printed the expanded AES-256 key schedule.
+    #[cfg(all(feature = "90s", not(feature = "90s-fixslice")))]
+    #[test]
+    fn test_aes256ctr_state_debug_redacts_key_schedule() {
+        use kyberlib::symmetric::{xof_absorb, XofState};
+
+        let mut state = XofState::new();
+        xof_absorb(&mut state, &[0xA5; 32], 1, 2);
+        assert_ne!(state.sk_exp, [0u64; 120]);
+
+        let compact = format!("{state:?}");
+        assert_eq!(
+            compact,
+            "Aes256CtrCtx { sk_exp: [REDACTED 960 bytes], \
+             ivw: [64 bytes; not secret] }"
+        );
+        let pretty = format!("{state:#?}");
+        for word in state.sk_exp.iter().filter(|word| **word > 9) {
+            let word = word.to_string();
+            assert!(!compact.contains(&word), "{compact}");
+            assert!(!pretty.contains(&word), "{pretty}");
+        }
+    }
+
     #[cfg(not(feature = "90s"))]
     #[test]
     fn test_shake256_prf() {

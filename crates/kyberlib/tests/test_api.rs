@@ -23,6 +23,50 @@ mod tests {
         assert_eq!(keypair.secret.len(), KYBER_SECRET_KEY_BYTES);
     }
 
+    // Every decimal number in a Debug rendering. A derived Debug on
+    // the key arrays prints each byte as a number, so this catches
+    // secret bytes in both the compact and the pretty form.
+    fn debug_numbers(rendered: &str) -> Vec<&str> {
+        rendered
+            .split(|c: char| !c.is_ascii_digit())
+            .filter(|t| !t.is_empty())
+            .collect()
+    }
+
+    // Regression: the legacy `Keypair` derived `Debug`, so `{:?}`
+    // printed every byte of the secret key. It must redact the secret
+    // the same way `MlKem768DecapKey` does.
+    #[test]
+    fn test_keypair_debug_redacts_secret() {
+        let keys = keypair(&mut OsRng).unwrap();
+        let compact = format!("{keys:?}");
+        let pretty = format!("{keys:#?}");
+
+        assert_eq!(
+            compact,
+            format!(
+                "Keypair {{ public: [{KYBER_PUBLIC_KEY_BYTES} bytes; not secret], \
+                 secret: [REDACTED {KYBER_SECRET_KEY_BYTES} bytes] }}"
+            )
+        );
+        for rendered in [&compact, &pretty] {
+            assert!(rendered.contains("REDACTED"), "{rendered}");
+            // Only the two lengths may appear, never key bytes.
+            assert_eq!(
+                debug_numbers(rendered),
+                [
+                    KYBER_PUBLIC_KEY_BYTES.to_string(),
+                    KYBER_SECRET_KEY_BYTES.to_string()
+                ],
+                "{rendered}"
+            );
+        }
+        let window = format!("{:?}", &keys.secret[..16]);
+        let window =
+            window.trim_start_matches('[').trim_end_matches(']');
+        assert!(!compact.contains(window), "secret bytes leaked");
+    }
+
     // Test for encapsulation and decapsulation
     #[test]
     fn test_encapsulate_decapsulate() {

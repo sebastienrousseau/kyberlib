@@ -31,6 +31,8 @@
 //! # Ok(()) }
 //! ```
 
+use core::fmt;
+
 use crate::{
     error::KyberLibError,
     kem::*,
@@ -208,18 +210,44 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 /// `Keypair` does not derive [`Copy`] (since v0.0.7) and derives
 /// [`Zeroize`] / [`ZeroizeOnDrop`] unconditionally — the `zeroize`
 /// Cargo feature is a no-op opt-out retained for one release.
+///
+/// `Debug` redacts the secret key and prints only the two lengths,
+/// matching [`MlKem768DecapKey`](crate::MlKem768DecapKey):
+/// `Keypair { public: [1184 bytes; not secret], secret: [REDACTED 2400 bytes] }`
+/// for ML-KEM-768.
 // Note: deliberately NOT `#[non_exhaustive]`. The struct is
 // soft-deprecated in favour of the typed `MlKem768EncapKey` /
 // `MlKem768DecapKey` split (see the type-level docs above); locking
 // the literal-constructor would only break existing call sites
 // without buying us safety, since the new typed API is where the
 // `#[non_exhaustive]` rigour lives.
-#[derive(Clone, Debug, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Keypair {
     /// The public key.
     pub public: PublicKey,
     /// The secret key.
     pub secret: SecretKey,
+}
+
+impl fmt::Debug for Keypair {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Keypair")
+            .field(
+                "public",
+                &format_args!(
+                    "[{} bytes; not secret]",
+                    KYBER_PUBLIC_KEY_BYTES
+                ),
+            )
+            .field(
+                "secret",
+                &format_args!(
+                    "[REDACTED {} bytes]",
+                    KYBER_SECRET_KEY_BYTES
+                ),
+            )
+            .finish()
+    }
 }
 
 impl Keypair {
