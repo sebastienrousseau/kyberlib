@@ -349,10 +349,40 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-07-23"
 end = "2027-10-14"
 
+[[trusted.bit-set]]
+criteria = "safe-to-deploy"
+user-id = 1367
+start = "2024-06-29"
+end = "2027-10-26"
+
+[[trusted.bit-vec]]
+criteria = "safe-to-deploy"
+user-id = 1367
+start = "2019-05-16"
+end = "2027-10-26"
+
 [[trusted.block-buffer]]
 criteria = "safe-to-deploy"
 trusted-publisher = "github:RustCrypto/utils"
 start = "2026-02-24"
+end = "2027-10-26"
+
+[[trusted.borsh]]
+criteria = "safe-to-deploy"
+user-id = 134703 # nearprotocol-ci
+start = "2022-01-26"
+end = "2027-10-26"
+
+[[trusted.borsh-derive]]
+criteria = "safe-to-deploy"
+user-id = 134703 # nearprotocol-ci
+start = "2022-01-26"
+end = "2027-10-26"
+
+[[trusted.bytes]]
+criteria = "safe-to-deploy"
+user-id = 6741 # Alice Ryhl (Darksonn)
+start = "2021-01-11"
 end = "2027-10-26"
 
 [[trusted.clap]]
@@ -384,6 +414,12 @@ criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
 start = "2023-04-13"
 end = "2027-10-14"
+
+[[trusted.core_detect]]
+criteria = "safe-to-deploy"
+user-id = 4357
+start = "2020-09-21"
+end = "2027-10-26"
 
 [[trusted.cpufeatures]]
 criteria = "safe-to-deploy"
@@ -421,6 +457,12 @@ user-id = 267 # Tony Arcieri (tarcieri)
 start = "2020-06-10"
 end = "2027-10-14"
 
+[[trusted.digest]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/traits"
+start = "2026-02-12"
+end = "2027-10-26"
+
 [[trusted.find-msvc-tools]]
 criteria = "safe-to-deploy"
 user-id = 539
@@ -429,7 +471,7 @@ end = "2027-10-14"
 
 [[trusted.generic-array]]
 criteria = "safe-to-deploy"
-user-id = 5704 # Nova (novacrazy)
+user-id = 5704
 start = "2019-04-14"
 end = "2027-10-14"
 
@@ -493,6 +535,24 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2022-01-04"
 end = "2027-10-14"
 
+[[trusted.proc-macro-crate]]
+criteria = "safe-to-deploy"
+user-id = 6134 # Bastian Köcher (bkchr)
+start = "2019-05-09"
+end = "2027-10-26"
+
+[[trusted.proptest]]
+criteria = "safe-to-deploy"
+user-id = 336629 # Rex (rexmas)
+start = "2025-09-20"
+end = "2027-10-26"
+
+[[trusted.rand_xorshift]]
+criteria = "safe-to-deploy"
+user-id = 1234 # Diggory Hardy (dhardy)
+start = "2019-06-06"
+end = "2027-10-26"
+
 [[trusted.rustix]]
 criteria = "safe-to-run"
 user-id = 6825 # Dan Gohman (sunfishcode)
@@ -511,6 +571,18 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-03-01"
 end = "2027-10-14"
 
+[[trusted.serde_json]]
+criteria = "safe-to-deploy"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2019-02-28"
+end = "2027-10-26"
+
+[[trusted.sha2]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/hashes"
+start = "2026-03-25"
+end = "2027-10-26"
+
 [[trusted.slab]]
 criteria = "safe-to-deploy"
 user-id = 6741 # Alice Ryhl (Darksonn)
@@ -522,6 +594,24 @@ criteria = "safe-to-deploy"
 user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-03-01"
 end = "2027-10-14"
+
+[[trusted.toml_datetime]]
+criteria = "safe-to-deploy"
+user-id = 6743 # Ed Page (epage)
+start = "2022-10-21"
+end = "2027-10-26"
+
+[[trusted.toml_edit]]
+criteria = "safe-to-deploy"
+user-id = 6743 # Ed Page (epage)
+start = "2021-09-13"
+end = "2027-10-26"
+
+[[trusted.toml_parser]]
+criteria = "safe-to-deploy"
+user-id = 6743 # Ed Page (epage)
+start = "2025-07-08"
+end = "2027-10-26"
 
 [[trusted.walkdir]]
 criteria = "safe-to-run"
@@ -642,3 +732,9 @@ criteria = "safe-to-run"
 user-id = 64539 # Kenny Kerr (kennykerr)
 start = "2021-10-27"
 end = "2027-10-14"
+
+[[trusted.winnow]]
+criteria = "safe-to-deploy"
+user-id = 6743 # Ed Page (epage)
+start = "2023-02-22"
+end = "2027-10-26"

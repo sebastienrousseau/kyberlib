@@ -51,8 +51,3 @@ suggest = false
 version = "1.0.229"
 criteria = "safe-to-run"
 suggest = false
-
-[[exemptions.serde_json]]
-version = "1.0.151"
-criteria = "safe-to-run"
-suggest = false
