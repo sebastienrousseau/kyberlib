@@ -87,7 +87,7 @@ satellite crates each have their own channels (see
 |---|---|
 | Cargo (crates.io) | `cargo add kyberlib` |
 | Cargo (from source) | `cargo install --locked --path crates/kyberlib` |
-| WASM bundle (npm) | `npm install @kyberlib/kyberlib-wasm` *(coming with v0.0.7 release)* |
+| WASM bundle | `wasm-pack build crates/kyberlib-wasm --release --target web` (no npm package; see [`kyberlib-wasm`](crates/kyberlib-wasm/README.md#install)) |
 | Pre-built `.crate` (GitHub Releases) | `gh release download v0.0.11 --pattern 'kyberlib-*.crate'` |
 | Verified `.crate` (cosign + SLSA L3) | see [Release artefacts](#release-artefacts) |
 

@@ -60,18 +60,10 @@ expose.
 
 ## Parameter set
 
-The default parameter set is **ML-KEM-768** (matching
-`kyberlib`'s default). Compiling against ML-KEM-512 or
-ML-KEM-1024 requires:
-
-```sh
-cargo build --target wasm32-unknown-unknown \
-    --no-default-features \
-    --features kyber512   # or kyber1024
-```
-
-The byte lengths in the JS surface change accordingly —
-see [`usage.md`](./usage.md) for the per-parameter table.
+The parameter set is **ML-KEM-768**, fixed: the crate depends
+on `kyberlib` with `features = ["kyber768"]` and has no Cargo
+features of its own, so ML-KEM-512 and ML-KEM-1024 cannot be
+selected today.
 
 A future enhancement (issue
 [#180](https://github.com/sebastienrousseau/kyberlib/issues/180))
