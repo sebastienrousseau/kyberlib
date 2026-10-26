@@ -1,6 +1,14 @@
 
 # cargo-vet imports lock
 
+[[unpublished.kyberlib]]
+version = "0.0.11"
+audited_as = "0.0.10"
+
+[[unpublished.kyberlib-wasm]]
+version = "0.0.11"
+audited_as = "0.0.10"
+
 [[publisher.anstream]]
 version = "1.0.0"
 when = "2026-02-11"

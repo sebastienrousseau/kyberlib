@@ -33,7 +33,7 @@ homepage     = "https://kyberlib.com"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/sebastienrousseau/kyberlib"
 rust-version = "1.89"
-version      = "0.0.10"
+version      = "0.0.11"
 
 # Shared dependency pins. Members inherit via `dep = { workspace = true }`.
 [workspace.dependencies]

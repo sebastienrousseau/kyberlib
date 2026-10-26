@@ -777,7 +777,7 @@ dependencies = [
 
 [[package]]
 name = "kyberlib"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "aes",
  "cc",
@@ -798,11 +798,11 @@ dependencies = [
 
 [[package]]
 name = "kyberlib-asm"
-version = "0.0.10"
+version = "0.0.11"
 
 [[package]]
 name = "kyberlib-hybrid"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "kyberlib",
  "rand 0.8.6",
@@ -813,14 +813,14 @@ dependencies = [
 
 [[package]]
 name = "kyberlib-pkcs8"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "kyberlib",
 ]
 
 [[package]]
 name = "kyberlib-wasm"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "criterion",
  "getrandom 0.2.15",
