@@ -21,13 +21,12 @@
   <a href="https://crates.io/crates/kyberlib-wasm"><img src="https://img.shields.io/crates/v/kyberlib-wasm.svg?style=for-the-badge&color=fc8d62&logo=rust" alt="Crates.io" /></a>
   <a href="https://docs.rs/kyberlib-wasm"><img src="https://img.shields.io/badge/docs.rs-kyberlib--wasm-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" alt="Docs.rs" /></a>
   <a href="https://lib.rs/crates/kyberlib-wasm"><img src="https://img.shields.io/badge/lib.rs-kyberlib--wasm-orange.svg?style=for-the-badge" alt="lib.rs" /></a>
-  <a href="https://www.npmjs.com/package/@kyberlib/kyberlib-wasm"><img src="https://img.shields.io/badge/npm-%40kyberlib%2Fkyberlib--wasm-CB3837?style=for-the-badge&logo=npm" alt="npm" /></a>
   <a href="https://codecov.io/gh/sebastienrousseau/kyberlib"><img src="https://img.shields.io/codecov/c/github/sebastienrousseau/kyberlib?style=for-the-badge&logo=codecov" alt="Coverage" /></a>
 </p>
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM--768_ACVP_60%2F60-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -36,7 +35,7 @@
 
 **Getting started**
 
-- [Install](#install) — npm, wasm-pack, prebuilt
+- [Install](#install) — wasm-pack, crates.io
 - [Quick Start](#quick-start) — JS round-trip in ten lines
 
 - [The kyberlib ecosystem](#the-kyberlib-ecosystem) — where `kyberlib-wasm` sits in the stack
@@ -45,10 +44,10 @@
 
 - [Migrating to `kyberlib-wasm`](#migrating-to-kyberlib-wasm) — `diff`-style snippets from `@noble/post-quantum`, `@cloudflare/pq`, and pre-FIPS-203 Kyber libs
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.7](#capabilities-in-007) — release inventory
+- [Capabilities in 0.0.11](#capabilities-in-0011) — release inventory
 - [JS API surface](#js-api-surface) — what every export does
 - [Bundle anatomy](#bundle-anatomy) — output shape, sizes, budgets
-- [Features](#features) — Cargo-feature capability list
+- [Parameter set](#parameter-set) — ML-KEM-768 only
 - [Examples](#examples) — runnable example index
 
 **Operational**
@@ -56,7 +55,7 @@
 - [When not to use kyberlib-wasm](#when-not-to-use-kyberlib-wasm) — limitations
 - [Development](#development) — make targets, wasm-pack workflows
 - [Security](#security) — RNG sourcing, CT guarantees, FIPS path
-- [Release artefacts](#release-artefacts) — SLSA L3 + cosign + CBOM verification
+- [Release artefacts](#release-artefacts) — what is and is not signed
 - [Documentation](#documentation) — all reference docs
 - [License](#license)
 
@@ -64,25 +63,32 @@
 
 ## Install
 
-### As a JavaScript module (npm)
+### As a JavaScript module (wasm-pack)
+
+There is no npm package. Build the JavaScript module from source
+with [`wasm-pack`](https://rustwasm.github.io/wasm-pack/):
 
 ```sh
-npm install @kyberlib/kyberlib-wasm
+git clone https://github.com/sebastienrousseau/kyberlib.git
+cd kyberlib
+wasm-pack build crates/kyberlib-wasm --release --target web      # browsers
+wasm-pack build crates/kyberlib-wasm --release --target nodejs   # Node.js
+wasm-pack build crates/kyberlib-wasm --release --target bundler  # webpack, vite, rollup
 ```
 
-Works in any modern bundler (webpack, vite, rollup, esbuild), in
-Node.js 18+, and in Deno and Bun via Node compatibility shims. The
-package ships ESM, CommonJS, and TypeScript declarations side by
-side.
+The output lands in `crates/kyberlib-wasm/pkg/`: the `.wasm` blob,
+the JS glue and TypeScript declarations. Copy that directory into
+your project, or add it as a local dependency
+(`npm install ./path/to/pkg`).
 
 ### As a Rust crate (crates.io)
 
 ```toml
 [dependencies]
-kyberlib-wasm = "0.0.7"
+kyberlib-wasm = "0.0.11"
 ```
 
-You need [Rust](https://rustup.rs/) stable ≥ 1.74 (the declared
+You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
 MSRV) and the `wasm32-unknown-unknown` target. The crate compiles
 to a `cdylib`; downstream consumers usually invoke it through
 `wasm-pack` rather than `cargo` directly.
@@ -91,47 +97,20 @@ to a `cdylib`; downstream consumers usually invoke it through
 
 | Channel | Install |
 |---|---|
-| npm | `npm install @kyberlib/kyberlib-wasm` |
+| JavaScript module | `wasm-pack build crates/kyberlib-wasm --release --target web` (see above) |
 | Cargo (crates.io) | `cargo add kyberlib-wasm` |
 | Cargo (from source) | `cargo install --locked --path crates/kyberlib-wasm` |
-| Pre-built `.wasm` (GitHub Releases) | `gh release download v0.0.7 --pattern 'kyberlib-wasm-*.wasm'` |
-| Verified `.crate` (cosign + SLSA L3) | see [Release artefacts](#release-artefacts) |
-
-### Build from source
-
-```bash
-git clone https://github.com/sebastienrousseau/kyberlib.git
-cd kyberlib
-wasm-pack build crates/kyberlib-wasm --release --target web
-```
-
-The output `pkg/` directory carries the `.wasm` blob, the JS glue,
-and `*.d.ts` TypeScript declarations. Drop the whole directory
-into your front-end project's `node_modules/`, or publish it to
-your own npm scope.
 
 ### MSRV
 
-The declared MSRV is **Rust 1.74**, matching the rest of the
+The declared MSRV is **Rust 1.89**, matching the rest of the
 kyberlib workspace. A dedicated `msrv` CI job gates this on every
 PR.
 
 ### Cargo features
 
-All non-essential features are opt-in. The defaults are tuned for
-the typical browser / Node consumer.
-
-| Feature | Default? | Pulls in | Adds | Documented in |
-|---|---|---|---|---|
-| `kyber768` | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-007) |
-| `kyber512` |   | — | ML-KEM-512 parameter set (mutually exclusive with the above today) | [`doc/architecture.md`](doc/architecture.md) |
-| `kyber1024` |   | — | ML-KEM-1024 parameter set (mutually exclusive) | [`doc/architecture.md`](doc/architecture.md) |
-
-```toml
-# Example: ML-KEM-1024 binding for a high-assurance browser app
-[dependencies]
-kyberlib-wasm = { version = "0.0.7", default-features = false, features = ["kyber1024"] }
-```
+`kyberlib-wasm` has no Cargo features. It always builds
+ML-KEM-768; see [Parameter set](#parameter-set).
 
 ---
 
@@ -139,7 +118,7 @@ kyberlib-wasm = { version = "0.0.7", default-features = false, features = ["kybe
 
 ```js
 import init, { keypair, encapsulate, decapsulate }
-  from '@kyberlib/kyberlib-wasm';
+  from './pkg/kyberlib_wasm.js';
 
 await init();   // loads the .wasm and instantiates
 
@@ -173,13 +152,13 @@ WebCrypto AES-GCM combiner.
 
 ## The kyberlib ecosystem
 
-| Crate | What it is | Status (v0.0.7) | Use case |
+| Crate | What it is | Status (v0.0.11) | Use case |
 |---|---|---|---|
-| [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 60/60 on ML-KEM-768 | Embed ML-KEM in any Rust binary or library. |
+| [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
 | [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [ADR 0002](../../doc/adr/0002-asm-quarantine.md), [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | High-throughput servers; embedded NEON targets. |
 | [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs — X25519MLKEM768 + ECDHE variants | `X25519MlKem768` wired; ECDHE in [#167b](https://github.com/sebastienrousseau/kyberlib/issues/167) | Direct interop with `draft-ietf-tls-ecdhe-mlkem-04`. |
 | [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8) | PKCS#8 / `SubjectPublicKeyInfo` / PEM encoding with LAMPS-registered OIDs | Skeleton — [#168](https://github.com/sebastienrousseau/kyberlib/issues/168) | X.509 cert chains, CMS, PEM exchange. |
-| **[`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm)** | **`wasm-bindgen` wrapper for browser / Node / Cloudflare Workers / Deno** | **Published with `kyberlib`** | **Browser cryptography; npm-installable.** |
+| **[`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm)** | **`wasm-bindgen` wrapper for browser / Node / Cloudflare Workers / Deno** | **Published with `kyberlib`** | **Browser cryptography; built with `wasm-pack`.** |
 
 `kyberlib-wasm` is the JS-side face of the kyberlib library. The
 hard cryptography lives in the core `kyberlib` crate — this crate
@@ -199,7 +178,7 @@ shapes match (FIPS 203 final), so peers stay interoperable.
 ```diff
 -import { ml_kem768 } from '@noble/post-quantum/ml-kem';
 +import init, { keypair, encapsulate, decapsulate }
-+  from '@kyberlib/kyberlib-wasm';
++  from './pkg/kyberlib_wasm.js';
 +await init();
 ```
 
@@ -221,7 +200,7 @@ in the browser.
 ```diff
 -import { mlKem768Keygen, mlKem768Encaps, mlKem768Decaps } from '@cloudflare/pq';
 +import init, { keypair, encapsulate, decapsulate }
-+  from '@kyberlib/kyberlib-wasm';
++  from './pkg/kyberlib_wasm.js';
 +await init();
 ```
 
@@ -281,20 +260,20 @@ matches the ergonomic shape JS callers expect (`keypair()` takes
 no args) and avoids the trap of asking app code to choose a CSPRNG
 they probably shouldn't pick themselves.
 
-**Signed releases.** Every tagged release of `kyberlib-wasm` ships
-with the same SLSA L3 attestation, cosign keyless signature, and
-CycloneDX 1.6 CBOM as the core `kyberlib` crate — see
-[Release artefacts](#release-artefacts) for the verification
-recipes.
+**Release artefacts.** The signed release pipeline (SLSA L3
+attestation, cosign signature, CycloneDX CBOM) covers the core
+`kyberlib` crate. `kyberlib-wasm` is published to crates.io
+without its own signed artefacts; see
+[Release artefacts](#release-artefacts).
 
 ---
 
-## Capabilities in 0.0.7
+## Capabilities in 0.0.11
 
 | Capability | Status |
 |---|---|
 | FIPS 203 ML-KEM-768 keygen / encap / decap via JS | ✓ |
-| ML-KEM-512 / ML-KEM-1024 via Cargo features | ✓ (one set per WASM blob today) |
+| ML-KEM-512 / ML-KEM-1024 | not exposed (ML-KEM-768 only) |
 | All three parameter sets in one WASM binary | planned [#180](https://github.com/sebastienrousseau/kyberlib/issues/180) |
 | `Uint8Array` byte-slice surface | ✓ |
 | TypeScript declarations | ✓ auto-generated by `wasm-bindgen` |
@@ -306,8 +285,8 @@ recipes.
 | `wasm32-unknown-emscripten` | not supported (use `wasm-bindgen`) |
 | Hybrid (X25519MLKEM768) in WASM | planned [#181](https://github.com/sebastienrousseau/kyberlib/issues/181) |
 | Bundle size ≤ 150 KiB brotli-compressed | ✓ ~122 KiB on v0.0.7 |
-| SLSA L3 + cosign signed releases | ✓ release pipeline dry-run verified |
-| CycloneDX 1.6 CBOM | ✓ generated per release |
+| SLSA L3 + cosign signed releases | core `kyberlib` crate only |
+| CycloneDX 1.6 CBOM | core `kyberlib` crate only |
 
 ---
 
@@ -334,7 +313,7 @@ so a tight loop can balloon the WASM heap before GC fires. Call
 copies**, so you can keep them after the wrapper is freed.
 
 The TypeScript declarations are auto-generated by `wasm-bindgen`
-and ship in the npm package as `kyberlib_wasm.d.ts`.
+and `wasm-pack` writes them to `pkg/kyberlib_wasm.d.ts`.
 
 ---
 
@@ -347,7 +326,7 @@ pkg/
 ├── kyberlib_wasm.js            JS glue (~7 KiB)
 ├── kyberlib_wasm_bg.wasm       compiled WASM (~120 KiB after wasm-opt -O3)
 ├── kyberlib_wasm.d.ts          TypeScript declarations (~3 KiB)
-├── package.json                npm metadata
+├── package.json                npm metadata (written by wasm-pack)
 └── README.md
 ```
 
@@ -386,37 +365,20 @@ budget. See [`doc/usage.md`](doc/usage.md) for the
 
 ---
 
-## Features
+## Parameter set
 
-The Cargo features in this crate select **which ML-KEM parameter
-set** is baked into the WASM blob. Browser consumers can only
-pick one set per binary in v0.0.7; multi-set WASM is tracked as
+`kyberlib-wasm` builds **ML-KEM-768** only: it depends on
+`kyberlib` with `default-features = false, features = ["kyber768"]`
+and has no Cargo features of its own. ML-KEM-512 and ML-KEM-1024
+are not exposed to JavaScript; tracked as
 [#180](https://github.com/sebastienrousseau/kyberlib/issues/180).
 
-```toml
-# Default — ML-KEM-768.
-kyberlib-wasm = "0.0.7"
-
-# ML-KEM-512 (NIST cat-1, smaller bundle).
-kyberlib-wasm = { version = "0.0.7", default-features = false, features = ["kyber512"] }
-
-# ML-KEM-1024 (NIST cat-5, larger bundle).
-kyberlib-wasm = { version = "0.0.7", default-features = false, features = ["kyber1024"] }
-```
-
-The byte sizes in the JS surface change accordingly:
-
-| Item | ML-KEM-512 | ML-KEM-768 | ML-KEM-1024 |
-|---|---|---|---|
-| `pubkey` | 800 B | 1184 B | 1568 B |
-| `secret` | 1632 B | 2400 B | 3168 B |
-| `ciphertext` | 768 B | 1088 B | 1568 B |
-| `sharedSecret` | 32 B | 32 B | 32 B |
-
-**Mixing parameter sets across peers will not work.** If Alice's
-browser was built for ML-KEM-768 and Bob's for ML-KEM-1024, byte
-lengths don't match and `decapsulate` returns `InvalidInput`. Pin
-the same set across both ends of any handshake.
+| Item | Size |
+|---|---|
+| `pubkey` | 1184 B |
+| `secret` | 2400 B |
+| `ciphertext` | 1088 B |
+| `sharedSecret` | 32 B |
 
 ---
 
@@ -482,8 +444,8 @@ wasm-pack build crates/kyberlib-wasm --release --target bundler
 # Run the wasm-bindgen-test smoke suite (Chrome headless).
 wasm-pack test crates/kyberlib-wasm --headless --chrome
 
-# Native (non-WASM) compile-check.
-cargo check -p kyberlib-wasm --no-default-features --features kyber768
+# Compile-check for the wasm target.
+cargo check -p kyberlib-wasm --target wasm32-unknown-unknown
 ```
 
 The workspace [`Makefile`](../../Makefile) carries the standard
@@ -532,37 +494,15 @@ audit posture.
 
 Every `v*.*.*` tag triggers the release pipeline at
 [`.github/workflows/release.yml`](../../.github/workflows/release.yml).
-The pipeline emits:
+It signs and attests the **core `kyberlib` `.crate`** (SLSA L3
+provenance, keyless cosign signature, CycloneDX 1.6 CBOM); the
+verification recipes are in the
+[workspace README](../../README.md#release-artefacts).
 
-- a **SLSA L3 build provenance** attestation
-  (`actions/attest-build-provenance`, recorded in the public
-  Rekor transparency log);
-- a **keyless cosign signature** over the `.crate` file
-  (Fulcio + Rekor, no private key);
-- a **CycloneDX 1.6 CBOM** with machine-readable
-  `cryptoProperties` (parameter set, OID, security level,
-  ACVP conformance);
-- the npm package itself (`@kyberlib/kyberlib-wasm`), published
-  to npmjs.com.
-
-Verification recipes for downstream consumers:
-
-```sh
-# Verify SLSA L3 provenance on the .crate:
-gh attestation verify --owner sebastienrousseau kyberlib-wasm-0.0.7.crate
-
-# Verify cosign signature on the .crate:
-cosign verify-blob \
-    --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
-    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --bundle kyberlib-wasm-0.0.7.crate.cosign-bundle.json \
-    kyberlib-wasm-0.0.7.crate
-```
-
-The npm package itself is signed via npm's
-[trusted-publishing](https://docs.npmjs.com/trusted-publishers)
-flow; `npm install --foreground-scripts` will surface the
-provenance attestation automatically.
+`kyberlib-wasm` itself is published to crates.io only. There is
+no signed `kyberlib-wasm` `.crate`, no pre-built `.wasm` and no
+npm package on the GitHub release; build the JavaScript module
+with `wasm-pack` as shown in [Install](#install).
 
 ---
 

@@ -5,4 +5,4 @@ name = "rust"
 enabled = true
 
   [analyzers.meta]
-  msrv = "stable"
+  msrv = "1.89.0"

@@ -8,8 +8,8 @@ upstream consumers should track the latest patch number.
 
 | Version  | Supported |
 |----------|:---------:|
-| `0.0.7`  |     ✅    |
-| `< 0.0.7`|     ❌    |
+| `0.0.11`  |     ✅    |
+| `< 0.0.11`|     ❌    |
 
 A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)
@@ -116,7 +116,7 @@ Barrett-style multiplication. The audit is documented in
 | SLSA L3 build provenance | Phase 4 ([#163][i163]) |
 | Keyless cosign signing | Phase 4 ([#164][i164]) |
 | CycloneDX 1.6 CBOM | Phase 4 ([#162][i162]) |
-| Signed commits on `main` | Enforced via CI gate ([#141][i141]) |
+| Signed commits on `main` | Enforced by branch protection (require signed commits) |
 
 ## FIPS / Regulatory Path
 

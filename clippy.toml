@@ -11,7 +11,7 @@
 # MSRV — Clippy uses this to suppress lints that suggest patterns only
 # available on newer rustc. Keep in sync with `rust-version` in the
 # workspace Cargo.toml.
-msrv = "1.74"
+msrv = "1.89"
 
 # Avoid `clippy::module_inception` shouting at the `reference` / `avx2`
 # backend modules whose internal layout mirrors the upstream

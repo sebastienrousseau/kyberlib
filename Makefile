@@ -56,9 +56,9 @@ machete: ## cargo machete (unused dep detection).
 	$(CARGO) machete
 
 # --------------------------------------------------------------- MSRV / no_std
-msrv: ## Verify the declared MSRV (Rust 1.74) builds across feature combos.
-	$(CARGO) +1.74.0 check --workspace --all-features
-	$(CARGO) +1.74.0 check -p kyberlib --no-default-features --features kyber768
+msrv: ## Verify the declared MSRV (Rust 1.89) builds across feature combos.
+	$(CARGO) +1.89.0 check --workspace --all-features
+	$(CARGO) +1.89.0 check -p kyberlib --no-default-features --features kyber768
 
 no-std: ## Verify no_std builds for the safe core.
 	$(CARGO) check -p kyberlib --lib --no-default-features --features kyber768
@@ -102,7 +102,7 @@ kyberslash-guard: ## Fail if any non-annotated `/ KYBER_Q` / `% KYBER_Q` appears
 	bash scripts/kyberslash-guard.sh
 
 # --------------------------------------------------------------- ACVP (phase 2)
-acvp: ## Run NIST ACVP ML-KEM-768 vectors (60 cases). Reports pass / fail per group.
+acvp: ## Run NIST ACVP ML-KEM-512/768/1024 vectors (180 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
 	  $(CARGO) test -p kyberlib --test test_acvp -- --nocapture
 

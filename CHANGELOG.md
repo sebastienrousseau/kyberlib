@@ -8,6 +8,64 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.11] - 2026-10-26
+
+### Security
+
+- **`Debug` output no longer discloses secret material**
+  ([GHSA-3g97-82p7-9p2w](https://github.com/sebastienrousseau/kyberlib/security/advisories/GHSA-3g97-82p7-9p2w)).
+  Several types derived `Debug`, so formatting one with `{:?}` or
+  `{:#?}` (in a log line, a panic message or `dbg!`) printed its
+  secret bytes. Each now implements `Debug` by hand and prints secret
+  buffers as `[REDACTED <n> bytes]` and public ones as
+  `[<n> bytes; not secret]`, the format the typed ML-KEM keys already
+  used:
+  - `Keypair`: the secret key. Affected: kyberlib 0.0.2 to 0.0.10.
+  - `Uake` and `Ake`: the shared secret, `temp_key` and the ephemeral
+    secret key `eska`. Affected: kyberlib 0.0.2 to 0.0.10. Both types
+    now also derive `Zeroize` and `ZeroizeOnDrop`.
+  - `symmetric::KeccakState`: the sponge lanes, which hold absorbed
+    input. Affected: kyberlib 0.0.4 to 0.0.10.
+  - `symmetric::XofState` with the `90s` feature (`Aes256CtrCtx`): the
+    expanded AES-256 key schedule. Affected: kyberlib 0.0.2 to 0.0.10.
+  - `kyberlib_wasm::Keys` and `Kex`: the secret key and the shared
+    secret. Affected: kyberlib-wasm 0.0.7 and 0.0.10, and the `wasm`
+    module of kyberlib 0.0.2 to 0.0.6.
+
+  kyberlib never logs these values itself; an application is exposed
+  only if it formats one of them. Treat any long-term key that
+  appears in existing logs as compromised and replace it.
+
+### Fixed
+
+- The `90s-fixslice` feature builds again. The `aes` 0.9 update had
+  moved to `cipher` 0.5 while `ctr` stayed on 0.9; `ctr` is now 0.10.1
+  and a new `fixslice-90s` CI job tests that feature set.
+
+### Changed
+
+- **The MSRV is now Rust 1.89** (was 1.74), the floor shared by the
+  maintainer's Rust crates. `rust-version`, `clippy.toml`, the `msrv` CI
+  job, `make msrv`, the READMEs, CONTRIBUTING.md and the audit documents
+  move together. The `msrv` job no longer rewrites `Cargo.lock` to the v3
+  format, and Dependabot no longer holds back `zeroize` 1.9 and
+  `zeroize_derive` 1.5, both of which were there only for Rust 1.74.
+- The release workflow attaches the signed artefacts to the one
+  public release, titled `kyberlib <version>`, instead of opening a
+  second draft release titled `v<version>`. It creates the release
+  with this version's CHANGELOG section as the notes when none exists.
+- `cargo vet` runs in CI and gates pull requests.
+- Documentation: version and ACVP claims now read 0.0.11 and 180/180
+  (60 vectors each for ML-KEM-512, -768 and -1024); the kyberlib-wasm
+  README describes `wasm-pack` builds and ML-KEM-768 only, with no npm
+  package; signed commits on `main` are enforced by branch protection.
+- Updated dependencies: `cc` 1.8.0, `ctr` 0.10.1, `sha2` 0.11.1 (90s
+  feature), `serde_json` 1.0.154, and `proptest` 1.12.0 (tests only).
+  Updated GitHub Actions: `dtolnay/rust-toolchain`,
+  `Swatinem/rust-cache` 2.9.3, `taiki-e/install-action` 2.87.31,
+  `rust-lang/crates-io-auth-action` 1.0.6, `actions/upload-artifact`
+  7.0.2, `actions/download-artifact` 8.0.2.
+
 ## [0.0.10] - 2026-10-11
 
 ### Changed
@@ -143,3 +201,6 @@ hardening, and a signed release pipeline. The detailed plan lives in
 
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
+
+[0.0.11]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.10...v0.0.11
+[0.0.10]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.7...v0.0.10

@@ -17,8 +17,8 @@ By participating, you agree to the [Code of Conduct][coc].
 
 - **Rust toolchain:** stable, pinned via `rust-toolchain.toml`. Run
   `rustup show` once in the repo to install the right components.
-- **MSRV:** Rust **1.74.0**. Every PR is checked against this in CI; if you
-  use a feature introduced after 1.74, the build fails.
+- **MSRV:** Rust **1.89.0**. Every PR is checked against this in CI; if you
+  use a feature introduced after 1.89, the build fails.
 - **Optional but useful:**
   - `cargo-deny` (`cargo install cargo-deny`)
   - `cargo-vet`  (`cargo install cargo-vet`)
@@ -83,8 +83,9 @@ when applicable.
 ## Signed commits required
 
 `main` rejects unsigned commits. Configure GPG or SSH commit signing
-([GitHub guide][sign]). The `verify-signatures` CI gate ([#141][i141]) will
-fail PRs with unsigned commits.
+([GitHub guide][sign]). Enforcement is GitHub branch protection on
+`main` ("Require signed commits"), not a CI job: a pull request with
+a commit GitHub cannot verify cannot be merged.
 
 [sign]: https://docs.github.com/en/authentication/managing-commit-signature-verification
 
@@ -93,7 +94,7 @@ fail PRs with unsigned commits.
 Before opening a PR, your branch must pass:
 
 ```sh
-cargo +1.74.0 build --all-features
+cargo +1.89.0 build --all-features
 cargo test --all-features
 cargo test --no-default-features --features kyber768
 cargo fmt --all -- --check
@@ -212,5 +213,4 @@ licensed under both.
 - For breaking changes: CHANGELOG entry + ADR.
 
 [i128]: https://github.com/sebastienrousseau/kyberlib/issues/128
-[i141]: https://github.com/sebastienrousseau/kyberlib/issues/141
 [i148]: https://github.com/sebastienrousseau/kyberlib/issues/148

@@ -10,7 +10,7 @@ For the design rationale see
 ## Build
 
 ```sh
-# One-shot npm package:
+# Build the JavaScript module (there is no published npm package):
 wasm-pack build --release --target web   # for browsers
 wasm-pack build --release --target nodejs  # for Node.js / Deno / Bun
 wasm-pack build --release --target bundler # for webpack / vite / rollup
@@ -25,7 +25,8 @@ The `--target` flag picks the JS glue's module format:
 | `bundler` | ESM with bundler-friendly hooks | webpack, vite, rollup, esbuild |
 
 The output lands in `pkg/`. Drop the whole directory into
-your front-end's `node_modules/` or publish it to npm.
+your front-end project, or add it as a local dependency
+(`npm install ./path/to/pkg`).
 
 ## Browser example (`--target web`)
 
@@ -92,19 +93,17 @@ remember to call `.free()` when you're done to release the
 WASM heap allocation (or trust the GC if you're not in a
 tight loop — see the *resource management* note below).
 
-## Byte sizes per parameter set
+## Byte sizes
 
-The default build is **ML-KEM-768**:
+The build is **ML-KEM-768** only (see
+[`architecture.md`](./architecture.md#parameter-set)):
 
-| Item | ML-KEM-512 | ML-KEM-768 | ML-KEM-1024 |
-|---|---|---|---|
-| Public key (`pubkey`) | 800 B | 1184 B | 1568 B |
-| Secret key (`secret`) | 1632 B | 2400 B | 3168 B |
-| Ciphertext (`ciphertext`) | 768 B | 1088 B | 1568 B |
-| Shared secret (`sharedSecret`) | 32 B | 32 B | 32 B |
-
-To compile for ML-KEM-512 / 1024 see the note in
-[`architecture.md`](./architecture.md#parameter-set).
+| Item | Size |
+|---|---|
+| Public key (`pubkey`) | 1184 B |
+| Secret key (`secret`) | 2400 B |
+| Ciphertext (`ciphertext`) | 1088 B |
+| Shared secret (`sharedSecret`) | 32 B |
 
 ## Combining with WebCrypto AES-GCM
 
@@ -206,10 +205,9 @@ costs ~1% of that budget.
    web` builds → `RuntimeError: unreachable`. Always wait
    for the init Promise.
 4. **Mixing parameter sets across peers**. The WASM build
-   has one parameter set baked in. If Alice's browser is
-   built for ML-KEM-768 and Bob's for ML-KEM-1024, byte
-   lengths don't match — `decapsulate` returns
-   `InvalidInput`.
+   is ML-KEM-768. A peer using ML-KEM-512 or ML-KEM-1024
+   elsewhere sends different byte lengths, and `decapsulate`
+   returns `InvalidInput`.
 
 ## See also
 
