@@ -26,10 +26,29 @@
  * SOFTWARE.
  */
 #![cfg(feature = "90s")]
-#[derive(Debug)]
+
+use core::fmt;
+
 pub struct Aes256CtrCtx {
     pub sk_exp: [u64; 120],
     pub ivw: [u32; 16],
+}
+
+/// Redacts the expanded AES-256 key schedule, which is derived from
+/// the absorbed key. The counter block is shown by length only.
+impl fmt::Debug for Aes256CtrCtx {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Aes256CtrCtx")
+            .field(
+                "sk_exp",
+                &format_args!("[REDACTED {} bytes]", 120 * 8),
+            )
+            .field(
+                "ivw",
+                &format_args!("[{} bytes; not secret]", 16 * 4),
+            )
+            .finish()
+    }
 }
 
 impl Aes256CtrCtx {

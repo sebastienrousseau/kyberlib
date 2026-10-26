@@ -165,3 +165,52 @@ fn two_independent_rounds_yield_distinct_secrets() {
          secrets (the `m` value is fresh per call)"
     );
 }
+
+// Every decimal number in a Debug rendering; a derived Debug on the
+// byte slices prints each byte as a number.
+fn debug_numbers(rendered: &str) -> Vec<String> {
+    rendered
+        .split(|c: char| !c.is_ascii_digit())
+        .filter(|t| !t.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+// Regression: `Keys` and `Kex` derived `Debug`, which printed the
+// secret key and the shared secret byte by byte.
+#[test]
+fn keys_and_kex_debug_redact_secrets() {
+    let keys = keypair().unwrap();
+    let kex = encapsulate(keys.pubkey()).unwrap();
+
+    let keys_out = format!("{keys:?}");
+    assert_eq!(
+        keys_out,
+        format!(
+            "Keys {{ pubkey: [{KYBER_PUBLIC_KEY_BYTES} bytes; not secret], \
+             secret: [REDACTED {KYBER_SECRET_KEY_BYTES} bytes] }}"
+        )
+    );
+    let kex_out = format!("{kex:?}");
+    assert_eq!(
+        kex_out,
+        format!(
+            "Kex {{ ciphertext: [{KYBER_CIPHERTEXT_BYTES} bytes; not secret], \
+             sharedSecret: [REDACTED {KYBER_SHARED_SECRET_BYTES} bytes] }}"
+        )
+    );
+    for (rendered, lengths) in [
+        (
+            format!("{keys:#?}"),
+            [KYBER_PUBLIC_KEY_BYTES, KYBER_SECRET_KEY_BYTES],
+        ),
+        (
+            format!("{kex:#?}"),
+            [KYBER_CIPHERTEXT_BYTES, KYBER_SHARED_SECRET_BYTES],
+        ),
+    ] {
+        let expected: Vec<String> =
+            lengths.iter().map(ToString::to_string).collect();
+        assert_eq!(debug_numbers(&rendered), expected, "{rendered}");
+    }
+}

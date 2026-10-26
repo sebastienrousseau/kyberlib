@@ -17,6 +17,7 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
+use core::fmt;
 use kyberlib::{
     KyberLibError, KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
     KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
@@ -98,7 +99,6 @@ pub fn decapsulate(
 
 /// Represents Kyber key pair.
 #[wasm_bindgen]
-#[derive(Debug)]
 pub struct Keys {
     pubkey: Box<[u8]>,
     secret: Box<[u8]>,
@@ -106,10 +106,70 @@ pub struct Keys {
 
 /// Represents Kyber encapsulated shared secret.
 #[wasm_bindgen]
-#[derive(Debug)]
 pub struct Kex {
     ciphertext: Box<[u8]>,
     sharedSecret: Box<[u8]>,
+}
+
+/// Prints a buffer as its length only, in the format the kyberlib
+/// ML-KEM types use: `[N bytes; not secret]` or `[REDACTED N bytes]`.
+struct Redacted {
+    len: usize,
+    secret: bool,
+}
+
+impl fmt::Debug for Redacted {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.secret {
+            write!(f, "[REDACTED {} bytes]", self.len)
+        } else {
+            write!(f, "[{} bytes; not secret]", self.len)
+        }
+    }
+}
+
+/// Redacts the secret key; the public key is shown by length.
+impl fmt::Debug for Keys {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Keys")
+            .field(
+                "pubkey",
+                &Redacted {
+                    len: self.pubkey.len(),
+                    secret: false,
+                },
+            )
+            .field(
+                "secret",
+                &Redacted {
+                    len: self.secret.len(),
+                    secret: true,
+                },
+            )
+            .finish()
+    }
+}
+
+/// Redacts the shared secret; the ciphertext is shown by length.
+impl fmt::Debug for Kex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Kex")
+            .field(
+                "ciphertext",
+                &Redacted {
+                    len: self.ciphertext.len(),
+                    secret: false,
+                },
+            )
+            .field(
+                "sharedSecret",
+                &Redacted {
+                    len: self.sharedSecret.len(),
+                    secret: true,
+                },
+            )
+            .finish()
+    }
 }
 
 #[wasm_bindgen]

@@ -34,8 +34,11 @@
 //! # Ok(()) }
 //! ```
 
+use core::fmt;
+
 use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
 use rand_core::{CryptoRng, RngCore};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Unilateral Key Exchange Initiation Byte Length
 pub const UAKE_INIT_BYTES: usize =
@@ -78,6 +81,49 @@ pub type AkeSendResponse = [u8; AKE_RESPONSE_BYTES];
 type TempKey = [u8; KYBER_SHARED_SECRET_BYTES];
 type Eska = [u8; KYBER_SECRET_KEY_BYTES];
 
+/// Shared `Debug` body for [`Uake`] and [`Ake`]: the handshake
+/// messages are public and shown by length; the shared secret and the
+/// two ephemeral keys are redacted, in the format the typed ML-KEM
+/// keys use.
+fn fmt_exchange(
+    f: &mut fmt::Formatter<'_>,
+    name: &str,
+    send_a: usize,
+    send_b: usize,
+) -> fmt::Result {
+    f.debug_struct(name)
+        .field(
+            "shared_secret",
+            &format_args!(
+                "[REDACTED {} bytes]",
+                KYBER_SHARED_SECRET_BYTES
+            ),
+        )
+        .field(
+            "send_a",
+            &format_args!("[{} bytes; not secret]", send_a),
+        )
+        .field(
+            "send_b",
+            &format_args!("[{} bytes; not secret]", send_b),
+        )
+        .field(
+            "temp_key",
+            &format_args!(
+                "[REDACTED {} bytes]",
+                KYBER_SHARED_SECRET_BYTES
+            ),
+        )
+        .field(
+            "eska",
+            &format_args!(
+                "[REDACTED {} bytes]",
+                KYBER_SECRET_KEY_BYTES
+            ),
+        )
+        .finish()
+}
+
 /// Represents unilaterally authenticated key exchange between two parties.
 ///
 /// # Example:
@@ -97,7 +143,10 @@ type Eska = [u8; KYBER_SECRET_KEY_BYTES];
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+///
+/// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
+/// fields are zeroized on drop.
+#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Uake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
@@ -109,6 +158,12 @@ pub struct Uake {
     pub temp_key: TempKey,
     /// Ephemeral secret key
     pub eska: Eska,
+}
+
+impl fmt::Debug for Uake {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt_exchange(f, "Uake", UAKE_INIT_BYTES, UAKE_RESPONSE_BYTES)
+    }
 }
 
 impl Default for Uake {
@@ -250,7 +305,10 @@ impl Uake {
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+///
+/// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
+/// fields are zeroized on drop.
+#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Ake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
@@ -262,6 +320,12 @@ pub struct Ake {
     pub temp_key: TempKey,
     /// Ephemeral secret key
     pub eska: Eska,
+}
+
+impl fmt::Debug for Ake {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt_exchange(f, "Ake", AKE_INIT_BYTES, AKE_RESPONSE_BYTES)
+    }
 }
 
 impl Default for Ake {
