@@ -22,9 +22,7 @@ use crate::{fips202::*, params::*};
 use sha2::{Digest, Sha256, Sha512};
 
 #[cfg(feature = "90s-fixslice")]
-use aes::cipher::{
-    generic_array::GenericArray, KeyIvInit, StreamCipher,
-};
+use aes::cipher::{KeyIvInit, StreamCipher};
 #[cfg(feature = "90s-fixslice")]
 type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
 
@@ -156,9 +154,8 @@ pub fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
         // RustCrypto fixslice
         let mut expnonce = [0u8; 16];
         expnonce[0] = nonce;
-        let key = GenericArray::from_slice(key);
-        let iv = GenericArray::from_slice(&expnonce);
-        let mut cipher = Aes256Ctr::new(key, iv);
+        let mut cipher = Aes256Ctr::new_from_slices(key, &expnonce)
+            .expect("AES-256 key is 32 bytes and the CTR IV is 16");
         cipher.apply_keystream(out)
     }
     #[cfg(not(feature = "90s-fixslice"))]

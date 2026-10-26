@@ -176,6 +176,20 @@ jobs:
       - name: Check no_std (lib only)
         run: cargo check --lib --no-default-features --features kyber768
 
+  # The 90s-fixslice backend (RustCrypto aes + ctr) is outside every
+  # other job's feature set, so a dependency bump broke it unnoticed.
+  fixslice-90s:
+    name: 90s-fixslice build + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - name: Test kyberlib with 90s-fixslice
+        run: cargo test --locked -p kyberlib --no-default-features --features kyber768,90s-fixslice,std
+
   cargo-deny:
     name: cargo-deny
     runs-on: ubuntu-latest
