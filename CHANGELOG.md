@@ -59,11 +59,12 @@ versioning and support policy.
   (60 vectors each for ML-KEM-512, -768 and -1024); the kyberlib-wasm
   README describes `wasm-pack` builds and ML-KEM-768 only, with no npm
   package; signed commits on `main` are enforced by branch protection.
-- Updated dependencies: `cc` 1.8.0, `ctr` 0.10.1. Updated GitHub
-  Actions: `dtolnay/rust-toolchain`, `Swatinem/rust-cache` 2.9.3,
-  `taiki-e/install-action` 2.87.31, `rust-lang/crates-io-auth-action`
-  1.0.6, `actions/upload-artifact` 7.0.2,
-  `actions/download-artifact` 8.0.2.
+- Updated dependencies: `cc` 1.8.0, `ctr` 0.10.1, `sha2` 0.11.1 (90s
+  feature), `serde_json` 1.0.154, and `proptest` 1.12.0 (tests only).
+  Updated GitHub Actions: `dtolnay/rust-toolchain`,
+  `Swatinem/rust-cache` 2.9.3, `taiki-e/install-action` 2.87.31,
+  `rust-lang/crates-io-auth-action` 1.0.6, `actions/upload-artifact`
+  7.0.2, `actions/download-artifact` 8.0.2.
 
 ## [0.0.10] - 2026-10-11
 
