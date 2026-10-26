@@ -102,7 +102,7 @@ kyberslash-guard: ## Fail if any non-annotated `/ KYBER_Q` / `% KYBER_Q` appears
 	bash scripts/kyberslash-guard.sh
 
 # --------------------------------------------------------------- ACVP (phase 2)
-acvp: ## Run NIST ACVP ML-KEM-768 vectors (60 cases). Reports pass / fail per group.
+acvp: ## Run NIST ACVP ML-KEM-512/768/1024 vectors (180 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
 	  $(CARGO) test -p kyberlib --test test_acvp -- --nocapture
 

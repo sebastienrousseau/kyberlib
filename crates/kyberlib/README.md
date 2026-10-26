@@ -10,7 +10,8 @@
 
 <p align="center">
   A pure-Rust FIPS 203 ML-KEM (post-quantum key-encapsulation)
-  library — ACVP-conformant for ML-KEM-768, hybrid-ready, audited
+  library — ACVP-conformant for ML-KEM-512, -768 and -1024,
+  hybrid-ready, audited
   against KyberSlash, with a SLSA L3 + cosign signed release
   pipeline.
 </p>
@@ -26,7 +27,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM--768_ACVP_60%2F60-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -42,7 +43,7 @@
 
 - [Migrating to FIPS 203 ML-KEM](#migrating-to-fips-203-ml-kem) — `diff`-style snippets from `pqcrypto-kyber`, `RustCrypto/ml-kem`, `libcrux-ml-kem`, `oqs-rs`, and the legacy `kyberlib` 0.0.6 surface
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.7](#capabilities-in-007) — release inventory
+- [Capabilities in 0.0.11](#capabilities-in-0011) — release inventory
 - [Two APIs, one KEM](#two-apis-one-kem) — legacy free functions vs. type-state `KemCore`
 - [Features](#features) — Cargo-feature capability list
 - [Library usage](#library-usage) — keygen, encapsulate, decapsulate
@@ -66,7 +67,7 @@
 
 ```toml
 [dependencies]
-kyberlib = "0.0.7"
+kyberlib = "0.0.11"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared MSRV).
@@ -84,7 +85,7 @@ make ci          # fmt + clippy + doc + test + deny + machete + kyberslash-guard
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.7", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.11", default-features = false, features = ["kyber768"] }
 ```
 
 Requires `alloc` (because of `Vec` buffers in the rejection sampler).
@@ -158,7 +159,7 @@ build of `kyberlib`.
 
 ## Migrating to FIPS 203 ML-KEM
 
-`kyberlib` v0.0.7 implements **FIPS 203 ML-KEM** (NIST, August
+`kyberlib` v0.0.11 implements **FIPS 203 ML-KEM** (NIST, August
 2024) — the standardised form of CRYSTALS-Kyber Round 3. v0.0.6
 and earlier shipped the Round-3 surface. The byte-level deltas
 (K-byte domain separator, dropped `m' = H(m)` pre-hash, dropped
@@ -178,7 +179,7 @@ migration paths follow.
 -[dependencies]
 -kyberlib = "0.0.6"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.11"
 ```
 
 ```diff
@@ -202,7 +203,7 @@ with every other FIPS 203 endpoint.
 -[dependencies]
 -pqcrypto-kyber = "0.8"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.11"
 ```
 
 ```diff
@@ -225,7 +226,7 @@ is pure Rust. Wire-format identical (both FIPS 203 final).
 -[dependencies]
 -ml-kem = "0.2"
 +[dependencies]
-+kyberlib = "0.0.7"
++kyberlib = "0.0.11"
 ```
 
 ```diff
@@ -336,12 +337,11 @@ Downstream consumers flip a feature flag; the call sites don't change.
 
 ---
 
-## Capabilities in 0.0.7
+## Capabilities in 0.0.11
 
 | Capability | Status |
 |---|---|
-| FIPS 203 ML-KEM-768 keygen / encap / decap | ✓ ACVP 60/60 |
-| FIPS 203 ML-KEM-512 / ML-KEM-1024 | typed wrappers ✓ · `KemCore` impl pending [#130c](https://github.com/sebastienrousseau/kyberlib/issues/130) |
+| FIPS 203 ML-KEM-512 / -768 / -1024 keygen / encap / decap | ✓ ACVP 180/180 (60 per parameter set) |
 | All three parameter sets in one build | ✓ const-generic refactor [#130b](https://github.com/sebastienrousseau/kyberlib/issues/130) |
 | Implicit rejection (`J(z‖c)` per §6.3) | ✓ |
 | KyberSlash audit + CI regression guard | ✓ [ADR 0003](../../doc/adr/0003-kyberslash-audit.md) |
@@ -391,7 +391,7 @@ application needs.
 
 | Feature | Default? | Pulls in | Adds | Documented in |
 |---|---|---|---|---|
-| `kyber768`         | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-007) |
+| `kyber768`         | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-0011) |
 | `std`              | ✓ | — | `std::error::Error` impl; `getrandom`-backed default RNG | [Install](#install) |
 | `kyber512`         |   | — | ML-KEM-512 parameter set | `paramsets.rs` |
 | `kyber1024`        |   | — | ML-KEM-1024 parameter set | `paramsets.rs` |
@@ -409,7 +409,7 @@ application needs.
 ```toml
 # Example: production server with x86_64 SIMD acceleration
 [dependencies]
-kyberlib = { version = "0.0.7", features = ["avx2"] }
+kyberlib = { version = "0.0.11", features = ["avx2"] }
 ```
 
 ---
@@ -596,14 +596,14 @@ Verification recipes for downstream consumers:
 
 ```sh
 # Verify SLSA L3 provenance:
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.7.crate
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.11.crate
 
 # Verify cosign signature:
 cosign verify-blob \
     --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --bundle kyberlib-0.0.7.crate.cosign-bundle.json \
-    kyberlib-0.0.7.crate
+    --bundle kyberlib-0.0.11.crate.cosign-bundle.json \
+    kyberlib-0.0.11.crate
 ```
 
 ---
@@ -629,9 +629,9 @@ cosign verify-blob \
 
 `kyberlib` is the core of a small workspace of focused crates:
 
-| Crate | What it is | Status (v0.0.7) |
+| Crate | What it is | Status (v0.0.11) |
 |---|---|---|
-| **[`kyberlib`](https://crates.io/crates/kyberlib)** (this) | Core library — FIPS 203 ML-KEM | Published; ACVP 60/60 |
+| **[`kyberlib`](https://crates.io/crates/kyberlib)** (this) | Core library — FIPS 203 ML-KEM | Published; ACVP 180/180 |
 | [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
 | [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs — X25519MLKEM768 + ECDHE variants | `X25519MlKem768` wired |
 | [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM encoding with LAMPS-registered OIDs | Skeleton — [#168](https://github.com/sebastienrousseau/kyberlib/issues/168) |

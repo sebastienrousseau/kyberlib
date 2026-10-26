@@ -27,7 +27,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM--768_ACVP_60%2F60-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -45,7 +45,7 @@
 
 - [Migrating to `kyberlib-wasm`](#migrating-to-kyberlib-wasm) — `diff`-style snippets from `@noble/post-quantum`, `@cloudflare/pq`, and pre-FIPS-203 Kyber libs
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.7](#capabilities-in-007) — release inventory
+- [Capabilities in 0.0.11](#capabilities-in-0011) — release inventory
 - [JS API surface](#js-api-surface) — what every export does
 - [Bundle anatomy](#bundle-anatomy) — output shape, sizes, budgets
 - [Features](#features) — Cargo-feature capability list
@@ -79,7 +79,7 @@ side.
 
 ```toml
 [dependencies]
-kyberlib-wasm = "0.0.7"
+kyberlib-wasm = "0.0.11"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
@@ -123,7 +123,7 @@ the typical browser / Node consumer.
 
 | Feature | Default? | Pulls in | Adds | Documented in |
 |---|---|---|---|---|
-| `kyber768` | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-007) |
+| `kyber768` | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-0011) |
 | `kyber512` |   | — | ML-KEM-512 parameter set (mutually exclusive with the above today) | [`doc/architecture.md`](doc/architecture.md) |
 | `kyber1024` |   | — | ML-KEM-1024 parameter set (mutually exclusive) | [`doc/architecture.md`](doc/architecture.md) |
 
@@ -173,9 +173,9 @@ WebCrypto AES-GCM combiner.
 
 ## The kyberlib ecosystem
 
-| Crate | What it is | Status (v0.0.7) | Use case |
+| Crate | What it is | Status (v0.0.11) | Use case |
 |---|---|---|---|
-| [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 60/60 on ML-KEM-768 | Embed ML-KEM in any Rust binary or library. |
+| [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
 | [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [ADR 0002](../../doc/adr/0002-asm-quarantine.md), [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | High-throughput servers; embedded NEON targets. |
 | [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs — X25519MLKEM768 + ECDHE variants | `X25519MlKem768` wired; ECDHE in [#167b](https://github.com/sebastienrousseau/kyberlib/issues/167) | Direct interop with `draft-ietf-tls-ecdhe-mlkem-04`. |
 | [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8) | PKCS#8 / `SubjectPublicKeyInfo` / PEM encoding with LAMPS-registered OIDs | Skeleton — [#168](https://github.com/sebastienrousseau/kyberlib/issues/168) | X.509 cert chains, CMS, PEM exchange. |
@@ -289,7 +289,7 @@ recipes.
 
 ---
 
-## Capabilities in 0.0.7
+## Capabilities in 0.0.11
 
 | Capability | Status |
 |---|---|
@@ -395,7 +395,7 @@ pick one set per binary in v0.0.7; multi-set WASM is tracked as
 
 ```toml
 # Default — ML-KEM-768.
-kyberlib-wasm = "0.0.7"
+kyberlib-wasm = "0.0.11"
 
 # ML-KEM-512 (NIST cat-1, smaller bundle).
 kyberlib-wasm = { version = "0.0.7", default-features = false, features = ["kyber512"] }

@@ -5,8 +5,9 @@
 //!
 //! Audit-friendly, `no_std`-compatible implementation of **FIPS 203
 //! ML-KEM** (the standardised CRYSTALS-Kyber post-quantum key
-//! encapsulation mechanism, finalised August 2024). 60/60 ACVP
-//! conformance against the NIST test corpus.
+//! encapsulation mechanism, finalised August 2024). 180/180 ACVP
+//! conformance against the NIST test corpus (60 vectors each for
+//! ML-KEM-512, -768 and -1024).
 //!
 //! [![kyberlib logo](https://cloudcdn.pro/kyberlib/v1/logos/kyberlib.svg)](https://kyberlib.com)
 //!
