@@ -83,8 +83,9 @@ when applicable.
 ## Signed commits required
 
 `main` rejects unsigned commits. Configure GPG or SSH commit signing
-([GitHub guide][sign]). The `verify-signatures` CI gate ([#141][i141]) will
-fail PRs with unsigned commits.
+([GitHub guide][sign]). Enforcement is GitHub branch protection on
+`main` ("Require signed commits"), not a CI job: a pull request with
+a commit GitHub cannot verify cannot be merged.
 
 [sign]: https://docs.github.com/en/authentication/managing-commit-signature-verification
 
@@ -212,5 +213,4 @@ licensed under both.
 - For breaking changes: CHANGELOG entry + ADR.
 
 [i128]: https://github.com/sebastienrousseau/kyberlib/issues/128
-[i141]: https://github.com/sebastienrousseau/kyberlib/issues/141
 [i148]: https://github.com/sebastienrousseau/kyberlib/issues/148

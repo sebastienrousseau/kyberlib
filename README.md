@@ -768,7 +768,7 @@ v1.0 will not tag until the audit signs off.
 (imports from Mozilla / Google / Bytecode Alliance / Embark /
 Fermyon / ISRG / Zcash), reproducible `cargo vendor --offline`
 build verified in CI, every Action SHA-pinned, `Cargo.lock`
-committed, signed commits enforced on `main`.
+committed, signed commits required on `main` by branch protection.
 
 **FIPS / regulatory path.** Pure-Rust crates can't themselves be
 FIPS 140-3 validated. The planned `fips` feature
