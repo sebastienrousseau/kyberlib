@@ -465,7 +465,7 @@ end = "2027-10-26"
 
 [[trusted.find-msvc-tools]]
 criteria = "safe-to-deploy"
-user-id = 539
+user-id = 539 # Josh Stone (cuviper)
 start = "2025-08-29"
 end = "2027-10-14"
 

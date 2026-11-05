@@ -169,6 +169,13 @@ version = "0.11.3"
 when = "2026-05-03"
 trusted-publisher = "github:RustCrypto/traits"
 
+[[publisher.find-msvc-tools]]
+version = "0.1.0"
+when = "2025-08-29"
+user-id = 539
+user-login = "cuviper"
+user-name = "Josh Stone"
+
 [[publisher.getrandom]]
 version = "0.2.15"
 when = "2024-05-06"
@@ -660,11 +667,6 @@ criteria = "safe-to-deploy"
 delta = "2.10.0 -> 2.11.1"
 notes = "Minor updates, nothing awry here."
 
-[[audits.bytecode-alliance.audits.block-buffer]]
-who = "Benjamin Bouvier <public@benj.me>"
-criteria = "safe-to-deploy"
-delta = "0.9.0 -> 0.10.2"
-
 [[audits.bytecode-alliance.audits.cc]]
 who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
@@ -735,6 +737,12 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "2.1.1 -> 2.3.0"
 notes = "Minor refactoring, nothing new."
+
+[[audits.bytecode-alliance.audits.find-msvc-tools]]
+who = "Alex Crichton <alex@alexcrichton.com>"
+criteria = "safe-to-deploy"
+delta = "0.1.0 -> 0.1.4"
+notes = "Nothing out of the ordinary for a crate finding MSVC tooling."
 
 [[audits.bytecode-alliance.audits.foldhash]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -814,12 +822,6 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "0.2.13 -> 0.2.14"
 notes = "No substantive changes in this update"
-
-[[audits.bytecode-alliance.audits.rand]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-delta = "0.9.2 -> 0.9.4"
-notes = "Minor bugfix release"
 
 [[audits.bytecode-alliance.audits.rand]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -1672,12 +1674,6 @@ This crate has been added to Chromium in https://crrev.com/c/3891618.
 '''
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
 
-[[audits.google.audits.version_check]]
-who = "George Burgess IV <gbiv@google.com>"
-criteria = "safe-to-deploy"
-version = "0.9.4"
-aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
-
 [[audits.google.audits.wait-timeout]]
 who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
@@ -1711,11 +1707,6 @@ who = "danakj <danakj@chromium.org>"
 criteria = "safe-to-run"
 delta = "0.1.6 -> 0.1.8"
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
-
-[[audits.isrg.audits.block-buffer]]
-who = "David Cook <dcook@divviup.org>"
-criteria = "safe-to-deploy"
-version = "0.9.0"
 
 [[audits.isrg.audits.chacha20]]
 who = "David Cook <dcook@divviup.org>"
@@ -1999,12 +1990,6 @@ criteria = "safe-to-deploy"
 delta = "2.9.4 -> 2.10.0"
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
-[[audits.mozilla.audits.block-buffer]]
-who = "Mike Hommey <mh+mozilla@glandium.org>"
-criteria = "safe-to-deploy"
-delta = "0.10.2 -> 0.10.3"
-aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
-
 [[audits.mozilla.audits.block2]]
 who = "Andy Leiserson <aleiserson@mozilla.com>"
 criteria = "safe-to-deploy"
@@ -2061,6 +2046,25 @@ criteria = "safe-to-deploy"
 delta = "2.1.0 -> 2.1.1"
 notes = "Fairly trivial changes, no chance of security regression."
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.find-msvc-tools]]
+who = "Jan-Erik Rediger <jrediger@mozilla.com>"
+criteria = "safe-to-deploy"
+delta = "0.1.4 -> 0.1.8"
+aggregated-from = "https://raw.githubusercontent.com/mozilla/glean/main/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.find-msvc-tools]]
+who = "Emilio Cobos Álvarez <emilio@crisal.io>"
+criteria = "safe-to-deploy"
+delta = "0.1.8 -> 0.1.12"
+notes = "Pretty minor changes, no new unsafe code."
+aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
+
+[[audits.mozilla.audits.find-msvc-tools]]
+who = "Alex Franchuk <afranchuk@mozilla.com>"
+criteria = "safe-to-deploy"
+delta = "0.1.12 -> 0.1.15"
+aggregated-from = "https://raw.githubusercontent.com/mozilla/cargo-vet/main/supply-chain/audits.toml"
 
 [[audits.mozilla.audits.futures-core]]
 who = "Mike Hommey <mh+mozilla@glandium.org>"
@@ -2408,6 +2412,13 @@ for deleting data. This is expected and documented behavior.
 """
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
+[[audits.mozilla.audits.zeroize]]
+who = "Alex Franchuk <afranchuk@mozilla.com>"
+criteria = "safe-to-deploy"
+delta = "1.8.2 -> 1.9.1"
+notes = "Minor stylistic changes to unsafe blocks, many tests added/updated."
+aggregated-from = "https://raw.githubusercontent.com/mozilla/cargo-vet/main/supply-chain/audits.toml"
+
 [[audits.mozilla.audits.zeroize_derive]]
 who = "Benjamin Beurdouche <beurdouche@mozilla.com>"
 criteria = "safe-to-deploy"
@@ -2437,13 +2448,6 @@ who = "Daira-Emma Hopwood <daira@jacaranda.org>"
 criteria = "safe-to-deploy"
 delta = "1.2.0 -> 1.3.0"
 aggregated-from = "https://raw.githubusercontent.com/zcash/librustzcash/main/supply-chain/audits.toml"
-
-[[audits.zcash.audits.block-buffer]]
-who = "Jack Grigg <jack@electriccoin.co>"
-criteria = "safe-to-deploy"
-delta = "0.10.3 -> 0.10.4"
-notes = "Adds panics to prevent a block size of zero from causing unsoundness."
-aggregated-from = "https://raw.githubusercontent.com/zcash/zcash/master/qa/supply-chain/audits.toml"
 
 [[audits.zcash.audits.cpufeatures]]
 who = "Jack Grigg <jack@electriccoin.co>"
