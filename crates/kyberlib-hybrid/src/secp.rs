@@ -179,26 +179,31 @@ macro_rules! secp_hybrid {
     };
 }
 
-macro_rules! point_parser {
-    ($name:ident, $curve:ident) => {
-        /// Decode a SEC 1 uncompressed point, rejecting compressed
-        /// encodings, off-curve points and the identity.
-        fn $name(
-            bytes: &[u8],
-        ) -> Result<$curve::PublicKey, KyberLibError> {
-            if bytes.first() != Some(&0x04) {
-                return Err(KyberLibError::InvalidKey);
-            }
-            $curve::PublicKey::from_sec1_bytes(bytes)
-                .map_err(|_| KyberLibError::InvalidKey)
-        }
-    };
+/// Decode a SEC 1 uncompressed P-256 point, rejecting compressed
+/// encodings, off-curve points and the identity.
+#[cfg(feature = "secp256r1")]
+fn parse_point_p256(
+    bytes: &[u8],
+) -> Result<p256::PublicKey, KyberLibError> {
+    if bytes.first() != Some(&0x04) {
+        return Err(KyberLibError::InvalidKey);
+    }
+    p256::PublicKey::from_sec1_bytes(bytes)
+        .map_err(|_| KyberLibError::InvalidKey)
 }
 
-#[cfg(feature = "secp256r1")]
-point_parser!(parse_point_p256, p256);
+/// Decode a SEC 1 uncompressed P-384 point, rejecting compressed
+/// encodings, off-curve points and the identity.
 #[cfg(feature = "secp384r1")]
-point_parser!(parse_point_p384, p384);
+fn parse_point_p384(
+    bytes: &[u8],
+) -> Result<p384::PublicKey, KyberLibError> {
+    if bytes.first() != Some(&0x04) {
+        return Err(KyberLibError::InvalidKey);
+    }
+    p384::PublicKey::from_sec1_bytes(bytes)
+        .map_err(|_| KyberLibError::InvalidKey)
+}
 
 #[cfg(feature = "secp256r1")]
 secp_hybrid!(
