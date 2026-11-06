@@ -26,7 +26,10 @@
 //!
 //! Run with: `cargo run --example deterministic_seed`.
 
-use kyberlib::{derive, KyberLibError};
+use kyberlib::{
+    derive, KyberLibError, KYBER_PUBLIC_KEY_BYTES,
+    KYBER_SECRET_KEY_BYTES,
+};
 
 fn main() -> Result<(), KyberLibError> {
     // A fixed 64-byte test seed. In production code, you would
@@ -57,11 +60,11 @@ fn main() -> Result<(), KyberLibError> {
     assert!(derive(&[0u8; 63]).is_err(), "63-byte seed must fail");
     assert!(derive(&[0u8; 65]).is_err(), "65-byte seed must fail");
 
+    // Print the format's sizes, never anything read from the secret key.
     println!(
         "Deterministic ML-KEM-768 keygen reproduced from a fixed \
-         seed: pk={} B, sk={} B (byte-identical across both calls).",
-        keys_a.public.len(),
-        keys_a.secret.len(),
+         seed: pk={KYBER_PUBLIC_KEY_BYTES} B, sk={KYBER_SECRET_KEY_BYTES} B \
+         (byte-identical across both calls).",
     );
 
     Ok(())
