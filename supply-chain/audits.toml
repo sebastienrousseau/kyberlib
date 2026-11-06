@@ -631,6 +631,18 @@ user-id = 1 # Alex Crichton (alexcrichton)
 start = "2019-03-04"
 end = "2027-10-14"
 
+[[trusted.kyberlib]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:sebastienrousseau/kyberlib"
+start = "2026-10-11"
+end = "2027-11-06"
+
+[[trusted.kyberlib-wasm]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:sebastienrousseau/kyberlib"
+start = "2026-10-11"
+end = "2027-11-06"
+
 [[trusted.libloading]]
 criteria = "safe-to-deploy"
 user-id = 726 # Simonas Kazlauskas (nagisa)

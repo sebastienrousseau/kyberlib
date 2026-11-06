@@ -361,6 +361,16 @@ user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
 
+[[publisher.kyberlib]]
+version = "0.0.11"
+when = "2026-10-26"
+trusted-publisher = "github:sebastienrousseau/kyberlib"
+
+[[publisher.kyberlib-wasm]]
+version = "0.0.11"
+when = "2026-10-26"
+trusted-publisher = "github:sebastienrousseau/kyberlib"
+
 [[publisher.libloading]]
 version = "0.8.9"
 when = "2025-09-21"
