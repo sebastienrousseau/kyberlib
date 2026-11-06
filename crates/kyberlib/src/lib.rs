@@ -210,6 +210,12 @@ pub mod symmetric;
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;
 
+/// Seeded key generation and backend dispatch for the typed API.
+mod backend;
+
+/// FIPS 203 §7.2 / §7.3 input checks.
+mod input_check;
+
 /// FIPS 140-3 backend: routes the typed ML-KEM API through the AWS-LC
 /// FIPS module (feature `fips`, issue #170).
 #[cfg(feature = "fips")]
