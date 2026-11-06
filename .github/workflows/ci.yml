@@ -190,6 +190,46 @@ jobs:
       - name: Test kyberlib with 90s-fixslice
         run: cargo test --locked -p kyberlib --no-default-features --features kyber768,90s-fixslice,std
 
+  # kyberlib-hybrid's NIST-curve groups are opt-in features, outside
+  # the default-feature test matrix. Test and lint them here.
+  hybrid-all-features:
+    name: kyberlib-hybrid (all features)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: Test kyberlib-hybrid with every group
+        run: cargo test --locked -p kyberlib-hybrid --all-features
+      - name: Clippy kyberlib-hybrid with every group
+        run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
+
+  # FIPS backend (#170): builds the AWS-LC FIPS module (CMake, Go and a
+  # C compiler, all preinstalled on ubuntu-latest), checks the module
+  # reports FIPS mode, and runs the whole suite plus the cross-backend
+  # tests against it.
+  fips:
+    name: FIPS backend (aws-lc-rs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: Toolchain versions
+        run: cmake --version && go version && cc --version
+      - name: Test kyberlib on the FIPS backend
+        run: cargo test --locked -p kyberlib --features fips
+      - name: Test kyberlib-hybrid on the FIPS backend
+        run: cargo test --locked -p kyberlib-hybrid --all-features --features kyberlib/fips
+      - name: Clippy with fips
+        run: cargo clippy --locked -p kyberlib --all-targets --features fips -- -D warnings
+
   cargo-deny:
     name: cargo-deny
     runs-on: ubuntu-latest

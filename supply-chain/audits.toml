@@ -307,6 +307,12 @@ criteria = "safe-to-deploy"
 version = "2.0.1"
 notes = "Full audit of x25519-dalek 2.0.1 (12 files, 4 .rs files, 682 lines of Rust): 0 lines mention unsafe; no build.rs; dependencies: curve25519-dalek, rand_core, serde, zeroize."
 
+[[trusted.aho-corasick]]
+criteria = "safe-to-deploy"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-03-28"
+end = "2027-11-06"
+
 [[trusted.anstream]]
 criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
@@ -349,10 +355,28 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-07-23"
 end = "2027-10-14"
 
+[[trusted.aws-lc-fips-sys]]
+criteria = "safe-to-deploy"
+user-id = 156764 # Justin W Smith (justsmth)
+start = "2022-11-10"
+end = "2027-11-06"
+
+[[trusted.aws-lc-rs]]
+criteria = "safe-to-deploy"
+user-id = 156764 # Justin W Smith (justsmth)
+start = "2023-04-11"
+end = "2027-11-06"
+
 [[trusted.base16ct]]
 criteria = "safe-to-deploy"
 user-id = 267 # Tony Arcieri (tarcieri)
 start = "2022-01-13"
+end = "2027-11-06"
+
+[[trusted.bindgen]]
+criteria = "safe-to-deploy"
+user-id = 3788 # Emilio Cobos Álvarez (emilio)
+start = "2019-02-23"
 end = "2027-11-06"
 
 [[trusted.bit-set]]
@@ -397,6 +421,12 @@ trusted-publisher = "github:rust-lang/cc-rs"
 start = "2025-09-01"
 end = "2027-11-06"
 
+[[trusted.clang-sys]]
+criteria = "safe-to-deploy"
+user-id = 36629 # Mads Marquart (madsmtm)
+start = "2026-07-29"
+end = "2027-11-06"
+
 [[trusted.clap]]
 criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
@@ -420,6 +450,12 @@ criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
 start = "2022-04-15"
 end = "2027-10-14"
+
+[[trusted.cmake]]
+criteria = "safe-to-deploy"
+user-id = 55123 # rust-lang-owner
+start = "2022-10-29"
+end = "2027-11-06"
 
 [[trusted.cmov]]
 criteria = "safe-to-deploy"
@@ -529,6 +565,12 @@ user-id = 539 # Josh Stone (cuviper)
 start = "2025-08-29"
 end = "2027-10-14"
 
+[[trusted.fs_extra]]
+criteria = "safe-to-deploy"
+user-id = 5882 # Denis Kurilenko (webdesus)
+start = "2020-08-25"
+end = "2027-11-06"
+
 [[trusted.generic-array]]
 criteria = "safe-to-deploy"
 user-id = 5704 # Nova (novacrazy)
@@ -540,6 +582,12 @@ criteria = "safe-to-deploy"
 user-id = 5059 # Artyom Pavlov (newpavlov)
 start = "2019-06-28"
 end = "2027-10-14"
+
+[[trusted.glob]]
+criteria = "safe-to-deploy"
+user-id = 55123 # rust-lang-owner
+start = "2023-01-06"
+end = "2027-11-06"
 
 [[trusted.group]]
 criteria = "safe-to-deploy"
@@ -583,6 +631,12 @@ user-id = 1 # Alex Crichton (alexcrichton)
 start = "2019-03-04"
 end = "2027-10-14"
 
+[[trusted.libloading]]
+criteria = "safe-to-deploy"
+user-id = 726 # Simonas Kazlauskas (nagisa)
+start = "2019-06-01"
+end = "2027-11-06"
+
 [[trusted.libm]]
 criteria = "safe-to-deploy"
 user-id = 55123 # rust-lang-owner
@@ -595,11 +649,23 @@ user-id = 6825 # Dan Gohman (sunfishcode)
 start = "2021-06-12"
 end = "2027-10-14"
 
+[[trusted.memchr]]
+criteria = "safe-to-deploy"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-07-07"
+end = "2027-11-06"
+
 [[trusted.minicov]]
 criteria = "safe-to-run"
 user-id = 2915 # Amanieu d'Antras (Amanieu)
 start = "2020-04-20"
 end = "2027-10-14"
+
+[[trusted.minimal-lexical]]
+criteria = "safe-to-deploy"
+user-id = 31684 # Alexander Huszagh (Alexhuszagh)
+start = "2021-04-27"
+end = "2027-11-06"
 
 [[trusted.once_cell]]
 criteria = "safe-to-deploy"
@@ -623,6 +689,12 @@ end = "2027-11-06"
 criteria = "safe-to-deploy"
 trusted-publisher = "github:RustCrypto/elliptic-curves"
 start = "2026-04-19"
+end = "2027-11-06"
+
+[[trusted.prettyplease]]
+criteria = "safe-to-deploy"
+user-id = 3618 # David Tolnay (dtolnay)
+start = "2022-01-04"
 end = "2027-11-06"
 
 [[trusted.prettyplease]]
@@ -660,6 +732,30 @@ criteria = "safe-to-deploy"
 user-id = 1234 # Diggory Hardy (dhardy)
 start = "2019-06-06"
 end = "2027-10-26"
+
+[[trusted.regex]]
+criteria = "safe-to-deploy"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-02-27"
+end = "2027-11-06"
+
+[[trusted.regex-automata]]
+criteria = "safe-to-deploy"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-02-25"
+end = "2027-11-06"
+
+[[trusted.regex-syntax]]
+criteria = "safe-to-deploy"
+user-id = 189 # Andrew Gallant (BurntSushi)
+start = "2019-03-30"
+end = "2027-11-06"
+
+[[trusted.rustc-hash]]
+criteria = "safe-to-deploy"
+user-id = 130181 # nora (Noratrieb)
+start = "2024-11-30"
+end = "2027-11-06"
 
 [[trusted.rustix]]
 criteria = "safe-to-run"

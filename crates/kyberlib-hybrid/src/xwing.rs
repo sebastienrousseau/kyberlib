@@ -222,7 +222,10 @@ impl XWingDecapKey {
 
 impl XWingEncapKey {
     /// Encapsulate to this key (draft §5.4), drawing 64 bytes of `rng`
-    /// output as the encapsulation seed.
+    /// output as the encapsulation seed. With kyberlib's `fips` feature
+    /// the ML-KEM half takes its message from the AWS-LC DRBG instead
+    /// of the seed, so the result is correct but not reproducible from
+    /// `rng`.
     ///
     /// # Errors
     ///
@@ -383,24 +386,29 @@ mod tests {
                 "vector {i}: pk"
             );
 
-            let eseed: [u8; 64] = unhex(v.eseed).try_into().unwrap();
-            let (ct, ss) = ek.encapsulate_derand(&eseed).unwrap();
+            // Decapsulating the draft's ciphertext is deterministic on
+            // every backend.
+            let ct =
+                XWingCiphertext::try_from_slice(&unhex(v.ct)).unwrap();
             assert_eq!(
-                ct.as_bytes()[..],
-                unhex(v.ct)[..],
-                "vector {i}: ct"
+                dk.decapsulate(&ct).as_bytes()[..],
+                unhex(v.ss)[..],
+                "vector {i}: decaps"
             );
+
+            // Derandomised encapsulation needs ML-KEM to take its message
+            // from eseed. kyberlib's `fips` backend draws it from the
+            // AWS-LC DRBG instead, as an approved module must.
+            if kyberlib::BACKEND.contains("FIPS") {
+                continue;
+            }
+            let eseed: [u8; 64] = unhex(v.eseed).try_into().unwrap();
+            let (ct2, ss) = ek.encapsulate_derand(&eseed).unwrap();
+            assert_eq!(ct2, ct, "vector {i}: ct");
             assert_eq!(
                 ss.as_bytes()[..],
                 unhex(v.ss)[..],
                 "vector {i}: ss"
-            );
-
-            let ss2 = dk.decapsulate(&ct);
-            assert_eq!(
-                ss2.as_bytes()[..],
-                unhex(v.ss)[..],
-                "vector {i}: decaps"
             );
         }
     }

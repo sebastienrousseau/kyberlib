@@ -47,6 +47,15 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
+/// The vectors replay seeded RNG draws. kyberlib's `fips` backend
+/// takes ML-KEM randomness from the AWS-LC DRBG, so they cannot be
+/// reproduced there; the layout they check does not depend on the
+/// backend, and `kyberlib/tests/test_fips.rs` cross-checks the module
+/// against the pure-Rust ML-KEM.
+fn replayable() -> bool {
+    !kyberlib::BACKEND.contains("FIPS")
+}
+
 fn rng(s: &str) -> ChaCha20Rng {
     ChaCha20Rng::from_seed(unhex(s).try_into().expect("32-byte seed"))
 }
@@ -61,6 +70,9 @@ macro_rules! interop_tests {
             /// kyberlib client, rustls server.
             #[test]
             fn kyberlib_client_matches_rustls_server() {
+                if !replayable() {
+                    return;
+                }
                 for (i, v) in vectors::$cv.iter().enumerate() {
                     let (client, _) =
                         $client::generate(&mut rng(v.rng_seed))
@@ -79,6 +91,9 @@ macro_rules! interop_tests {
             /// rustls client, kyberlib server.
             #[test]
             fn kyberlib_server_matches_rustls_client() {
+                if !replayable() {
+                    return;
+                }
                 for (i, v) in vectors::$sv.iter().enumerate() {
                     let (share, ss) = $server::encapsulate(
                         &mut rng(v.rng_seed),

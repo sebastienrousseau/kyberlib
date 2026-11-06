@@ -517,11 +517,10 @@ impl MlKem768EncapKey {
         &self,
         rng: &mut R,
     ) -> Result<(MlKem768Ciphertext, SharedSecret), KyberLibError> {
-        let mut ct = [0u8; KYBER_CIPHERTEXT_BYTES];
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_enc_generic::<MlKem768, R>(
-            &mut ct, &mut ss, &self.0, rng, None,
-        )?;
+        let (ct, ss) =
+            backend_encapsulate::<MlKem768, R, KYBER_CIPHERTEXT_BYTES>(
+                &self.0, rng,
+            )?;
         Ok((MlKem768Ciphertext(ct), SharedSecret(ss)))
     }
 
@@ -549,11 +548,7 @@ impl MlKem768DecapKey {
     /// validity).
     #[must_use]
     pub fn decapsulate(&self, ct: &MlKem768Ciphertext) -> SharedSecret {
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_dec_generic::<MlKem768>(
-            &mut ss, &ct.0, &self.0,
-        );
-        SharedSecret(ss)
+        backend_decapsulate::<MlKem768>(&self.0, &ct.0)
     }
 
     /// Borrow as raw bytes. Sparingly — this exposes the entire 2400-
@@ -637,11 +632,12 @@ impl KemCore for MlKem768 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        let mut pk = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut sk = [0u8; KYBER_SECRET_KEY_BYTES];
-        crate::kem::kem_keypair_generic::<MlKem768, R>(
-            &mut pk, &mut sk, rng, None,
-        )?;
+        let (sk, pk) = backend_keygen::<
+            MlKem768,
+            R,
+            KYBER_SECRET_KEY_BYTES,
+            KYBER_PUBLIC_KEY_BYTES,
+        >(rng)?;
         Ok((MlKem768DecapKey(sk), MlKem768EncapKey(pk)))
     }
 
@@ -673,11 +669,8 @@ impl MlKem512EncapKey {
         &self,
         rng: &mut R,
     ) -> Result<(MlKem512Ciphertext, SharedSecret), KyberLibError> {
-        let mut ct = [0u8; 768];
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_enc_generic::<MlKem512, R>(
-            &mut ct, &mut ss, &self.0, rng, None,
-        )?;
+        let (ct, ss) =
+            backend_encapsulate::<MlKem512, R, 768>(&self.0, rng)?;
         Ok((MlKem512Ciphertext(ct), SharedSecret(ss)))
     }
 }
@@ -688,11 +681,7 @@ impl MlKem512DecapKey {
     /// branches on validity.
     #[must_use]
     pub fn decapsulate(&self, ct: &MlKem512Ciphertext) -> SharedSecret {
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_dec_generic::<MlKem512>(
-            &mut ss, &ct.0, &self.0,
-        );
-        SharedSecret(ss)
+        backend_decapsulate::<MlKem512>(&self.0, &ct.0)
     }
 }
 
@@ -709,11 +698,7 @@ impl KemCore for MlKem512 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        let mut pk = [0u8; 800];
-        let mut sk = [0u8; 1632];
-        crate::kem::kem_keypair_generic::<MlKem512, R>(
-            &mut pk, &mut sk, rng, None,
-        )?;
+        let (sk, pk) = backend_keygen::<MlKem512, R, 1632, 800>(rng)?;
         Ok((MlKem512DecapKey(sk), MlKem512EncapKey(pk)))
     }
 
@@ -742,11 +727,8 @@ impl MlKem1024EncapKey {
         rng: &mut R,
     ) -> Result<(MlKem1024Ciphertext, SharedSecret), KyberLibError>
     {
-        let mut ct = [0u8; 1568];
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_enc_generic::<MlKem1024, R>(
-            &mut ct, &mut ss, &self.0, rng, None,
-        )?;
+        let (ct, ss) =
+            backend_encapsulate::<MlKem1024, R, 1568>(&self.0, rng)?;
         Ok((MlKem1024Ciphertext(ct), SharedSecret(ss)))
     }
 }
@@ -760,11 +742,7 @@ impl MlKem1024DecapKey {
         &self,
         ct: &MlKem1024Ciphertext,
     ) -> SharedSecret {
-        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
-        crate::kem::kem_dec_generic::<MlKem1024>(
-            &mut ss, &ct.0, &self.0,
-        );
-        SharedSecret(ss)
+        backend_decapsulate::<MlKem1024>(&self.0, &ct.0)
     }
 }
 
@@ -781,11 +759,7 @@ impl KemCore for MlKem1024 {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     > {
-        let mut pk = [0u8; 1568];
-        let mut sk = [0u8; 3168];
-        crate::kem::kem_keypair_generic::<MlKem1024, R>(
-            &mut pk, &mut sk, rng, None,
-        )?;
+        let (sk, pk) = backend_keygen::<MlKem1024, R, 3168, 1568>(rng)?;
         Ok((MlKem1024DecapKey(sk), MlKem1024EncapKey(pk)))
     }
 
@@ -800,6 +774,77 @@ impl KemCore for MlKem1024 {
             keypair_from_seed::<MlKem1024, 1568, 3168>(d, z)?;
         Ok((MlKem1024DecapKey(sk), MlKem1024EncapKey(pk)))
     }
+}
+
+// ------------------------------------------------------------ backend dispatch
+//
+// The typed API funnels through these three helpers so the `fips`
+// feature (issue #170) can route it into the AWS-LC FIPS module. See
+// `crate::fips` for what stays outside the module boundary.
+
+/// Key generation for parameter set `P`: `(dk, ek)`.
+fn backend_keygen<P, R, const SK: usize, const PK: usize>(
+    rng: &mut R,
+) -> Result<([u8; SK], [u8; PK]), KyberLibError>
+where
+    P: crate::paramsets::MlKemParams,
+    R: RngCore + CryptoRng,
+{
+    #[cfg(feature = "fips")]
+    {
+        let _ = rng;
+        crate::fips::generate::<SK, PK>(crate::fips::algorithm(P::K))
+    }
+    #[cfg(not(feature = "fips"))]
+    {
+        let mut pk = [0u8; PK];
+        let mut sk = [0u8; SK];
+        crate::kem::kem_keypair_generic::<P, R>(
+            &mut pk, &mut sk, rng, None,
+        )?;
+        Ok((sk, pk))
+    }
+}
+
+/// Encapsulation for parameter set `P`: `(ct, ss)`.
+fn backend_encapsulate<P, R, const CT: usize>(
+    ek: &[u8],
+    rng: &mut R,
+) -> Result<([u8; CT], [u8; KYBER_SHARED_SECRET_BYTES]), KyberLibError>
+where
+    P: crate::paramsets::MlKemParams,
+    R: RngCore + CryptoRng,
+{
+    #[cfg(feature = "fips")]
+    {
+        let _ = rng;
+        crate::fips::encapsulate::<CT>(crate::fips::algorithm(P::K), ek)
+    }
+    #[cfg(not(feature = "fips"))]
+    {
+        let mut ct = [0u8; CT];
+        let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+        crate::kem::kem_enc_generic::<P, R>(
+            &mut ct, &mut ss, ek, rng, None,
+        )?;
+        Ok((ct, ss))
+    }
+}
+
+/// Decapsulation for parameter set `P` (implicit rejection, infallible).
+fn backend_decapsulate<P: crate::paramsets::MlKemParams>(
+    dk: &[u8],
+    ct: &[u8],
+) -> SharedSecret {
+    #[cfg(feature = "fips")]
+    if let Some(ss) =
+        crate::fips::decapsulate(crate::fips::algorithm(P::K), dk, ct)
+    {
+        return SharedSecret(ss);
+    }
+    let mut ss = [0u8; KYBER_SHARED_SECRET_BYTES];
+    crate::kem::kem_dec_generic::<P>(&mut ss, ct, dk);
+    SharedSecret(ss)
 }
 
 #[cfg(test)]
