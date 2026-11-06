@@ -36,8 +36,8 @@ default = ["x25519", "xwing"]
 x25519       = ["dep:x25519-dalek"]
 # X-Wing general-purpose KEM (draft-connolly-cfrg-xwing-kem).
 xwing        = ["dep:x25519-dalek", "dep:sha3"]
-secp256r1    = ["dep:p256"]
-secp384r1    = ["dep:p384"]
+secp256r1    = ["dep:p256", "dep:crypto-bigint"]
+secp384r1    = ["dep:p384", "dep:crypto-bigint"]
 
 [dependencies]
 # `version` is set explicitly even though the path-resolution is what
@@ -52,6 +52,10 @@ sha3         = { workspace = true, optional = true }
 # NIST curves for the SecP*MLKEM TLS hybrids.
 p256         = { workspace = true, optional = true }
 p384         = { workspace = true, optional = true }
+# Constraint only (RUSTSEC-2026-0387): no crypto-bigint below 0.7.6 may
+# resolve under the curve features. Listed in cargo-machete's ignore
+# set below because no code names it.
+crypto-bigint = { workspace = true, optional = true }
 rand_core    = { workspace = true }
 zeroize      = { workspace = true }
 
@@ -61,6 +65,10 @@ rand_chacha = { workspace = true }
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-machete]
+# crypto-bigint is a version floor for a security advisory, not an import.
+ignored = ["crypto-bigint"]
 
 [package.metadata.docs.rs]
 features     = ["x25519"]

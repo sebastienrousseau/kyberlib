@@ -421,6 +421,12 @@ user-id = 6743 # Ed Page (epage)
 start = "2022-04-15"
 end = "2027-10-14"
 
+[[trusted.cmov]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/utils"
+start = "2026-04-02"
+end = "2027-11-06"
+
 [[trusted.colorchoice]]
 criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
@@ -429,8 +435,8 @@ end = "2027-10-14"
 
 [[trusted.const-oid]]
 criteria = "safe-to-deploy"
-user-id = 11235 # Arthur Gautier (baloo)
-start = "2023-07-10"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2020-08-04"
 end = "2027-11-06"
 
 [[trusted.core_detect]]
@@ -453,8 +459,8 @@ end = "2027-10-14"
 
 [[trusted.crypto-bigint]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2021-04-30"
+trusted-publisher = "github:RustCrypto/crypto-bigint"
+start = "2026-02-12"
 end = "2027-11-06"
 
 [[trusted.crypto-common]]
@@ -469,6 +475,12 @@ trusted-publisher = "github:RustCrypto/block-modes"
 start = "2026-02-27"
 end = "2027-10-26"
 
+[[trusted.ctutils]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/utils"
+start = "2026-04-02"
+end = "2027-11-06"
+
 [[trusted.curve25519-dalek]]
 criteria = "safe-to-deploy"
 user-id = 6979 # Michael Rosenberg (rozbb)
@@ -480,6 +492,12 @@ criteria = "safe-to-deploy"
 user-id = 6979 # Michael Rosenberg (rozbb)
 start = "2023-06-24"
 end = "2027-10-14"
+
+[[trusted.der]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/formats"
+start = "2026-02-11"
+end = "2027-11-06"
 
 [[trusted.digest]]
 criteria = "safe-to-deploy"
@@ -495,14 +513,14 @@ end = "2027-10-26"
 
 [[trusted.elliptic-curve]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2019-12-05"
+trusted-publisher = "github:RustCrypto/traits"
+start = "2026-03-10"
 end = "2027-11-06"
 
 [[trusted.ff]]
 criteria = "safe-to-deploy"
-user-id = 6289 # Jack Grigg (str4d)
-start = "2021-08-11"
+user-id = 1244 # Sean Bowe (ebfull)
+start = "2019-10-08"
 end = "2027-11-06"
 
 [[trusted.find-msvc-tools]]
@@ -537,8 +555,14 @@ end = "2027-10-14"
 
 [[trusted.hkdf]]
 criteria = "safe-to-deploy"
-user-id = 5059 # Artyom Pavlov (newpavlov)
-start = "2021-12-07"
+trusted-publisher = "github:RustCrypto/KDFs"
+start = "2026-03-30"
+end = "2027-11-06"
+
+[[trusted.hmac]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/MACs"
+start = "2026-03-20"
 end = "2027-11-06"
 
 [[trusted.id-arena]]
@@ -558,6 +582,12 @@ criteria = "safe-to-deploy"
 user-id = 1 # Alex Crichton (alexcrichton)
 start = "2019-03-04"
 end = "2027-10-14"
+
+[[trusted.libm]]
+criteria = "safe-to-deploy"
+user-id = 55123 # rust-lang-owner
+start = "2024-10-26"
+end = "2027-11-06"
 
 [[trusted.linux-raw-sys]]
 criteria = "safe-to-run"
@@ -585,14 +615,14 @@ end = "2027-10-14"
 
 [[trusted.p256]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2020-01-06"
+trusted-publisher = "github:RustCrypto/elliptic-curves"
+start = "2026-04-19"
 end = "2027-11-06"
 
 [[trusted.p384]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2020-01-06"
+trusted-publisher = "github:RustCrypto/elliptic-curves"
+start = "2026-04-19"
 end = "2027-11-06"
 
 [[trusted.prettyplease]]
@@ -601,10 +631,16 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2022-01-04"
 end = "2027-10-14"
 
+[[trusted.primefield]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/elliptic-curves"
+start = "2026-04-17"
+end = "2027-11-06"
+
 [[trusted.primeorder]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2022-06-30"
+trusted-publisher = "github:RustCrypto/elliptic-curves"
+start = "2026-04-17"
 end = "2027-11-06"
 
 [[trusted.proc-macro-crate]]
@@ -633,8 +669,8 @@ end = "2027-10-14"
 
 [[trusted.sec1]]
 criteria = "safe-to-deploy"
-user-id = 267 # Tony Arcieri (tarcieri)
-start = "2020-08-26"
+trusted-publisher = "github:RustCrypto/formats"
+start = "2026-03-10"
 end = "2027-11-06"
 
 [[trusted.serde_core]]
@@ -822,6 +858,12 @@ criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
 start = "2023-02-22"
 end = "2027-10-26"
+
+[[trusted.wnaf]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/elliptic-curves"
+start = "2026-06-23"
+end = "2027-11-06"
 
 [[trusted.zeroize_derive]]
 criteria = "safe-to-deploy"

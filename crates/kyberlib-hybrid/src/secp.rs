@@ -22,6 +22,35 @@ use kyberlib::KyberLibError;
 use rand_core::{CryptoRng, RngCore};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
+/// Draw a uniformly random non-zero scalar from `rng` by rejection
+/// sampling: kyberlib's RNG trait (rand_core 0.6) is not the one the
+/// RustCrypto 0.14 curves accept, so their own sampler cannot be used.
+macro_rules! random_scalar {
+    ($curve:ident, $rng:expr, $len:expr) => {{
+        let mut out = Err(KyberLibError::RandomBytesGeneration);
+        for _ in 0..64 {
+            let mut bytes = [0u8; $len];
+            $rng.try_fill_bytes(&mut bytes)
+                .map_err(|_| KyberLibError::RandomBytesGeneration)?;
+            let candidate = $curve::SecretKey::from_slice(&bytes);
+            bytes.zeroize();
+            if let Ok(sk) = candidate {
+                out = Ok(sk);
+                break;
+            }
+        }
+        out
+    }};
+}
+
+/// SEC 1 uncompressed encoding of a secret key's public point.
+macro_rules! uncompressed {
+    ($curve:ident, $sk:expr) => {{
+        use $curve::elliptic_curve::sec1::ToSec1Point;
+        $sk.public_key().to_sec1_point(false)
+    }};
+}
+
 macro_rules! secp_hybrid {
     (
         $doc:literal,
@@ -33,7 +62,7 @@ macro_rules! secp_hybrid {
     ) => {
         #[doc = concat!("Client state for ", $doc, ": ECDH ephemeral plus ML-KEM key.")]
         pub struct $client {
-            ecdh: $curve::ecdh::EphemeralSecret,
+            ecdh: $curve::SecretKey,
             ml_kem_dk: kyberlib::$dk,
         }
 
@@ -82,13 +111,10 @@ macro_rules! secp_hybrid {
                 rng: &mut R,
             ) -> Result<(Self, [u8; $point + $ek_len]), KyberLibError> {
                 use kyberlib::KemCore;
-                use $curve::elliptic_curve::sec1::ToEncodedPoint;
                 let (ml_kem_dk, ml_kem_ek) = kyberlib::$kem::generate(rng)?;
-                let ecdh = $curve::ecdh::EphemeralSecret::random(&mut *rng);
+                let ecdh = random_scalar!($curve, rng, $ecdh_len)?;
                 let mut share = [0u8; $point + $ek_len];
-                share[..$point].copy_from_slice(
-                    ecdh.public_key().to_encoded_point(false).as_bytes(),
-                );
+                share[..$point].copy_from_slice(uncompressed!($curve, ecdh).as_bytes());
                 share[$point..].copy_from_slice(ml_kem_ek.as_bytes());
                 Ok((Self { ecdh, ml_kem_dk }, share))
             }
@@ -108,7 +134,10 @@ macro_rules! secp_hybrid {
                 }
                 let peer = $parse(&server_share[..$point])?;
                 let ct = kyberlib::$ct::try_from_slice(&server_share[$point..])?;
-                let ecdh = self.ecdh.diffie_hellman(&peer);
+                let ecdh = $curve::ecdh::diffie_hellman(
+                    self.ecdh.to_nonzero_scalar(),
+                    peer.as_affine(),
+                );
                 let ml_kem = self.ml_kem_dk.decapsulate(&ct);
                 Ok($secret::join(ecdh.raw_secret_bytes(), ml_kem.as_bytes()))
             }
@@ -132,17 +161,17 @@ macro_rules! secp_hybrid {
                 if client_share.len() != $point + $ek_len {
                     return Err(KyberLibError::InvalidInput);
                 }
-                use $curve::elliptic_curve::sec1::ToEncodedPoint;
                 let peer = $parse(&client_share[..$point])?;
                 let ek = kyberlib::$ek::try_from_slice(&client_share[$point..])?;
                 let (ct, ml_kem) = ek.encapsulate(rng)?;
-                let ecdh_sk = $curve::ecdh::EphemeralSecret::random(&mut *rng);
-                let ecdh = ecdh_sk.diffie_hellman(&peer);
+                let ecdh_sk = random_scalar!($curve, rng, $ecdh_len)?;
+                let ecdh = $curve::ecdh::diffie_hellman(
+                    ecdh_sk.to_nonzero_scalar(),
+                    peer.as_affine(),
+                );
 
                 let mut share = [0u8; $point + $ct_len];
-                share[..$point].copy_from_slice(
-                    ecdh_sk.public_key().to_encoded_point(false).as_bytes(),
-                );
+                share[..$point].copy_from_slice(uncompressed!($curve, ecdh_sk).as_bytes());
                 share[$point..].copy_from_slice(ct.as_bytes());
                 Ok((share, $secret::join(ecdh.raw_secret_bytes(), ml_kem.as_bytes())))
             }

@@ -43,8 +43,11 @@ rand             = { version = "0.8.6",  default-features = false }
 rand_core        = { version = "0.6.4",  default-features = false }
 sha2             = { version = "0.11.1", default-features = false }
 sha3             = { version = "0.10.9", default-features = false }
-p256             = { version = "0.13.2", default-features = false, features = ["ecdh"] }
-p384             = { version = "0.13.1", default-features = false, features = ["ecdh"] }
+p256             = { version = "0.14.0", default-features = false, features = ["ecdh"] }
+p384             = { version = "0.14.0", default-features = false, features = ["ecdh"] }
+# Not used directly: pins the curve stack past RUSTSEC-2026-0387
+# (timing leaks in crypto-bigint < 0.7.6). See kyberlib-hybrid.
+crypto-bigint    = { version = "0.7.6", default-features = false }
 wasm-bindgen     = { version = "0.2.122", default-features = false }
 wasm-bindgen-test = { version = "0.3.50" }
 zeroize          = { version = "1.8.2",  default-features = false, features = ["derive"] }
