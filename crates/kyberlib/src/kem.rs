@@ -7,6 +7,36 @@ use crate::{
 };
 use rand_core::{CryptoRng, RngCore};
 
+/// FIPS 203 §7.2 modulus check on the encoded polynomial vector of an
+/// encapsulation key: every 12-bit coefficient must be below q.
+///
+/// This is equivalent to `ByteEncode12(ByteDecode12(ek)) == ek` and
+/// works on public data, so it need not run in constant time.
+pub(crate) fn coefficients_reduced(polyvec_bytes: &[u8]) -> bool {
+    let q = KYBER_Q as u16;
+    polyvec_bytes.as_chunks::<3>().0.iter().all(|t| {
+        let lo = u16::from(t[0]) | (u16::from(t[1] & 0x0F) << 8);
+        let hi = u16::from(t[1] >> 4) | (u16::from(t[2]) << 4);
+        lo < q && hi < q
+    })
+}
+
+/// FIPS 203 §7.3 hash check on a decapsulation key for parameter set
+/// `P`: the stored `H(ek)` must equal the hash of the embedded `ek`.
+pub(crate) fn dk_hash_check<P: crate::paramsets::MlKemParams>(
+    dk: &[u8],
+) -> bool {
+    let sk_pv = P::K * KYBER_POLY_BYTES;
+    let ek_len = ek_bytes::<P>();
+    let h_at = sk_pv + ek_len;
+    if dk.len() != dk_bytes::<P>() {
+        return false;
+    }
+    let mut h = [0u8; KYBER_SYM_BYTES];
+    hash_h(&mut h, &dk[sk_pv..h_at], ek_len);
+    h == dk[h_at..h_at + KYBER_SYM_BYTES]
+}
+
 /// Generates a public and private key pair for CCA-secure Kyber key encapsulation mechanism.
 ///
 /// # Arguments
@@ -72,6 +102,9 @@ pub fn encrypt_message<R>(
 where
     R: RngCore + CryptoRng,
 {
+    if !coefficients_reduced(&pk[..KYBER_POLYVEC_BYTES]) {
+        return Err(KyberLibError::InvalidKey);
+    }
     let mut kr = [0u8; 2 * KYBER_SYM_BYTES];
     let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
     let mut randbuf = [0u8; 2 * KYBER_SYM_BYTES];
@@ -241,6 +274,11 @@ where
     P: crate::paramsets::MlKemParams,
     R: RngCore + CryptoRng,
 {
+    if !coefficients_reduced(
+        &pk[..crate::polyvec::polyvec_bytes_len::<P>()],
+    ) {
+        return Err(KyberLibError::InvalidKey);
+    }
     let mut kr = [0u8; 2 * KYBER_SYM_BYTES];
     let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
     let mut randbuf = [0u8; 2 * KYBER_SYM_BYTES];

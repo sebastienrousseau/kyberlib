@@ -256,16 +256,22 @@ macro_rules! sized_wrapper_types {
             pub fn from_bytes(bytes: [u8; $sk_bytes]) -> Self {
                 Self(bytes)
             }
-            /// Construct from a borrowed slice, validating the length.
+            /// Construct from a borrowed slice, validating the length
+            /// and the FIPS 203 §7.3 hash check (the stored `H(ek)`
+            /// must match the embedded encapsulation key).
             ///
             /// # Errors
             ///
-            /// [`KyberLibError::InvalidLength`] on length mismatch.
+            /// [`KyberLibError::InvalidLength`] on length mismatch;
+            /// [`KyberLibError::InvalidKey`] if the hash check fails.
             pub fn try_from_slice(
                 bytes: &[u8],
             ) -> Result<Self, KyberLibError> {
                 if bytes.len() != $sk_bytes {
                     return Err(KyberLibError::InvalidLength);
+                }
+                if !crate::kem::dk_hash_check::<$p>(bytes) {
+                    return Err(KyberLibError::InvalidKey);
                 }
                 let mut buf = [0u8; $sk_bytes];
                 buf.copy_from_slice(bytes);
@@ -432,8 +438,10 @@ impl MlKem768EncapKey {
     ///
     /// # Errors
     ///
-    /// Returns [`KyberLibError::RandomBytesGeneration`] if the supplied
-    /// RNG fails.
+    /// Returns [`KyberLibError::InvalidKey`] if the key fails the
+    /// FIPS 203 §7.2 modulus check, or
+    /// [`KyberLibError::RandomBytesGeneration`] if the supplied RNG
+    /// fails.
     pub fn encapsulate<R: RngCore + CryptoRng>(
         &self,
         rng: &mut R,
@@ -572,7 +580,9 @@ impl MlKem512EncapKey {
     ///
     /// # Errors
     ///
-    /// [`KyberLibError::RandomBytesGeneration`] if the RNG fails.
+    /// [`KyberLibError::InvalidKey`] if the key fails the FIPS 203
+    /// §7.2 modulus check; [`KyberLibError::RandomBytesGeneration`] if
+    /// the RNG fails.
     pub fn encapsulate<R: RngCore + CryptoRng>(
         &self,
         rng: &mut R,
@@ -627,7 +637,9 @@ impl MlKem1024EncapKey {
     ///
     /// # Errors
     ///
-    /// [`KyberLibError::RandomBytesGeneration`] if the RNG fails.
+    /// [`KyberLibError::InvalidKey`] if the key fails the FIPS 203
+    /// §7.2 modulus check; [`KyberLibError::RandomBytesGeneration`] if
+    /// the RNG fails.
     pub fn encapsulate<R: RngCore + CryptoRng>(
         &self,
         rng: &mut R,
@@ -794,7 +806,7 @@ mod tests {
         let bytes = [0u8; 1632];
         let dk = MlKem512DecapKey::from_bytes(bytes);
         assert_eq!(dk.as_bytes(), &bytes);
-        assert!(MlKem512DecapKey::try_from_slice(&bytes).is_ok());
+        assert!(MlKem512DecapKey::try_from_slice(&bytes).is_err());
         assert!(MlKem512DecapKey::try_from_slice(&[0u8; 100]).is_err());
         #[cfg(feature = "std")]
         assert!(format!("{dk:?}").contains("REDACTED"));
@@ -827,7 +839,7 @@ mod tests {
         let bytes = [0u8; 3168];
         let dk = MlKem1024DecapKey::from_bytes(bytes);
         assert_eq!(dk.as_bytes(), &bytes);
-        assert!(MlKem1024DecapKey::try_from_slice(&bytes).is_ok());
+        assert!(MlKem1024DecapKey::try_from_slice(&bytes).is_err());
         assert!(MlKem1024DecapKey::try_from_slice(&[0u8; 100]).is_err());
     }
 

@@ -35,7 +35,9 @@ fn uake_invalid_client_init_ciphertext() {
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
-// Corrupted public key sent to bob, detected by Alice
+// Corrupted public key sent to Bob: its first coefficients become
+// 0xFFF >= q, so Bob rejects it under the FIPS 203 §7.2 modulus check
+// instead of encapsulating to it.
 #[test]
 fn uake_invalid_client_init_publickey() {
     let mut rng = rand::thread_rng();
@@ -45,11 +47,9 @@ fn uake_invalid_client_init_publickey() {
     let mut client_init =
         alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[..4].copy_from_slice(&[255u8; 4]);
-    let server_send = bob
-        .server_receive(client_init, &bob_keys.secret, &mut rng)
-        .unwrap();
-    assert!(alice.client_confirm(server_send).is_ok());
-    assert_ne!(alice.shared_secret, bob.shared_secret);
+    let result =
+        bob.server_receive(client_init, &bob_keys.secret, &mut rng);
+    assert_eq!(result.err(), Some(KyberLibError::InvalidKey));
 }
 
 // Corrupted ciphertext sent back to Alice
@@ -116,6 +116,8 @@ fn ake_invalid_client_init_ciphertext() {
     assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
+// Corrupted ephemeral key in the AKE init: rejected by Bob under the
+// FIPS 203 §7.2 modulus check.
 #[test]
 fn ake_invalid_client_init_publickey() {
     let mut rng = rand::thread_rng();
@@ -126,18 +128,13 @@ fn ake_invalid_client_init_publickey() {
     let mut client_init =
         alice.client_init(&bob_keys.public, &mut rng).unwrap();
     client_init[..4].copy_from_slice(&[255u8; 4]);
-    let server_send = bob
-        .server_receive(
-            client_init,
-            &alice_keys.public,
-            &bob_keys.secret,
-            &mut rng,
-        )
-        .unwrap();
-    assert!(alice
-        .client_confirm(server_send, &alice_keys.secret)
-        .is_ok());
-    assert_ne!(alice.shared_secret, bob.shared_secret);
+    let result = bob.server_receive(
+        client_init,
+        &alice_keys.public,
+        &bob_keys.secret,
+        &mut rng,
+    );
+    assert_eq!(result.err(), Some(KyberLibError::InvalidKey));
 }
 
 #[test]
