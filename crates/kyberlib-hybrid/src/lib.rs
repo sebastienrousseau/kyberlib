@@ -26,11 +26,13 @@
 //!
 //! ## Wire format
 //!
-//! Per draft-04, client and server orderings differ:
+//! Per `draft-ietf-tls-ecdhe-mlkem`, the ML-KEM component comes first
+//! in both shares for this group (unlike the `SecP*` groups, which put
+//! the ECDH share first):
 //!
 //! ```text
 //!   client_share := ek_mlkem (1184 B)  ‖  pk_x25519 (32 B)     = 1216 B
-//!   server_share := pk_x25519 (32 B)   ‖  ct_mlkem (1088 B)    = 1120 B
+//!   server_share := ct_mlkem (1088 B)  ‖  pk_x25519 (32 B)     = 1120 B
 //! ```
 //!
 //! The combined shared secret concatenates `ML-KEM-768.ss`
@@ -45,7 +47,7 @@
 pub mod sizes {
     /// Client share for `X25519MlKem768`: ML-KEM-768 EncapKey || X25519 share.
     pub const X25519_MLKEM768_CLIENT_SHARE: usize = 1184 + 32;
-    /// Server share for `X25519MlKem768`: X25519 share || ML-KEM-768 Ciphertext.
+    /// Server share for `X25519MlKem768`: ML-KEM-768 Ciphertext || X25519 share.
     pub const X25519_MLKEM768_SERVER_SHARE: usize = 32 + 1088;
     /// Combined shared secret length (ML-KEM-768.SS || X25519.SS).
     pub const X25519_MLKEM768_SHARED_SECRET: usize = 32 + 32;
@@ -59,7 +61,7 @@ pub trait Hybrid: sealed::Sealed {
     const TLS_CODEPOINT: u16;
     /// Combined client-share length (PQ public + classical share).
     const CLIENT_SHARE_LEN: usize;
-    /// Combined server-share length (classical share + PQ ciphertext).
+    /// Combined server-share length (both components; order is per group).
     const SERVER_SHARE_LEN: usize;
     /// Combined shared-secret length.
     const SHARED_SECRET_LEN: usize;
@@ -105,6 +107,9 @@ mod x25519_impl {
     use rand_core::{CryptoRng, RngCore};
     use x25519_dalek::{PublicKey, StaticSecret};
     use zeroize::{Zeroize, ZeroizeOnDrop};
+
+    /// ML-KEM-768 ciphertext length: the split point of the server share.
+    const ML_KEM_768_CT: usize = 1088;
 
     /// Client-side decapsulation key for X25519MLKEM768: the
     /// ML-KEM-768 secret key plus the X25519 ephemeral secret.
@@ -155,14 +160,16 @@ mod x25519_impl {
         /// Process the server's response and derive the 64-byte
         /// combined shared secret.
         ///
-        /// `server_share` layout: X25519 PublicKey (32 B) ‖ ML-KEM-768
-        /// Ciphertext (1088 B). Returns the concatenation
+        /// `server_share` layout: ML-KEM-768 Ciphertext (1088 B) ‖
+        /// X25519 PublicKey (32 B). Returns the concatenation
         /// `ML-KEM-768.ss ‖ X25519.ss` (32 + 32 = 64 B).
         ///
         /// # Errors
         ///
         /// Returns [`KyberLibError::InvalidInput`] if `server_share`
-        /// is not exactly 1120 bytes.
+        /// is not exactly 1120 bytes, or [`KyberLibError::InvalidKey`]
+        /// if the X25519 shared secret is all zero (RFC 8446 §7.4.2,
+        /// required by the TLS draft).
         pub fn decapsulate(
             self,
             server_share: &[u8],
@@ -170,16 +177,19 @@ mod x25519_impl {
             if server_share.len() != X25519_MLKEM768_SERVER_SHARE {
                 return Err(KyberLibError::InvalidInput);
             }
-            let mut x25519_peer = [0u8; 32];
-            x25519_peer.copy_from_slice(&server_share[..32]);
-            let x25519_peer = PublicKey::from(x25519_peer);
-
             let ct = MlKem768Ciphertext::try_from_slice(
-                &server_share[32..],
+                &server_share[..ML_KEM_768_CT],
             )?;
 
-            let ml_kem_ss = self.ml_kem_dk.decapsulate(&ct);
+            let mut x25519_peer = [0u8; 32];
+            x25519_peer.copy_from_slice(&server_share[ML_KEM_768_CT..]);
+            let x25519_peer = PublicKey::from(x25519_peer);
+
             let x25519_ss = self.x25519_sk.diffie_hellman(&x25519_peer);
+            if !x25519_ss.was_contributory() {
+                return Err(KyberLibError::InvalidKey);
+            }
+            let ml_kem_ss = self.ml_kem_dk.decapsulate(&ct);
 
             let mut combined = [0u8; X25519_MLKEM768_SHARED_SECRET];
             combined[..32].copy_from_slice(ml_kem_ss.as_bytes());
@@ -201,12 +211,14 @@ mod x25519_impl {
         ///
         /// `client_share` layout: ML-KEM-768 EncapKey (1184 B) ‖
         /// X25519 PublicKey (32 B). `server_share` layout (returned):
-        /// X25519 PublicKey (32 B) ‖ ML-KEM-768 Ciphertext (1088 B).
+        /// ML-KEM-768 Ciphertext (1088 B) ‖ X25519 PublicKey (32 B).
         ///
         /// # Errors
         ///
         /// Returns [`KyberLibError::InvalidInput`] if `client_share`
-        /// is not exactly 1216 bytes, or
+        /// is not exactly 1216 bytes,
+        /// [`KyberLibError::InvalidKey`] if the X25519 shared secret is
+        /// all zero or the ML-KEM key fails the FIPS 203 §7.2 check, or
         /// [`KyberLibError::RandomBytesGeneration`] if the supplied
         /// RNG fails.
         #[allow(clippy::type_complexity)]
@@ -234,13 +246,18 @@ mod x25519_impl {
             let server_pk = PublicKey::from(&server_sk);
 
             // Encapsulate against the client's ML-KEM key.
-            let (ct, ml_kem_ss) = ek.encapsulate(rng)?;
             let x25519_ss = server_sk.diffie_hellman(&peer_pk);
+            if !x25519_ss.was_contributory() {
+                return Err(KyberLibError::InvalidKey);
+            }
+            let (ct, ml_kem_ss) = ek.encapsulate(rng)?;
 
             // Build the server_share.
             let mut server_share = [0u8; X25519_MLKEM768_SERVER_SHARE];
-            server_share[..32].copy_from_slice(server_pk.as_bytes());
-            server_share[32..].copy_from_slice(ct.as_bytes());
+            server_share[..ML_KEM_768_CT]
+                .copy_from_slice(ct.as_bytes());
+            server_share[ML_KEM_768_CT..]
+                .copy_from_slice(server_pk.as_bytes());
 
             // Build the combined shared secret.
             let mut combined = [0u8; X25519_MLKEM768_SHARED_SECRET];

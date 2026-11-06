@@ -50,6 +50,7 @@ zeroize      = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+rand_chacha = { workspace = true }
 
 [lints]
 workspace = true

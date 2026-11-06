@@ -23,13 +23,19 @@ client_share := ek_mlkem768   ‖  pk_x25519
 ### Server share (sent by server in `key_share` extension)
 
 ```text
-server_share := pk_x25519     ‖  ct_mlkem768
-             := 32 B            ‖  1088 B          = 1120 B
+server_share := ct_mlkem768   ‖  pk_x25519
+             := 1088 B         ‖  32 B            = 1120 B
 ```
 
-Note the deliberate order swap — client share leads with
-PQ, server share leads with classical. This is per the
-draft and reflects which side derived which value first.
+Both shares lead with the ML-KEM component. X25519MLKEM768 is
+the one group in the draft that puts ML-KEM first ("for
+historical reasons", §4.1); the `SecP*` groups put the ECDH
+share first. Verified against rustls 0.23 (aws-lc-rs) by
+`tests/rustls_interop.rs`.
+
+Both peers MUST reject an all-zero X25519 shared secret
+(RFC 8446 §7.4.2), and the server MUST run the FIPS 203 §7.2
+modulus check on the client's ML-KEM key.
 
 ### Combined shared secret
 

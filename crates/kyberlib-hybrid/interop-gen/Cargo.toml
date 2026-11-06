@@ -1,0 +1,22 @@
+# Generator for kyberlib-hybrid's rustls interop vectors.
+#
+# Not a workspace member (see the root `exclude`): it pulls rustls and
+# aws-lc-rs, which normal builds do not need. Run it to regenerate
+# `../tests/vectors/rustls_interop.rs`:
+#
+#   cargo run --manifest-path crates/kyberlib-hybrid/interop-gen/Cargo.toml \
+#     > crates/kyberlib-hybrid/tests/vectors/rustls_interop.rs
+[package]
+name = "kyberlib-hybrid-interop-gen"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "Apache-2.0 OR MIT"
+
+[dependencies]
+kyberlib-hybrid = { path = ".." }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs", "std"] }
+rand_chacha = "0.3"
+rand_core = "0.6"
+
+[workspace]

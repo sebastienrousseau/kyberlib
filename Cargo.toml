@@ -23,7 +23,7 @@ members = [
 # cargo-fuzz requires nightly + libFuzzer and adds heavy deps we
 # do not want in normal builds. Driven via `make fuzz` / `cargo +nightly
 # fuzz run ...` from inside the `fuzz/` directory.
-exclude = ["fuzz"]
+exclude = ["fuzz", "crates/kyberlib-hybrid/interop-gen"]
 
 # Shared package metadata. Member crates inherit via `field.workspace = true`.
 [workspace.package]
