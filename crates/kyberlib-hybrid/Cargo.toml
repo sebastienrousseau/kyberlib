@@ -1,10 +1,10 @@
 [package]
 name = "kyberlib-hybrid"
-description = "Hybrid PQ + classical KEMs over kyberlib — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (skeleton; FIPS 203 ML-KEM conformance pending)."
+description = "Hybrid post-quantum key exchange over kyberlib: the X25519MLKEM768, SecP256r1MLKEM768 and SecP384r1MLKEM1024 TLS groups and the X-Wing KEM."
 documentation = "https://docs.rs/kyberlib-hybrid"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "no-std"]
-keywords = ["ml-kem", "kyber", "hybrid", "post-quantum", "tls"]
+keywords = ["ml-kem", "x-wing", "hybrid", "post-quantum", "tls"]
 publish = false   # Phase 5.1 lands the implementation; flips publishable post-audit (#177).
 
 include = [
@@ -36,8 +36,8 @@ default = ["x25519", "xwing"]
 x25519       = ["dep:x25519-dalek"]
 # X-Wing general-purpose KEM (draft-connolly-cfrg-xwing-kem).
 xwing        = ["dep:x25519-dalek", "dep:sha3"]
-secp256r1    = []
-secp384r1    = []
+secp256r1    = ["dep:p256"]
+secp384r1    = ["dep:p384"]
 
 [dependencies]
 # `version` is set explicitly even though the path-resolution is what
@@ -49,6 +49,9 @@ kyberlib = { path = "../kyberlib", version = "0.0.11", default-features = false,
 x25519-dalek = { workspace = true, optional = true }
 # SHAKE256 / SHA3-256 for X-Wing key expansion and its combiner.
 sha3         = { workspace = true, optional = true }
+# NIST curves for the SecP*MLKEM TLS hybrids.
+p256         = { workspace = true, optional = true }
+p384         = { workspace = true, optional = true }
 rand_core    = { workspace = true }
 zeroize      = { workspace = true }
 

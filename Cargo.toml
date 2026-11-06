@@ -43,6 +43,8 @@ rand             = { version = "0.8.6",  default-features = false }
 rand_core        = { version = "0.6.4",  default-features = false }
 sha2             = { version = "0.11.1", default-features = false }
 sha3             = { version = "0.10.9", default-features = false }
+p256             = { version = "0.13.2", default-features = false, features = ["ecdh"] }
+p384             = { version = "0.13.1", default-features = false, features = ["ecdh"] }
 wasm-bindgen     = { version = "0.2.122", default-features = false }
 wasm-bindgen-test = { version = "0.3.50" }
 zeroize          = { version = "1.8.2",  default-features = false, features = ["derive"] }

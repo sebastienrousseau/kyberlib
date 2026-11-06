@@ -1,63 +1,97 @@
 // Copyright © 2026 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Captures X25519MLKEM768 handshakes between kyberlib-hybrid and
-//! rustls (aws-lc-rs provider) and prints them as Rust constants.
+//! Captures TLS hybrid key exchanges between kyberlib-hybrid and rustls
+//! (aws-lc-rs provider) and prints them as Rust constants.
 //!
-//! Direction A: kyberlib client (seeded RNG) -> rustls server.
-//! Direction B: rustls client -> kyberlib server (seeded RNG).
-//! In both, the expected secret is the one rustls derived, so the
-//! vectors check kyberlib against an independent implementation.
+//! For each group: direction A is a kyberlib client (seeded RNG) and a
+//! rustls server; direction B is a rustls client and a kyberlib server
+//! (seeded RNG). The expected secret is always the one rustls derived.
+//!
+//! rustls has X25519MLKEM768 and SecP256r1MLKEM768 as hybrids. It has
+//! no SecP384r1MLKEM1024, so that group is composed here from rustls's
+//! SECP384R1 and MLKEM1024 groups using the layout in
+//! draft-ietf-tls-ecdhe-mlkem (ECDH first in shares and secret).
 
-use kyberlib_hybrid::{X25519MlKem768Client, X25519MlKem768Server};
+use kyberlib_hybrid as kh;
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
-use rustls::crypto::aws_lc_rs::kx_group::X25519MLKEM768;
+use rustls::crypto::aws_lc_rs::kx_group::{MLKEM1024, SECP256R1MLKEM768, SECP384R1, X25519MLKEM768};
+use rustls::crypto::SupportedKxGroup;
 
 fn hex(b: &[u8]) -> String {
     b.iter().map(|x| format!("{x:02x}")).collect()
 }
 
-fn direction_a(seed: [u8; 32]) {
-    let mut rng = ChaCha20Rng::from_seed(seed);
-    let (_client, client_share) = X25519MlKem768Client::generate(&mut rng).expect("client");
-    let done = X25519MLKEM768.start_and_complete(&client_share).expect("rustls server");
-    println!("    ClientVector {{");
-    println!("        rng_seed: \"{}\",", hex(&seed));
-    println!("        server_share: \"{}\",", hex(&done.pub_key));
-    println!("        shared_secret: \"{}\",", hex(done.secret.secret_bytes()));
-    println!("    }},");
+
+fn hybrid_server(g: &'static dyn SupportedKxGroup) -> impl Fn(&[u8]) -> (Vec<u8>, Vec<u8>) {
+    move |share| {
+        let done = g.start_and_complete(share).expect("rustls server");
+        (done.pub_key.clone(), done.secret.secret_bytes().to_vec())
+    }
 }
 
-fn direction_b(seed: [u8; 32]) {
-    let active = X25519MLKEM768.start().expect("rustls client");
-    let client_share = active.pub_key().to_vec();
-    let mut rng = ChaCha20Rng::from_seed(seed);
-    let (server_share, _) =
-        X25519MlKem768Server::encapsulate(&mut rng, &client_share).expect("kyberlib server");
-    let secret = active.complete(&server_share).expect("rustls accepted the server share");
-    println!("    ServerVector {{");
-    println!("        client_share: \"{}\",", hex(&client_share));
-    println!("        rng_seed: \"{}\",", hex(&seed));
-    println!("        server_share: \"{}\",", hex(&server_share));
-    println!("        shared_secret: \"{}\",", hex(secret.secret_bytes()));
-    println!("    }},");
+fn hybrid_client(g: &'static dyn SupportedKxGroup) -> (Vec<u8>, Box<dyn FnOnce(&[u8]) -> Vec<u8>>) {
+    let active = g.start().expect("rustls client");
+    let share = active.pub_key().to_vec();
+    (share, Box::new(move |s: &[u8]| active.complete(s).expect("rustls accepted the server share").secret_bytes().to_vec()))
+}
+
+fn p384_server(share: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    let ec = SECP384R1.start_and_complete(&share[..97]).expect("p384");
+    let kem = MLKEM1024.start_and_complete(&share[97..]).expect("mlkem1024");
+    let server_share = [ec.pub_key.as_slice(), kem.pub_key.as_slice()].concat();
+    let secret = [ec.secret.secret_bytes(), kem.secret.secret_bytes()].concat();
+    (server_share, secret)
+}
+
+fn p384_client() -> (Vec<u8>, Box<dyn FnOnce(&[u8]) -> Vec<u8>>) {
+    let ec = SECP384R1.start().expect("p384");
+    let kem = MLKEM1024.start().expect("mlkem1024");
+    let share = [ec.pub_key(), kem.pub_key()].concat();
+    (share, Box::new(move |s: &[u8]| {
+        let a = ec.complete(&s[..97]).expect("p384 complete");
+        let b = kem.complete(&s[97..]).expect("mlkem1024 complete");
+        [a.secret_bytes(), b.secret_bytes()].concat()
+    }))
+}
+
+fn emit_client(name: &str, feature: &str, seeds: u8, make: impl Fn(&mut ChaCha20Rng) -> Vec<u8>, server: impl Fn(&[u8]) -> (Vec<u8>, Vec<u8>)) {
+    println!("#[cfg(feature = \"{feature}\")]");
+    println!("pub(crate) const {name}_CLIENT: &[ClientVector] = &[");
+    for i in 0..3u8 {
+        let seed = [seeds + i; 32];
+        let share = make(&mut ChaCha20Rng::from_seed(seed));
+        let (server_share, secret) = server(&share);
+        println!("    ClientVector {{\n        rng_seed: \"{}\",\n        server_share: \"{}\",\n        shared_secret: \"{}\",\n    }},", hex(&seed), hex(&server_share), hex(&secret));
+    }
+    println!("];\n");
+}
+
+fn emit_server(name: &str, feature: &str, seeds: u8, client: impl Fn() -> (Vec<u8>, Box<dyn FnOnce(&[u8]) -> Vec<u8>>), respond: impl Fn(&mut ChaCha20Rng, &[u8]) -> Vec<u8>) {
+    println!("#[cfg(feature = \"{feature}\")]");
+    println!("pub(crate) const {name}_SERVER: &[ServerVector] = &[");
+    for i in 0..3u8 {
+        let seed = [seeds + i; 32];
+        let (share, finish) = client();
+        let server_share = respond(&mut ChaCha20Rng::from_seed(seed), &share);
+        let secret = finish(&server_share);
+        println!("    ServerVector {{\n        client_share: \"{}\",\n        rng_seed: \"{}\",\n        server_share: \"{}\",\n        shared_secret: \"{}\",\n    }},", hex(&share), hex(&seed), hex(&server_share), hex(&secret));
+    }
+    println!("];\n");
 }
 
 fn main() {
     println!("// SPDX-FileCopyrightText: 2026 kyberlib contributors");
     println!("// SPDX-License-Identifier: Apache-2.0 OR MIT");
     println!("//");
-    println!("// @generated by crates/kyberlib-hybrid/interop-gen (rustls {}, aws-lc-rs provider).", "0.23");
+    println!("// @generated by crates/kyberlib-hybrid/interop-gen (rustls 0.23, aws-lc-rs provider).");
     println!("// Do not edit by hand; regenerate with the command in interop-gen/Cargo.toml.\n");
-    println!("pub(crate) const CLIENT_VECTORS: &[ClientVector] = &[");
-    for i in 0..3u8 {
-        direction_a([0xA0 + i; 32]);
-    }
-    println!("];\n");
-    println!("pub(crate) const SERVER_VECTORS: &[ServerVector] = &[");
-    for i in 0..3u8 {
-        direction_b([0xB0 + i; 32]);
-    }
-    println!("];");
+
+    emit_client("X25519", "x25519", 0xA0, |r| kh::X25519MlKem768Client::generate(r).unwrap().1.to_vec(), hybrid_server(X25519MLKEM768));
+    emit_server("X25519", "x25519", 0xB0, || hybrid_client(X25519MLKEM768), |r, s| kh::X25519MlKem768Server::encapsulate(r, s).unwrap().0.to_vec());
+    emit_client("P256", "secp256r1", 0xC0, |r| kh::SecP256r1MlKem768Client::generate(r).unwrap().1.to_vec(), hybrid_server(SECP256R1MLKEM768));
+    emit_server("P256", "secp256r1", 0xD0, || hybrid_client(SECP256R1MLKEM768), |r, s| kh::SecP256r1MlKem768Server::encapsulate(r, s).unwrap().0.to_vec());
+    emit_client("P384", "secp384r1", 0xE0, |r| kh::SecP384r1MlKem1024Client::generate(r).unwrap().1.to_vec(), p384_server);
+    emit_server("P384", "secp384r1", 0xF0, p384_client, |r, s| kh::SecP384r1MlKem1024Server::encapsulate(r, s).unwrap().0.to_vec());
 }

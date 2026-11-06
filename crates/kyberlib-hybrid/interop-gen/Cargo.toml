@@ -14,7 +14,7 @@ publish = false
 license = "Apache-2.0 OR MIT"
 
 [dependencies]
-kyberlib-hybrid = { path = ".." }
+kyberlib-hybrid = { path = "..", features = ["secp256r1", "secp384r1"] }
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs", "std"] }
 rand_chacha = "0.3"
 rand_core = "0.6"

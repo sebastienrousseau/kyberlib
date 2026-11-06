@@ -349,6 +349,12 @@ user-id = 3618 # David Tolnay (dtolnay)
 start = "2019-07-23"
 end = "2027-10-14"
 
+[[trusted.base16ct]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2022-01-13"
+end = "2027-11-06"
+
 [[trusted.bit-set]]
 criteria = "safe-to-deploy"
 user-id = 1367
@@ -421,6 +427,12 @@ user-id = 6743 # Ed Page (epage)
 start = "2023-04-13"
 end = "2027-10-14"
 
+[[trusted.const-oid]]
+criteria = "safe-to-deploy"
+user-id = 11235 # Arthur Gautier (baloo)
+start = "2023-07-10"
+end = "2027-11-06"
+
 [[trusted.core_detect]]
 criteria = "safe-to-deploy"
 user-id = 4357
@@ -438,6 +450,12 @@ criteria = "safe-to-run"
 user-id = 33035 # Taiki Endo (taiki-e)
 start = "2020-10-12"
 end = "2027-10-14"
+
+[[trusted.crypto-bigint]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2021-04-30"
+end = "2027-11-06"
 
 [[trusted.crypto-common]]
 criteria = "safe-to-deploy"
@@ -475,6 +493,18 @@ trusted-publisher = "github:RustCrypto/traits"
 start = "2026-02-12"
 end = "2027-10-26"
 
+[[trusted.elliptic-curve]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2019-12-05"
+end = "2027-11-06"
+
+[[trusted.ff]]
+criteria = "safe-to-deploy"
+user-id = 6289 # Jack Grigg (str4d)
+start = "2021-08-11"
+end = "2027-11-06"
+
 [[trusted.find-msvc-tools]]
 criteria = "safe-to-deploy"
 user-id = 539 # Josh Stone (cuviper)
@@ -493,11 +523,23 @@ user-id = 5059 # Artyom Pavlov (newpavlov)
 start = "2019-06-28"
 end = "2027-10-14"
 
+[[trusted.group]]
+criteria = "safe-to-deploy"
+user-id = 1244 # Sean Bowe (ebfull)
+start = "2019-10-08"
+end = "2027-11-06"
+
 [[trusted.hashbrown]]
 criteria = "safe-to-run"
 user-id = 2915 # Amanieu d'Antras (Amanieu)
 start = "2019-04-02"
 end = "2027-10-14"
+
+[[trusted.hkdf]]
+criteria = "safe-to-deploy"
+user-id = 5059 # Artyom Pavlov (newpavlov)
+start = "2021-12-07"
+end = "2027-11-06"
 
 [[trusted.id-arena]]
 criteria = "safe-to-run"
@@ -541,11 +583,29 @@ user-id = 6743 # Ed Page (epage)
 start = "2025-05-22"
 end = "2027-10-14"
 
+[[trusted.p256]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2020-01-06"
+end = "2027-11-06"
+
+[[trusted.p384]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2020-01-06"
+end = "2027-11-06"
+
 [[trusted.prettyplease]]
 criteria = "safe-to-run"
 user-id = 3618 # David Tolnay (dtolnay)
 start = "2022-01-04"
 end = "2027-10-14"
+
+[[trusted.primeorder]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2022-06-30"
+end = "2027-11-06"
 
 [[trusted.proc-macro-crate]]
 criteria = "safe-to-deploy"
@@ -570,6 +630,12 @@ criteria = "safe-to-run"
 user-id = 6825 # Dan Gohman (sunfishcode)
 start = "2021-10-29"
 end = "2027-10-14"
+
+[[trusted.sec1]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2020-08-26"
+end = "2027-11-06"
 
 [[trusted.serde_core]]
 criteria = "safe-to-run"

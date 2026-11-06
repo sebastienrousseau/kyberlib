@@ -4,7 +4,7 @@
 //! # `kyberlib-hybrid`
 //!
 //! Hybrid post-quantum + classical KEMs built on `kyberlib`. Per
-//! [`draft-ietf-tls-ecdhe-mlkem-04`][draft] (TLS hybrid KEMs, Feb 2026)
+//! [`draft-ietf-tls-ecdhe-mlkem-05`][draft] (TLS hybrid KEMs)
 //! and the IETF hybrid KEM design [`draft-ietf-tls-hybrid-design-16`][design]:
 //!
 //! | Name                  | TLS codepoint | Classical | Post-quantum    |
@@ -16,18 +16,17 @@
 //! [draft]: https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/
 //! [design]: https://datatracker.ietf.org/doc/draft-ietf-tls-hybrid-design/
 //!
-//! ## Implemented today
+//! ## Implemented
 //!
-//! [`X25519MlKem768`] is fully wired (Phase 5.1, issue #167) on top of
-//! the FIPS 203 ML-KEM-768 primitives in `kyberlib` v0.0.7 and
-//! `x25519-dalek` v2 for the classical side. The ECDHE-variants
-//! `SecP256r1MlKem768` and `SecP384r1MlKem1024` are declared but the
-//! ECDH choice is deferred — see issue #167 part b.
+//! All three TLS groups (each behind its own feature) and the X-Wing
+//! KEM (feature `xwing`). Every TLS group is checked against rustls in
+//! both directions (`tests/rustls_interop.rs`); X-Wing against the
+//! draft's Appendix C vectors.
 //!
 //! ## Wire format
 //!
-//! Per `draft-ietf-tls-ecdhe-mlkem`, the ML-KEM component comes first
-//! in both shares for this group (unlike the `SecP*` groups, which put
+//! For `X25519MlKem768`, the ML-KEM component comes first
+//! in both shares (unlike the `SecP*` groups, which put
 //! the ECDH share first):
 //!
 //! ```text
@@ -43,7 +42,7 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
-/// Combined-share wire-format sizes per `draft-ietf-tls-ecdhe-mlkem-04`.
+/// Combined-share wire-format sizes per `draft-ietf-tls-ecdhe-mlkem-05`.
 pub mod sizes {
     /// Client share for `X25519MlKem768`: ML-KEM-768 EncapKey || X25519 share.
     pub const X25519_MLKEM768_CLIENT_SHARE: usize = 1184 + 32;
@@ -318,13 +317,10 @@ pub use xwing::{
 };
 
 // ============================================================================
-// SecP256r1MlKem768 / SecP384r1MlKem1024  — declared, not yet implemented
+// SecP256r1MlKem768 / SecP384r1MlKem1024
 // ============================================================================
 
 /// SecP256r1 + ML-KEM-768 hybrid (TLS codepoint `0x11EB`).
-///
-/// **Not yet implemented** — see issue #167 part b for the
-/// `p256`/`p384` dependency decision.
 #[cfg(feature = "secp256r1")]
 #[derive(Clone, Copy, Debug)]
 pub struct SecP256r1MlKem768;
@@ -335,14 +331,12 @@ impl sealed::Sealed for SecP256r1MlKem768 {}
 #[cfg(feature = "secp256r1")]
 impl Hybrid for SecP256r1MlKem768 {
     const TLS_CODEPOINT: u16 = 0x11EB;
-    const CLIENT_SHARE_LEN: usize = 1184 + 65;
+    const CLIENT_SHARE_LEN: usize = 65 + 1184;
     const SERVER_SHARE_LEN: usize = 65 + 1088;
     const SHARED_SECRET_LEN: usize = 32 + 32;
 }
 
 /// SecP384r1 + ML-KEM-1024 hybrid (TLS codepoint `0x11ED`).
-///
-/// **Not yet implemented** — see issue #167 part b.
 #[cfg(feature = "secp384r1")]
 #[derive(Clone, Copy, Debug)]
 pub struct SecP384r1MlKem1024;
@@ -353,10 +347,25 @@ impl sealed::Sealed for SecP384r1MlKem1024 {}
 #[cfg(feature = "secp384r1")]
 impl Hybrid for SecP384r1MlKem1024 {
     const TLS_CODEPOINT: u16 = 0x11ED;
-    const CLIENT_SHARE_LEN: usize = 1568 + 97;
+    const CLIENT_SHARE_LEN: usize = 97 + 1568;
     const SERVER_SHARE_LEN: usize = 97 + 1568;
-    const SHARED_SECRET_LEN: usize = 32 + 48;
+    const SHARED_SECRET_LEN: usize = 48 + 32;
 }
+
+#[cfg(any(feature = "secp256r1", feature = "secp384r1"))]
+mod secp;
+
+#[cfg(feature = "secp256r1")]
+pub use secp::{
+    SecP256r1MlKem768Client, SecP256r1MlKem768Server,
+    SecP256r1MlKem768SharedSecret,
+};
+
+#[cfg(feature = "secp384r1")]
+pub use secp::{
+    SecP384r1MlKem1024Client, SecP384r1MlKem1024Server,
+    SecP384r1MlKem1024SharedSecret,
+};
 
 #[cfg(test)]
 mod tests {
