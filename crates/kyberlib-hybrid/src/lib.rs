@@ -39,7 +39,7 @@
 //! (32 B) || `X25519.ss` (32 B) → 64 B, which the consumer feeds
 //! into TLS 1.3's HKDF.
 
-#![cfg_attr(not(feature = "x25519"), no_std)]
+#![cfg_attr(not(any(feature = "x25519", feature = "xwing")), no_std)]
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
@@ -301,6 +301,20 @@ mod x25519_impl {
 pub use x25519_impl::{
     SharedSecret as X25519MlKem768SharedSecret, X25519MlKem768Client,
     X25519MlKem768Server,
+};
+
+// ============================================================================
+// X-Wing  (draft-connolly-cfrg-xwing-kem)
+// ============================================================================
+
+#[cfg(feature = "xwing")]
+mod xwing;
+
+#[cfg(feature = "xwing")]
+pub use xwing::{
+    XWingCiphertext, XWingDecapKey, XWingEncapKey, XWingSharedSecret,
+    XWING_CIPHERTEXT_BYTES, XWING_ENCAP_KEY_BYTES, XWING_SEED_BYTES,
+    XWING_SHARED_SECRET_BYTES,
 };
 
 // ============================================================================

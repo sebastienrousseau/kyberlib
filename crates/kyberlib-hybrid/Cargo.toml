@@ -31,9 +31,11 @@ path = "src/lib.rs"
 crate-type = ["rlib"]
 
 [features]
-default = ["x25519"]
+default = ["x25519", "xwing"]
 # Per-share enable. All three hybrids will eventually be on-demand.
 x25519       = ["dep:x25519-dalek"]
+# X-Wing general-purpose KEM (draft-connolly-cfrg-xwing-kem).
+xwing        = ["dep:x25519-dalek", "dep:sha3"]
 secp256r1    = []
 secp384r1    = []
 
@@ -45,6 +47,8 @@ secp384r1    = []
 kyberlib = { path = "../kyberlib", version = "0.0.11", default-features = false, features = ["kyber768"] }
 # X25519 classical KEM. Activated only when the `x25519` feature is on.
 x25519-dalek = { workspace = true, optional = true }
+# SHAKE256 / SHA3-256 for X-Wing key expansion and its combiner.
+sha3         = { workspace = true, optional = true }
 rand_core    = { workspace = true }
 zeroize      = { workspace = true }
 
