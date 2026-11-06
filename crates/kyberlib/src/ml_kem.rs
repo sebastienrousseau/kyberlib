@@ -110,6 +110,77 @@ pub trait KemCore: sealed::Sealed + Sized {
         (Self::DecapsulationKey, Self::EncapsulationKey),
         KyberLibError,
     >;
+
+    /// Derive a key pair from the seed `(d, z)`: FIPS 203 Algorithm 16,
+    /// `ML-KEM.KeyGen_internal(d, z)`.
+    ///
+    /// `d ‖ z` is the seed form of an ML-KEM private key: keeping these
+    /// 64 bytes is enough to rebuild the key pair (for example, X-Wing
+    /// stores a 32-byte seed and expands it into `d` and `z`). Both
+    /// halves must come from an approved RNG and stay secret.
+    ///
+    /// # Errors
+    ///
+    /// None in practice: the seeded path draws no randomness. The
+    /// `Result` matches [`KemCore::generate`].
+    fn generate_from_seed(
+        d: &[u8; 32],
+        z: &[u8; 32],
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    >;
+}
+
+/// RNG handed to the seeded key-generation path, which never draws
+/// from it. `try_fill_bytes` fails, so if a future change made that
+/// path draw randomness it would return an error, not weak keys.
+#[derive(Clone, Copy, Debug)]
+struct SeededOnly;
+
+/// `rand_core` error code for [`SeededOnly`]: the first custom code.
+const SEEDED_ONLY_CODE: core::num::NonZeroU32 =
+    match core::num::NonZeroU32::new(rand_core::Error::CUSTOM_START) {
+        Some(code) => code,
+        None => core::num::NonZeroU32::MIN,
+    };
+
+impl CryptoRng for SeededOnly {}
+
+impl RngCore for SeededOnly {
+    fn next_u32(&mut self) -> u32 {
+        0
+    }
+    fn next_u64(&mut self) -> u64 {
+        0
+    }
+    fn fill_bytes(&mut self, _dest: &mut [u8]) {}
+    fn try_fill_bytes(
+        &mut self,
+        _dest: &mut [u8],
+    ) -> Result<(), rand_core::Error> {
+        Err(SEEDED_ONLY_CODE.into())
+    }
+}
+
+/// Shared body of every [`KemCore::generate_from_seed`] impl.
+fn keypair_from_seed<
+    P: crate::paramsets::MlKemParams,
+    const PK: usize,
+    const SK: usize,
+>(
+    d: &[u8; 32],
+    z: &[u8; 32],
+) -> Result<([u8; SK], [u8; PK]), KyberLibError> {
+    let mut pk = [0u8; PK];
+    let mut sk = [0u8; SK];
+    crate::kem::kem_keypair_generic::<P, SeededOnly>(
+        &mut pk,
+        &mut sk,
+        &mut SeededOnly,
+        Some((&d[..], &z[..])),
+    )?;
+    Ok((sk, pk))
 }
 
 // ---------------------------------------------------------------- markers
@@ -573,6 +644,21 @@ impl KemCore for MlKem768 {
         )?;
         Ok((MlKem768DecapKey(sk), MlKem768EncapKey(pk)))
     }
+
+    fn generate_from_seed(
+        d: &[u8; 32],
+        z: &[u8; 32],
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    > {
+        let (sk, pk) = keypair_from_seed::<
+            MlKem768,
+            KYBER_PUBLIC_KEY_BYTES,
+            KYBER_SECRET_KEY_BYTES,
+        >(d, z)?;
+        Ok((MlKem768DecapKey(sk), MlKem768EncapKey(pk)))
+    }
 }
 
 impl MlKem512EncapKey {
@@ -628,6 +714,17 @@ impl KemCore for MlKem512 {
         crate::kem::kem_keypair_generic::<MlKem512, R>(
             &mut pk, &mut sk, rng, None,
         )?;
+        Ok((MlKem512DecapKey(sk), MlKem512EncapKey(pk)))
+    }
+
+    fn generate_from_seed(
+        d: &[u8; 32],
+        z: &[u8; 32],
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    > {
+        let (sk, pk) = keypair_from_seed::<MlKem512, 800, 1632>(d, z)?;
         Ok((MlKem512DecapKey(sk), MlKem512EncapKey(pk)))
     }
 }
@@ -689,6 +786,18 @@ impl KemCore for MlKem1024 {
         crate::kem::kem_keypair_generic::<MlKem1024, R>(
             &mut pk, &mut sk, rng, None,
         )?;
+        Ok((MlKem1024DecapKey(sk), MlKem1024EncapKey(pk)))
+    }
+
+    fn generate_from_seed(
+        d: &[u8; 32],
+        z: &[u8; 32],
+    ) -> Result<
+        (Self::DecapsulationKey, Self::EncapsulationKey),
+        KyberLibError,
+    > {
+        let (sk, pk) =
+            keypair_from_seed::<MlKem1024, 1568, 3168>(d, z)?;
         Ok((MlKem1024DecapKey(sk), MlKem1024EncapKey(pk)))
     }
 }
