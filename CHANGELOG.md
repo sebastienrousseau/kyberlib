@@ -8,6 +8,60 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.12] - Unreleased
+
+### Fixed
+
+- **FIPS 203 input checks.** Encapsulation now rejects an encapsulation
+  key whose coefficients are not reduced mod q (§7.2 modulus check)
+  with `KyberLibError::InvalidKey`, through both the typed API and the
+  legacy `encapsulate`; kyberlib 0.0.7 to 0.0.11 encapsulated to such
+  keys. `MlKem512DecapKey` / `MlKem1024DecapKey::try_from_slice` now
+  run the §7.3 hash check and reject mismatched keys. The UAKE/AKE
+  tests that corrupted a public key now expect the rejection.
+- **kyberlib-hybrid X25519MLKEM768 wire layout.** The server share is
+  `ct_mlkem ‖ pk_x25519` as in draft-ietf-tls-ecdhe-mlkem; the crate
+  had them reversed and could not interoperate with rustls. Both peers
+  now reject an all-zero X25519 secret. (The crate is unpublished, so
+  no released version is affected.)
+- `examples/deterministic_seed.rs` prints the format's size constants
+  rather than lengths read from the secret key (CodeQL
+  `rust/cleartext-logging`).
+
+### Added
+
+- **`fips` feature** ([#170](https://github.com/sebastienrousseau/kyberlib/issues/170)):
+  the typed ML-KEM API runs inside the AWS-LC FIPS module via
+  `aws-lc-rs`, keeping the FIPS 203 encodings. `kyberlib::fips::fips_mode()`,
+  `kyberlib::BACKEND` and `KyberLibError::FipsModeUnavailable` are new.
+  Scope and certificate checks: `doc/FIPS.md`.
+- **`KemCore::generate_from_seed(d, z)`**: FIPS 203
+  `ML-KEM.KeyGen_internal` for all three parameter sets (the seed form
+  of a private key).
+- **kyberlib-hybrid** ([#167](https://github.com/sebastienrousseau/kyberlib/issues/167)):
+  `SecP256r1MlKem768` and `SecP384r1MlKem1024` (features `secp256r1`,
+  `secp384r1`) and the X-Wing KEM from
+  draft-connolly-cfrg-xwing-kem-11 (feature `xwing`, default). Every TLS
+  group is checked against rustls in both directions; X-Wing against
+  the draft's Appendix C vectors.
+- CI jobs `fips` and `hybrid-all-features`.
+
+### Changed
+
+- The `verified` feature is documented as a reservation (#171): still
+  a no-op.
+
+### Dependencies
+
+- `sha3` 0.10.9 (X-Wing), `p256` / `p384` 0.14.0 and a `crypto-bigint`
+  >= 0.7.6 floor (NIST-curve hybrids; RUSTSEC-2026-0387 affects
+  crypto-bigint < 0.7.6), `aws-lc-rs` 1.19.0 (`fips` only).
+- Minor and patch updates from Dependabot #250 and #251.
+- cargo-vet: publisher trust for `cc`, `zeroize_derive` and the new
+  crates above; see `supply-chain/audits.toml`.
+- `deny.toml`: the OpenSSL licence is allowed for `aws-lc-fips-sys`
+  only.
+
 ## [0.0.11] - 2026-10-26
 
 ### Security
@@ -202,5 +256,6 @@ hardening, and a signed release pipeline. The detailed plan lives in
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
 
+[0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...feat/v0.0.12
 [0.0.11]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.7...v0.0.10
