@@ -89,6 +89,11 @@ user-id = 6741
 user-login = "Darksonn"
 user-name = "Alice Ryhl"
 
+[[publisher.cc]]
+version = "1.10.0"
+when = "2026-10-23"
+trusted-publisher = "github:rust-lang/cc-rs"
+
 [[publisher.clap]]
 version = "4.6.7"
 when = "2026-09-14"
@@ -540,6 +545,11 @@ version = "0.244.0"
 when = "2026-01-06"
 trusted-publisher = "github:bytecodealliance/wasm-tools"
 
+[[publisher.zeroize_derive]]
+version = "1.5.0"
+when = "2026-06-12"
+trusted-publisher = "github:RustCrypto/utils"
+
 [[audits.bytecode-alliance.wildcard-audits.bumpalo]]
 who = "Nick Fitzgerald <fitzgen@gmail.com>"
 criteria = "safe-to-deploy"
@@ -666,23 +676,6 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "2.10.0 -> 2.11.1"
 notes = "Minor updates, nothing awry here."
-
-[[audits.bytecode-alliance.audits.cc]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-version = "1.0.73"
-notes = "I am the author of this crate."
-
-[[audits.bytecode-alliance.audits.cc]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-delta = "1.0.83 -> 1.1.6"
-
-[[audits.bytecode-alliance.audits.cc]]
-who = "Alex Crichton <alex@alexcrichton.com>"
-criteria = "safe-to-deploy"
-delta = "1.1.6 -> 1.2.5"
-notes = "Lots of minor updates here and there along with refactorings and such. Everything in line with what `cc` is expected to do."
 
 [[audits.bytecode-alliance.audits.cfg-if]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -1997,18 +1990,6 @@ version = "0.6.2"
 notes = "Contains unsafe code to interoperate with the ObjC runtime."
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
-[[audits.mozilla.audits.cc]]
-who = "Mike Hommey <mh+mozilla@glandium.org>"
-criteria = "safe-to-deploy"
-delta = "1.0.73 -> 1.0.78"
-aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
-
-[[audits.mozilla.audits.cc]]
-who = "Jan-Erik Rediger <jrediger@mozilla.com>"
-criteria = "safe-to-deploy"
-delta = "1.0.78 -> 1.0.83"
-aggregated-from = "https://raw.githubusercontent.com/mozilla/glean/main/supply-chain/audits.toml"
-
 [[audits.mozilla.audits.core_detect]]
 who = "Henri Sivonen <hsivonen@hsivonen.fi>"
 criteria = "safe-to-deploy"
@@ -2418,12 +2399,6 @@ criteria = "safe-to-deploy"
 delta = "1.8.2 -> 1.9.1"
 notes = "Minor stylistic changes to unsafe blocks, many tests added/updated."
 aggregated-from = "https://raw.githubusercontent.com/mozilla/cargo-vet/main/supply-chain/audits.toml"
-
-[[audits.mozilla.audits.zeroize_derive]]
-who = "Benjamin Beurdouche <beurdouche@mozilla.com>"
-criteria = "safe-to-deploy"
-version = "1.4.2"
-aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
 [[audits.mozilla.audits.zmij]]
 who = "Benjamin VanderSloot <bvandersloot@mozilla.com>"
