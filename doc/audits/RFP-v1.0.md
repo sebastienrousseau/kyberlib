@@ -5,7 +5,7 @@
 > defaults; each is flagged `[ADJUST]` so you can confirm or
 > change before you forward to vendors. The four spots are: §1
 > point-of-contact (currently the public maintainer contact),
-> §5 target start date (currently `2026-06-15`), §6 budget cap
+> §5 target start date (unset: pick one with the vendor), §6 budget cap
 > (currently USD 60 000 — middle of the COMPARISON.md guidance),
 > §6 payment terms (currently a standard 30/40/30 schedule). Then
 > send with `MATERIALS.md` to two or three vendors from §7. Expect
@@ -19,18 +19,19 @@
 * **Language:** Rust (edition 2021, MSRV 1.89)
 * **License:** MIT OR Apache-2.0 (dual)
 * **Repository:** <https://github.com/sebastienrousseau/kyberlib>
-* **Audit target branch / tag:** `feat/v0.0.7` → will be tagged
-  `v0.0.7` once this audit closes; the same code is intended to
-  carry `v1.0.0` after remediation.
+* **Audit target tag:** `v0.0.12` (release PR #252). Fixes from the
+  audit land as `v0.0.13` onward; `v1.0.0` is tagged after the
+  re-verification round.
 * **Maintainer / point-of-contact:** Sebastien Rousseau
   &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
 * **Disclosure channel:** see `SECURITY.md` (email only, 48 h ack,
   7 d triage SLA).
 * **Code statistics (workspace):**
   - 5 publishable + non-publishable Rust crates
-  - ~7 000 LoC of Rust (incl. AVX2 + reference backends)
-  - ~ 4 000 LoC of GAS / NASM assembly (AVX2 backend)
-  - 148 tests, 60 / 60 NIST ACVP ML-KEM-768 cases pass, 25 doctests
+  - 10,810 lines of Rust in `crates/*/src` excluding the AVX2
+    backend; 3,318 lines of Rust and 1,643 lines of assembly in
+    `crates/kyberlib/src/avx2/` (counted with `wc -l`, v0.0.12)
+  - 180 / 180 NIST ACVP ML-KEM-512/768/1024 vectors pass
   - Coverage gate: ≥ 80% lines (CI-enforced)
 
 ## 2. Background
@@ -56,6 +57,17 @@ hardening cycle:
 * Added a tag-triggered release pipeline with SLSA L3 attestation +
   keyless cosign signing + CycloneDX 1.6 CBOM (Phase 6.1).
 
+v0.0.12 (the audit target) adds:
+
+* FIPS 203 §7.2 / §7.3 input checks on encapsulation and on imported
+  decapsulation keys (commit `994b383`).
+* `KemCore::generate_from_seed` (FIPS 203 `KeyGen_internal`).
+* kyberlib-hybrid completed: X25519MLKEM768 wire fix, SecP256r1MLKEM768,
+  SecP384r1MLKEM1024 (checked against rustls) and the X-Wing KEM
+  (draft-connolly-cfrg-xwing-kem-11 vectors).
+* The `fips` feature: the typed ML-KEM API dispatched to the AWS-LC
+  FIPS module (`doc/FIPS.md`).
+
 The v1.0.0 release will not ship until this audit signs off.
 
 ## 3. Audit scope
@@ -67,7 +79,9 @@ The v1.0.0 release will not ship until this audit signs off.
 | **FIPS 203 conformance** | Spot-check our reading of §5.1 / §6.1 / §6.2 / §6.3 against the kyberlib primitives. ACVP is byte-equality; an audit catches the semantic gaps ACVP can't (e.g. an algebraic bug that happens to match expected vectors). |
 | **Constant-time properties** | Per-function CT claims in `SECURITY.md`. Particular attention to `decapsulate`, `verify`, `cmov`, and the rejection-sampling loop in `gen_matrix`. KyberSlash class explicitly. |
 | **Public API design** | The `KemCore` trait, `MlKem768EncapKey` / `MlKem768DecapKey` split, the deprecation strategy for the legacy `Keypair`/`keypair()` surface. Look for footguns and ergonomic traps. |
-| **Hybrid KEM** | X25519MlKem768 wire-format byte order, share-length validation, secret-secret concatenation order, dependency on `x25519-dalek`'s contract. |
+| **Hybrid KEMs** | The three TLS groups (wire order, share lengths, point validation, all-zero X25519 check, secret order) and X-Wing (key expansion, combiner, the one-shot RNG that feeds ML-KEM its message). Dependencies: `x25519-dalek`, `p256` / `p384`, `sha3`. |
+| **Input checks** | The FIPS 203 §7.2 modulus check and §7.3 hash check (`kem.rs`), and what still bypasses them (`from_bytes`). |
+| **`fips` dispatch** | Routing in `ml_kem.rs` and `fips.rs`: which calls reach the AWS-LC module, the decapsulation fallback, ignored caller RNG. AWS-LC itself is out of scope (covered by its own CMVP validation). |
 | **Side-channel attacks beyond timing** | Power and EM are out of scope; software-observable channels (memory access patterns, branch mispredictions, cache footprint) are in. |
 | **`unsafe` surface** | `crates/kyberlib-asm/` (when populated — currently a skeleton) and the AVX2 intrinsics in `crates/kyberlib/src/avx2/`. We assume "wait, why does the assembly exist?" will surface. |
 | **Supply chain** | `Cargo.toml` deps, the `cargo-vet` import set, the SHA-pinning of GitHub Actions in `.github/workflows/*`, the SLSA L3 + cosign release pipeline. |
@@ -77,8 +91,7 @@ The v1.0.0 release will not ship until this audit signs off.
 | Area | Why |
 |------|-----|
 | Hardware fault attacks | Out of band; vendor-recommendation territory. |
-| FIPS 140-3 certification | Not a goal — the `fips` feature delegates to `aws-lc-rs` for customers needing CMVP. |
-| ML-KEM-512 / ML-KEM-1024 | Not yet wired in this build (#130b). Tracked separately. |
+| FIPS 140-3 certification, AWS-LC internals | Not a goal; the `fips` feature relies on AWS-LC's own validation. Only kyberlib's dispatch is in scope. |
 | `kyberlib-cose` | Skeleton only at audit time. |
 | Round 3 KAT corpus | Intentionally invalid after the FIPS 203 migration; kept for archival regression. |
 
@@ -93,9 +106,10 @@ We prefer the audit to:
    (`doc/patches/phase-2b-evidence.md`).
 3. **Spot-check the KyberSlash audit** (ADR 0003 + the static
    guard at `scripts/kyberslash-guard.sh`).
-4. **Re-run the ACVP harness** locally and reproduce 60 / 60.
-5. **Examine** the typed-key API (`crates/kyberlib/src/ml_kem.rs`)
-   and the X25519MLKEM768 hybrid (`crates/kyberlib-hybrid/src/lib.rs`).
+4. **Re-run the ACVP harness** locally and reproduce 180 / 180.
+5. **Examine** the typed-key API (`crates/kyberlib/src/ml_kem.rs`),
+   the hybrids (`crates/kyberlib-hybrid/src/{lib,secp,xwing}.rs`) and
+   the FIPS dispatch (`crates/kyberlib/src/fips.rs`).
 6. **Flag any unsafe block in `crates/kyberlib/src/avx2/`** that
    lacks a `// SAFETY:` justification, even if the code is otherwise
    correct.
@@ -129,8 +143,8 @@ We do **not** require:
   (target: within 30 days of this commit landing on main).
 * **Quote deadline:** RFP send date + 14 days.
 * **Vendor selected:** RFP send date + 21 days.
-* **Audit starts:** **2026-06-15** `[ADJUST — adjust to vendor
-  availability]`.
+* **Audit starts:** `[ADJUST — agree with the vendor; the earlier
+  2026-06-15 placeholder has passed]`.
 * **Draft report:** start + 3 weeks.
 * **Final report:** draft + 2 weeks (after maintainer fact-check).
 * **Remediation re-verify:** within 30 days of remediation
