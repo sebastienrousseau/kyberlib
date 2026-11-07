@@ -494,7 +494,7 @@ impl MlKem768EncapKey {
 /// ML-KEM-768 decapsulation key (private). 2400 bytes. Zeroized on drop.
 #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
 #[non_exhaustive]
-pub struct MlKem768DecapKey([u8; KYBER_SECRET_KEY_BYTES]);
+pub struct MlKem768DecapKey(pub(crate) [u8; KYBER_SECRET_KEY_BYTES]);
 
 impl fmt::Debug for MlKem768DecapKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
