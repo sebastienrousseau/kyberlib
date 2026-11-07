@@ -27,6 +27,15 @@ MODE="${1:-focused}"
 # harness read `tests/acvp/*.json` and other repo-relative files.
 export MIRIFLAGS="${MIRIFLAGS:--Zmiri-disable-isolation -Zmiri-strict-provenance}"
 
+# Property tests run 256 cases each by default. Interpreted by Miri, one
+# property took ~20 minutes on a GitHub runner, so the full sweep never
+# finished inside its 120-minute timeout (cancelled every week since at
+# least 2026-10-19). Miri is looking for undefined behaviour on the code
+# paths, which a handful of cases exercise; the native `cargo test` run
+# keeps the full 256. Miri forwards the variable because isolation is off.
+# Locally (aarch64 macOS) 8 cases took 20 minutes for the six properties.
+export PROPTEST_CASES="${PROPTEST_CASES:-4}"
+
 # Toolchain. Pin nightly via rust-toolchain.toml or pass via env.
 TOOLCHAIN="${MIRI_TOOLCHAIN:-nightly}"
 
