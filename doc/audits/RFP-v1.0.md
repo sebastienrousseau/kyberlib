@@ -19,8 +19,8 @@
 * **Language:** Rust (edition 2021, MSRV 1.89)
 * **License:** MIT OR Apache-2.0 (dual)
 * **Repository:** <https://github.com/sebastienrousseau/kyberlib>
-* **Audit target tag:** `v0.0.13`. Fixes from the
-  audit land as `v0.0.14` onward; `v1.0.0` is tagged after the
+* **Audit target tag:** `v0.0.14`. Fixes from the
+  audit land as `v0.0.15` onward; `v1.0.0` is tagged after the
   re-verification round.
 * **Maintainer / point-of-contact:** Sebastien Rousseau
   &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
@@ -68,9 +68,12 @@ v0.0.12 adds:
 * The `fips` feature: the typed ML-KEM API dispatched to the AWS-LC
   FIPS module (`doc/FIPS.md`).
 
-v0.0.13 (the audit target) adds kyberlib-pkcs8: RFC 9935 PKCS#8 and
+v0.0.13 adds kyberlib-pkcs8: RFC 9935 PKCS#8 and
 SubjectPublicKeyInfo encodings for ML-KEM keys, checked byte for byte
 against OpenSSL 3.5.
+
+v0.0.14 (the audit target) adds password-encrypted PKCS#8 (PBES2) with
+limits on the KDF cost a file may request.
 
 The v1.0.0 release will not ship until this audit signs off.
 
@@ -85,7 +88,7 @@ The v1.0.0 release will not ship until this audit signs off.
 | **Public API design** | The `KemCore` trait, `MlKem768EncapKey` / `MlKem768DecapKey` split, the deprecation strategy for the legacy `Keypair`/`keypair()` surface. Look for footguns and ergonomic traps. |
 | **Hybrid KEMs** | The three TLS groups (wire order, share lengths, point validation, all-zero X25519 check, secret order) and X-Wing (key expansion, combiner, the one-shot RNG that feeds ML-KEM its message). Dependencies: `x25519-dalek`, `p256` / `p384`, `sha3`. |
 | **Input checks** | The FIPS 203 §7.2 modulus check and §7.3 hash check (`kem.rs`), and what still bypasses them (`from_bytes`). |
-| **Key encodings** | `crates/kyberlib-pkcs8`: parsing untrusted PKCS#8 / SPKI / PEM (RFC 9935 private-key CHOICE, seed/expanded consistency check, parameters-absent rule, §7.2 / §7.3 checks at import), zeroization of encoded secrets. Dependencies: RustCrypto `der`, `spki`, `pkcs8`, `pem-rfc7468`, `base64ct`. |
+| **Key encodings** | `crates/kyberlib-pkcs8`: parsing untrusted PKCS#8 / SPKI / PEM (RFC 9935 private-key CHOICE, seed/expanded consistency check, parameters-absent rule, §7.2 / §7.3 checks at import), zeroization of encoded secrets; PBES2 decryption and the `DecryptLimits` checks that run before the KDF; the rand_core 0.6 to 0.10 RNG adapter. Dependencies: RustCrypto `der`, `spki`, `pkcs8`, `pkcs5`, `pem-rfc7468`, `base64ct`, `pbkdf2`, `scrypt`, `aes`, `cbc`, `aes-gcm`. |
 | **`fips` dispatch** | Routing in `ml_kem.rs` and `fips.rs`: which calls reach the AWS-LC module, the decapsulation fallback, ignored caller RNG. AWS-LC itself is out of scope (covered by its own CMVP validation). |
 | **Side-channel attacks beyond timing** | Power and EM are out of scope; software-observable channels (memory access patterns, branch mispredictions, cache footprint) are in. |
 | **`unsafe` surface** | `crates/kyberlib-asm/` (when populated — currently a skeleton) and the AVX2 intrinsics in `crates/kyberlib/src/avx2/`. We assume "wait, why does the assembly exist?" will surface. |
