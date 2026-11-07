@@ -3,8 +3,8 @@
 #
 # REUSE 3.3 annotations for non-source assets. Every code file should carry
 # an SPDX header inline; this file blankets the assets that can't (CHANGELOG
-# bullets, KAT vectors, etc.). Run `reuse lint` locally or via the
-# `reuse-lint` CI job (issue #141) to verify.
+# bullets, KAT vectors, etc.). Run `reuse lint` (`make reuse`, part of
+# `make ci`) to verify.
 
 version = 1
 
@@ -15,7 +15,7 @@ path = [
     "SECURITY.md",
     "CONTRIBUTING.md",
     "AUTHORS.md",
-    "doc/**",
+    "docs/**",
     "crates/*/README.md",
     "crates/*/CHANGELOG.md",
     ".github/**",
@@ -32,6 +32,37 @@ path = [
 SPDX-FileCopyrightText = "2024-2026 kyberlib contributors"
 SPDX-License-Identifier = "Apache-2.0 OR MIT"
 
+# Project files without an inline header: sources, examples, tests and
+# their fixtures, scripts, supply-chain state, the fuzz harness and the
+# remaining root documents. Inline SPDX headers take precedence; the
+# third-party annotations below override this one for their paths.
+[[annotations]]
+path = [
+    "crates/*/src/**",
+    "crates/*/examples/**",
+    "crates/*/tests/**",
+    "crates/*/benches/**",
+    "crates/kyberlib-hybrid/interop-gen/**",
+    "scripts/**",
+    "supply-chain/**",
+    "fuzz/**",
+    "GETTING_STARTED.md",
+    "GLOSSARY.md",
+    "PLAN.md",
+    "TEMPLATE.md",
+    "crates/*/Cargo.toml",
+    "crates/kyberlib/build.rs",
+    ".editorconfig",
+    ".gitattributes",
+    ".rustfmt.toml",
+    "clippy.toml",
+    "about.hbs",
+    "about.toml",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2024-2026 kyberlib contributors"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"
+
 [[annotations]]
 path = [
     "crates/kyberlib/tests/KAT/**",
@@ -39,12 +70,6 @@ path = [
 ]
 SPDX-FileCopyrightText = "2017-2024 pq-crystals (CRYSTALS-Kyber team) and 2024-2026 kyberlib contributors"
 SPDX-License-Identifier = "CC0-1.0"
-precedence = "aggregate"
-
-[[annotations]]
-path = "crates/kyberlib/src/avx2/**"
-SPDX-FileCopyrightText = "2017-2024 pq-crystals (CRYSTALS-Kyber team) and 2024-2026 kyberlib contributors"
-SPDX-License-Identifier = "Apache-2.0 OR MIT"
 precedence = "aggregate"
 
 [[annotations]]

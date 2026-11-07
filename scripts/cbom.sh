@@ -86,19 +86,6 @@ jq '
         "oid": "2.16.840.1.101.3.4.4.2"
       }
     };
-  def crypto_props_for_asm:
-    {
-      "cryptoProperties": {
-        "assetType": "algorithm",
-        "algorithmProperties": {
-          "primitive": "kem",
-          "parameterSetIdentifier": "ML-KEM-768",
-          "executionEnvironment": "software-plain-ram",
-          "implementationPlatform": "x86_64-avx2",
-          "certificationLevel": ["none"]
-        }
-      }
-    };
   def crypto_props_for_wasm:
     {
       "cryptoProperties": {
@@ -119,7 +106,6 @@ jq '
     )
   | .components |= map(
       if .name == "kyberlib"      then . + crypto_props_for_kyberlib
-      elif .name == "kyberlib-asm"  then . + crypto_props_for_asm
       elif .name == "kyberlib-wasm" then . + crypto_props_for_wasm
       else . end
     )

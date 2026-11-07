@@ -28,15 +28,6 @@ mod tests {
         }
 
         #[test]
-        #[cfg(feature = "avx2")]
-        #[cfg(target_arch = "x86_64")]
-        fn test_avx2_enabled_x86_64() {
-            // Assert that the AVX2 feature is enabled on x86_64 platforms
-            assert!(cfg!(feature = "avx2"));
-            assert!(cfg!(target_arch = "x86_64"));
-        }
-
-        #[test]
         #[cfg(feature = "std")]
         fn test_std_enabled() {
             // Assert that the std feature is enabled

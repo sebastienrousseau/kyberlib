@@ -34,7 +34,6 @@ The v0.0.7 enterprise-upgrade splits kyberlib into a workspace
 ```
 crates/
   kyberlib/         # safe core, no_std + alloc, #![forbid(unsafe_code)]
-  kyberlib-asm/     # AVX2 / NEON acceleration (unsafe quarantined here)
   kyberlib-wasm/    # wasm-bindgen JS shim
   kyberlib-fuzz/    # cargo-fuzz targets (publish=false)
   xtask/            # internal release tooling (publish=false)
@@ -103,11 +102,11 @@ cargo doc --no-deps --all-features              # rustdoc must be clean
 cargo deny check                                 # licenses, advisories, sources
 ```
 
-For changes that touch crypto paths (`src/reference/`, `src/avx2/`,
+For changes that touch crypto paths (`src/reference/`,
 `src/symmetric.rs`, `src/kem.rs`), additionally:
 
 ```sh
-RUSTFLAGS="-C target-feature=+aes,+avx2" cargo test --features avx2,std
+RUSTFLAGS="--cfg KYBER_SECURITY_PARAMETERat" cargo test -p kyberlib --test test_acvp
 cargo +nightly miri test --lib                  # focused subset
 cargo fuzz run fuzz_decap -- -runs=1000000      # 1M iterations smoke
 ```
@@ -144,16 +143,17 @@ Open the PR with:
 
 For decisions that change the **public API**, **algorithm conformance**, or
 **security posture**, write an Architecture Decision Record under
-`doc/adr/`:
+`docs/adr/`:
 
 ```
-doc/adr/
+docs/adr/
   0001-fips203-migration.md
-  0002-trait-based-api.md
+  0002-asm-quarantine.md
+  ...
   TEMPLATE.md
 ```
 
-The ADR ships in the same PR as the change. Use `doc/adr/TEMPLATE.md`.
+The ADR ships in the same PR as the change. Use `docs/adr/TEMPLATE.md`.
 
 ## Crypto-specific conventions
 
@@ -167,9 +167,9 @@ These overrule the general Rust style guide where they conflict.
 3. **No allocations in the hot path.** kyberlib must build `no_std + alloc`.
 4. **Public types holding secrets:** `!Copy`, `ZeroizeOnDrop`, redacted
    `Debug` impl.
-5. **`unsafe` lives in `crates/kyberlib-asm/` only.** The core crate
-   `#![forbid(unsafe_code)]`. Every `unsafe` block carries a `// SAFETY:`
-   comment.
+5. **No `unsafe`.** The core crate is `#![forbid(unsafe_code)]` in every
+   build; SIMD comes from the libcrux backend, not hand-written
+   intrinsics ([ADR 0009](docs/adr/0009-remove-avx2-backend.md)).
 
 ## Bug reports
 

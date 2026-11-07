@@ -133,5 +133,5 @@ echo ":: PASS — no constant-time leak detected at ±$T_THRESHOLD."
 echo
 echo ":: Note: dudect is a negative result only — failure to detect"
 echo "   doesn't prove CT. Pair with the structural audit in"
-echo "   doc/adr/0003-kyberslash-audit.md and the Barrett-reduction"
+echo "   docs/adr/0003-kyberslash-audit.md and the Barrett-reduction"
 echo "   guarantees inherited from pq-crystals."

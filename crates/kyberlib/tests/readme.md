@@ -31,31 +31,22 @@ To run the known answer tests you will need to enable `KYBER_SECURITY_PARAMETERa
 RUSTFLAGS=' --cfg KYBER_SECURITY_PARAMETERat' cargo test --features "kyber1024 90s"
 ```
 
-For applicable x86 architectures you must export the avx2 RUSTFLAGS if you don't want to test on the reference codebase.
-
 To run a matrix of all possible features use the helper script from this folder:
 
 ```shell
 ./run_all_tests.sh
 ```
 
-The script also checks for the existence of different environment variables and modifies
-its behaviour
-
-* KAT: Runs the known answer tests
-* AVX2: Runs avx2 code on x86 platforms with compiled GAS files
-* NASM: Runs avx2 code with both GAS and NASM files separately, requires a NASM compiler installed
-
-To activate, instantiate the variables, for example:
+Set `KAT=1` to also run the known answer tests:
 
 ```shell
-KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
+KAT=1 ./run_all_tests.sh
 ```
 
 Test files:
 
-* [kat.rs](./kat.rs)  - Runs a battery of test vectors using the Known Answer Test file of the selected security level and mode. There are 10,000 KATs per file.
+* [test_kat.rs](./test_kat.rs) - Legacy CRYSTALS-Kyber Round 3 Known Answer Test harness. Its KAT data files are not in the repository; FIPS 203 conformance is checked by [test_acvp.rs](./test_acvp.rs) (NIST ACVP, 180 vectors).
 
-* [kex.rs](./kex.rs) - Goes through a full key exchange procedure for both the UAKE and AKE functions.
+* [test_kex.rs](./test_kex.rs) - Full `Uake` and `Ake` key exchanges (`kyberlib::hazmat::kex`, needs `--features hazmat`).
 
-* [kem.rs](./kem.rs) - A single run of random key generation, encapsulation and decapsulation.
+* [test_kem.rs](./test_kem.rs) - Random key generation, encapsulation and decapsulation.

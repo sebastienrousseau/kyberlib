@@ -5,8 +5,8 @@
 # is a supply-chain risk because the upstream branch could be hijacked.
 # When bumping, update both the SHA and the comment date.
 #
-# The local jobs (cargo-deny, semver-checks, machete, reuse, msrv, no_std,
-# vendor-build) compensate for what the reusable workflow does not yet cover.
+# The reusable workflow was removed (see the note above the test matrix);
+# every check is a job in this file.
 
 name: CI
 
@@ -61,10 +61,9 @@ jobs:
         # for now so the gate doesn't flap on subjective lints. Re-evaluate
         # at v0.1 when the pedantic backlog is paid down.
         #
-        # No `--all-features`: enabling `avx2` + `nasm` from CI's
-        # default x86_64 ubuntu-latest needs a NASM toolchain that
-        # isn't preinstalled; the AVX2 + NASM features have documented
-        # pre-existing compile issues on non-x86 hosts. Release-pipeline
+        # No `--all-features`: `fips` builds the AWS-LC FIPS module
+        # (CMake, Go) and has its own job, as do the other optional
+        # feature sets (hazmat, hybrid, pkcs8, 90s-fixslice). Release-pipeline
         # validation (release.yml) gates the same way — default
         # features only, since that's the `cargo install kyberlib`
         # surface.
@@ -75,8 +74,8 @@ jobs:
   # The previous version of this file delegated parts of the CI surface
   # to a reusable workflow at sebastienrousseau/pipelines. That workflow
   # hard-codes `cargo test --workspace --all-features`, which triggers
-  # the kyberlib build-script's NASM panic on every runner without
-  # NASM preinstalled (i.e. every default GitHub runner). Since the
+  # the (since removed, ADR 0009) AVX2/NASM build script on every
+  # default GitHub runner. Since the
   # in-repo jobs below already cover fmt / clippy / tests / coverage /
   # cargo-deny / docs / benches, the reusable workflow added no
   # capability — only failure modes. Removed entirely.
@@ -104,8 +103,6 @@ jobs:
       # silently resolved a different graph would mask a publish-time
       # break.
       # No `--all-features` — see the comment on the `lint` job above.
-      # AVX2 + NASM features need a NASM toolchain not preinstalled on
-      # the default runners.
       - name: Test (default features)
         run: cargo test --locked
       - name: Test (no default features + kyber768)
@@ -153,9 +150,8 @@ jobs:
         with:
           toolchain: '1.89.0'
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
-      # MSRV gate: default features only. AVX2/NASM under --all-features
-      # need toolchain pieces beyond what stock rustc provides; documented
-      # pre-existing constraint, not gating for MSRV.
+      # MSRV gate: default features for the core; every feature for
+      # kyberlib-pkcs8 (below).
       - name: Check (kyberlib core on 1.89)
         # MSRV applies to the published core surface (`kyberlib`); the
         # satellites declare the same floor. `+1.89.0` because
@@ -208,6 +204,25 @@ jobs:
         run: cargo test --locked -p kyberlib-hybrid --all-features
       - name: Clippy kyberlib-hybrid with every group
         run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
+
+  # NIST ACVP conformance. tests/test_acvp.rs only compiles its tests under
+  # `--cfg KYBER_SECURITY_PARAMETERat`, so the plain test run executes none
+  # of them; this job runs all 180 vectors (ML-KEM-512, -768, -1024).
+  acvp:
+    name: NIST ACVP vectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: ACVP keyGen, encapDecap (180 vectors)
+        env:
+          RUSTFLAGS: --cfg KYBER_SECURITY_PARAMETERat
+        run: |
+          cargo test --locked -p kyberlib --test test_acvp -- --nocapture | tee acvp.log
+          grep -q "test result: ok. 3 passed" acvp.log
 
   # `hazmat` (IND-CPA primitives, `hazmat::kex` Uake/Ake) is outside the
   # default-feature matrix. Test and lint it here (#156).
@@ -300,8 +315,7 @@ jobs:
         with:
           command: check
           # `--all-features` here is for advisory/license graph
-          # traversal, not compilation — safe even though the AVX2
-          # feature can't be built on the runner.
+          # traversal, not compilation.
           arguments: --all-features
 
   semver-checks:
@@ -316,7 +330,7 @@ jobs:
       - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239  # v2.8
         with:
           # Restrict to the published `kyberlib` crate. The satellite
-          # crates (kyberlib-asm, kyberlib-hybrid, kyberlib-pkcs8) all
+          # crates (kyberlib-hybrid, kyberlib-pkcs8) all
           # carry `publish = false`, and `cargo-semver-checks` fails on
           # them with `failed to retrieve index of crate versions from
           # registry` because crates.io has no record. The published
@@ -324,9 +338,8 @@ jobs:
           # SemVer.
           package: kyberlib
           # Only inspect default features — semver-checks otherwise
-          # tries to build rustdoc for every feature group, which
-          # triggers the AVX2/NASM build-script panic on the default
-          # runners (see lint job comment).
+          # tries to build rustdoc for every feature group, including
+          # `fips` (AWS-LC build; see lint job comment).
           feature-group: only-explicit-features
           features: kyber768,std
 
@@ -358,8 +371,7 @@ jobs:
           directory = "vendor"
           EOF
       - name: Offline build
-        # Default features only — AVX2/NASM excluded for the same
-        # reason as the rest of CI.
+        # Default features only, as in the rest of CI.
         run: cargo build --offline --locked --workspace
 
   kyberslash-guard:

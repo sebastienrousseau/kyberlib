@@ -26,7 +26,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -44,7 +44,7 @@
 
 - [Migrating to `kyberlib-wasm`](#migrating-to-kyberlib-wasm) — `diff`-style snippets from `@noble/post-quantum`, `@cloudflare/pq`, and pre-FIPS-203 Kyber libs
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.15](#capabilities-in-0015) — release inventory
+- [Capabilities in 0.0.16](#capabilities-in-0016) — release inventory
 - [JS API surface](#js-api-surface) — what every export does
 - [Bundle anatomy](#bundle-anatomy) — output shape, sizes, budgets
 - [Parameter set](#parameter-set) — ML-KEM-768 only
@@ -85,7 +85,7 @@ your project, or add it as a local dependency
 
 ```toml
 [dependencies]
-kyberlib-wasm = "0.0.15"
+kyberlib-wasm = "0.0.16"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
@@ -145,17 +145,16 @@ exchange.free();
 
 The same surface works in Node, Deno, Bun, and Cloudflare Workers
 with a different build target — see
-[`doc/usage.md`](doc/usage.md) for the full bundler matrix and
+[`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the full bundler matrix and
 WebCrypto AES-GCM combiner.
 
 ---
 
 ## The kyberlib ecosystem
 
-| Crate | What it is | Status (v0.0.15) | Use case |
+| Crate | What it is | Status (v0.0.16) | Use case |
 |---|---|---|---|
 | [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
-| [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton, unpublished; the AVX2 backend does not compile, [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | High-throughput servers; embedded NEON targets. |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit | Interop with `draft-ietf-tls-ecdhe-mlkem`; HPKE-style KEM. |
 | [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM per RFC 9935, incl. encrypted PKCS#8 | Implemented; unpublished until the audit | Key files, X.509 public keys, OpenSSL exchange. |
 | **[`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm)** | **`wasm-bindgen` wrapper for browser / Node / Cloudflare Workers / Deno** | **Published with `kyberlib`** | **Browser cryptography; built with `wasm-pack`.** |
@@ -215,7 +214,7 @@ regeneration.
 > encaps pre-hash, and the rejection KDF — so pre-2024 secret
 > keys, ciphertexts, and shared secrets are wire-incompatible
 > with `kyberlib-wasm`. You must regenerate keys on both peers
-> in lockstep. See [ADR 0001](../../doc/adr/0001-fips203-migration.md)
+> in lockstep. See [ADR 0001](../../docs/adr/0001-fips203-migration.md)
 > for the byte-level deltas.
 
 ---
@@ -268,7 +267,7 @@ without its own signed artefacts; see
 
 ---
 
-## Capabilities in 0.0.15
+## Capabilities in 0.0.16
 
 | Capability | Status |
 |---|---|
@@ -360,7 +359,7 @@ The v0.0.7 trimming came from the tarball-include audit
 
 WASM module size counts against the 10 MB Workers deployment cap.
 At ~122 KiB compressed, `kyberlib-wasm` costs ~1.2% of that
-budget. See [`doc/usage.md`](doc/usage.md) for the
+budget. See [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the
 `wrangler.toml` wiring and the `--target bundler` invocation.
 
 ---
@@ -394,7 +393,7 @@ Runnable JS examples live in the `examples/` directory:
 Each example is fully commented — explaining *why* each step is
 needed (not just *what* the code does). The full bundler matrix
 and Cloudflare Workers recipe live in
-[`doc/usage.md`](doc/usage.md).
+[`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md).
 
 ---
 
@@ -410,14 +409,14 @@ modern security guarantees. It is **not** the right pick for:
 - **Streaming encryption.** ML-KEM is a key encapsulation
   mechanism, not a cipher. Use the 32-byte shared secret as the
   key to a symmetric AEAD (`@noble/ciphers`, `WebCrypto`'s
-  AES-GCM); see [`doc/usage.md`](doc/usage.md) for the recipe.
+  AES-GCM); see [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the recipe.
 - **Long-running session keys.** The KEM output is a one-shot
   secret. Derive a session key via HKDF
   (`crypto.subtle.deriveBits`) before using it across messages.
 - **FIPS 140-3 certified browser cryptography.** WebAssembly
   modules can't be CMVP-validated as a single shipped artefact
   the way native modules can. The native crate's `fips` feature
-  ([`doc/FIPS.md`](../../doc/FIPS.md)) delegates to `aws-lc-rs` and is
+  ([`docs/FIPS.md`](../../docs/FIPS.md)) delegates to `aws-lc-rs` and is
   **not** available in WASM.
 - **Hybrid KEMs (X25519MLKEM768).** Not exposed in WASM. For native
   consumers, [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) implements
@@ -469,7 +468,7 @@ have a safe way to pass it.
 `kyberlib` uses the upstream pq-crystals Barrett-style
 multiply-and-shift; there are no `udiv` / `sdiv` instructions
 on secret inputs anywhere in the source tree
-([ADR 0003](../../doc/adr/0003-kyberslash-audit.md)). The
+([ADR 0003](../../docs/adr/0003-kyberslash-audit.md)). The
 KyberSlash regression gate (`scripts/kyberslash-guard.sh`)
 runs on every PR.
 
@@ -506,13 +505,13 @@ with `wasm-pack` as shown in [Install](#install).
 
 | Document | What it covers |
 |---|---|
-| [`doc/architecture.md`](doc/architecture.md) | Why a sidecar crate, surface design, bundle anatomy, RNG sourcing, target matrix |
-| [`doc/usage.md`](doc/usage.md) | Browser / Node / Deno / Bun / Cloudflare Workers integration; AES-GCM combiner; TypeScript; resource management |
+| [`docs/kyberlib-wasm/architecture.md`](../../docs/kyberlib-wasm/architecture.md) | Why a sidecar crate, surface design, bundle anatomy, RNG sourcing, target matrix |
+| [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) | Browser / Node / Deno / Bun / Cloudflare Workers integration; AES-GCM combiner; TypeScript; resource management |
 | [`../../README.md`](../../README.md) | Workspace root README (full FIPS 203 + ecosystem context) |
-| [`../../doc/COMPARISON.md`](../../doc/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
-| [`../../doc/BENCHMARKS.md`](../../doc/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
+| [`../../doc/COMPARISON.md`](../../docs/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
+| [`../../doc/BENCHMARKS.md`](../../docs/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
 | [`../../SECURITY.md`](../../SECURITY.md) | Threat model, CT guarantees, audit posture, FIPS path |
-| [`../../doc/adr/`](../../doc/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
+| [`../../doc/adr/`](../../docs/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
 
 ---
 

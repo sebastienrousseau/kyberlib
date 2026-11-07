@@ -1,0 +1,237 @@
+# kyberlib — Third-Party Security Audit RFP (v1.0)
+
+> **Sending instructions for the maintainer.** This RFP is ready
+> to send. The four placeholders are pre-filled with sensible
+> defaults; each is flagged `[ADJUST]` so you can confirm or
+> change before you forward to vendors. The four spots are: §1
+> point-of-contact (currently the public maintainer contact),
+> §5 target start date (unset: pick one with the vendor), §6 budget cap
+> (currently USD 60 000 — middle of the COMPARISON.md guidance),
+> §6 payment terms (currently a standard 30/40/30 schedule). Then
+> send with `MATERIALS.md` to two or three vendors from §7. Expect
+> 1–2 weeks of back-and-forth on scope and quote before signing.
+
+---
+
+## 1. Project at a glance
+
+* **Name:** kyberlib
+* **Language:** Rust (edition 2021, MSRV 1.89)
+* **License:** MIT OR Apache-2.0 (dual)
+* **Repository:** <https://github.com/sebastienrousseau/kyberlib>
+* **Audit target tag:** `v0.0.16`. Fixes from the
+  audit land as `v0.0.17` onward; `v1.0.0` is tagged after the
+  re-verification round.
+* **Maintainer / point-of-contact:** Sebastien Rousseau
+  &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
+* **Disclosure channel:** see `SECURITY.md` (email only, 48 h ack,
+  7 d triage SLA).
+* **Code statistics (workspace):**
+  - 5 publishable + non-publishable Rust crates
+  - Rust in `crates/*/src`: see `wc -l` at the audit tag (the AVX2
+    backend, 3,318 lines of Rust and 1,643 of assembly, was removed in
+    v0.0.16, ADR 0009); no assembly and no `unsafe` remain
+  - 180 / 180 NIST ACVP ML-KEM-512/768/1024 vectors pass
+  - Coverage gate: ≥ 80% lines (CI-enforced)
+
+## 2. Background
+
+kyberlib is a Rust implementation of **FIPS 203 ML-KEM** (the
+post-quantum key-encapsulation mechanism standardised by NIST in
+August 2024). The v0.0.7 release closes a multi-month enterprise-
+hardening cycle:
+
+* Migrated primitives from Kyber Round 3 to FIPS 203 (`ADR 0001`,
+  commits `417595a` / `27e4b6b` / `b0f3bfb`).
+* Wired the NIST ACVP corpus as the gating conformance harness
+  (commit `d6ded86`; 60 / 60 ML-KEM-768 cases pass).
+* Audited and gated the KyberSlash class of timing side-channels
+  (`ADR 0003`, commit `18ba0d9`).
+* Split the workspace into a safe core (`#![forbid(unsafe_code)]`
+  in the common build path) and an opt-in `kyberlib-asm` /
+  `kyberlib-wasm` periphery (`ADR 0002`).
+* Added a typed ML-KEM-768 API alongside the legacy flat surface
+  (commit `a6065cc`).
+* Implemented the X25519MlKem768 hybrid per
+  `draft-ietf-tls-ecdhe-mlkem-04` (commit `5eb7bd5`).
+* Added a tag-triggered release pipeline with SLSA L3 attestation +
+  keyless cosign signing + CycloneDX 1.6 CBOM (Phase 6.1).
+
+v0.0.12 adds:
+
+* FIPS 203 §7.2 / §7.3 input checks on encapsulation and on imported
+  decapsulation keys (commit `994b383`).
+* `KemCore::generate_from_seed` (FIPS 203 `KeyGen_internal`).
+* kyberlib-hybrid completed: X25519MLKEM768 wire fix, SecP256r1MLKEM768,
+  SecP384r1MLKEM1024 (checked against rustls) and the X-Wing KEM
+  (draft-connolly-cfrg-xwing-kem-11 vectors).
+* The `fips` feature: the typed ML-KEM API dispatched to the AWS-LC
+  FIPS module (`docs/FIPS.md`).
+
+v0.0.13 adds kyberlib-pkcs8: RFC 9935 PKCS#8 and
+SubjectPublicKeyInfo encodings for ML-KEM keys, checked byte for byte
+against OpenSSL 3.5.
+
+v0.0.14 adds password-encrypted PKCS#8 (PBES2) with
+limits on the KDF cost a file may request.
+
+v0.0.15 moves the `Uake` / `Ake` key exchanges
+under `hazmat::kex` (ADR 0008) and marks public types
+`#[non_exhaustive]`.
+
+v0.0.16 (the audit target) removes the AVX2 backend, which never
+compiled, so the crate has no `unsafe` in any build (ADR 0009).
+
+The v1.0.0 release will not ship until this audit signs off.
+
+## 3. Audit scope
+
+### 3.1 In scope
+
+| Area | What we want reviewed |
+|------|------------------------|
+| **FIPS 203 conformance** | Spot-check our reading of §5.1 / §6.1 / §6.2 / §6.3 against the kyberlib primitives. ACVP is byte-equality; an audit catches the semantic gaps ACVP can't (e.g. an algebraic bug that happens to match expected vectors). |
+| **Constant-time properties** | Per-function CT claims in `SECURITY.md`. Particular attention to `decapsulate`, `verify`, `cmov`, and the rejection-sampling loop in `gen_matrix`. KyberSlash class explicitly. |
+| **Public API design** | The `KemCore` trait, `MlKem768EncapKey` / `MlKem768DecapKey` split, the deprecation strategy for the legacy `Keypair`/`keypair()` surface. Look for footguns and ergonomic traps. |
+| **Hybrid KEMs** | The three TLS groups (wire order, share lengths, point validation, all-zero X25519 check, secret order) and X-Wing (key expansion, combiner, the one-shot RNG that feeds ML-KEM its message). Dependencies: `x25519-dalek`, `p256` / `p384`, `sha3`. |
+| **Input checks** | The FIPS 203 §7.2 modulus check and §7.3 hash check (`kem.rs`), and what still bypasses them (`from_bytes`). |
+| **Key encodings** | `crates/kyberlib-pkcs8`: parsing untrusted PKCS#8 / SPKI / PEM (RFC 9935 private-key CHOICE, seed/expanded consistency check, parameters-absent rule, §7.2 / §7.3 checks at import), zeroization of encoded secrets; PBES2 decryption and the `DecryptLimits` checks that run before the KDF; the rand_core 0.6 to 0.10 RNG adapter. Dependencies: RustCrypto `der`, `spki`, `pkcs8`, `pkcs5`, `pem-rfc7468`, `base64ct`, `pbkdf2`, `scrypt`, `aes`, `cbc`, `aes-gcm`. |
+| **`fips` dispatch** | Routing in `ml_kem.rs` and `fips.rs`: which calls reach the AWS-LC module, the decapsulation fallback, ignored caller RNG. AWS-LC itself is out of scope (covered by its own CMVP validation). |
+| **Side-channel attacks beyond timing** | Power and EM are out of scope; software-observable channels (memory access patterns, branch mispredictions, cache footprint) are in. |
+| **`unsafe` surface** | None: `#![forbid(unsafe_code)]` in every build since v0.0.16 (ADR 0009). Confirm no dependency path reintroduces it in kyberlib's own code. |
+| **Supply chain** | `Cargo.toml` deps, the `cargo-vet` import set, the SHA-pinning of GitHub Actions in `.github/workflows/*`, the SLSA L3 + cosign release pipeline. |
+
+### 3.2 Out of scope
+
+| Area | Why |
+|------|-----|
+| Hardware fault attacks | Out of band; vendor-recommendation territory. |
+| FIPS 140-3 certification, AWS-LC internals | Not a goal; the `fips` feature relies on AWS-LC's own validation. Only kyberlib's dispatch is in scope. |
+| `kyberlib-cose` | Skeleton only at audit time. |
+| Round 3 KAT corpus | Intentionally invalid after the FIPS 203 migration; kept for archival regression. |
+
+### 3.3 Methodology preference
+
+We prefer the audit to:
+
+1. **Start from the README + SECURITY.md + ADRs.** Map our claims
+   onto the source.
+2. **Read the three FIPS 203 patches** (`417595a` / `27e4b6b` /
+   `b0f3bfb`) and their corresponding evidence document
+   (`docs/patches/phase-2b-evidence.md`).
+3. **Spot-check the KyberSlash audit** (ADR 0003 + the static
+   guard at `scripts/kyberslash-guard.sh`).
+4. **Re-run the ACVP harness** locally and reproduce 180 / 180.
+5. **Examine** the typed-key API (`crates/kyberlib/src/ml_kem.rs`),
+   the hybrids (`crates/kyberlib-hybrid/src/{lib,secp,xwing}.rs`) and
+   the FIPS dispatch (`crates/kyberlib/src/fips.rs`).
+6. **Confirm the `unsafe` boundary**: kyberlib's own crates contain no
+   `unsafe` (`#![forbid(unsafe_code)]`); the only native code is AWS-LC
+   behind the opt-in `fips` feature.
+7. **Re-test under `cargo +nightly miri`** if practicable.
+8. **Report** in the format described in §4.
+
+We are open to alternate methodology if you propose better.
+
+## 4. Deliverables
+
+| Item | Required? |
+|------|-----------|
+| Findings report in Markdown or PDF, ≤ 60 pages | Yes |
+| One section per finding with: severity (Critical/High/Medium/Low/Info), CVSS 3.1 score, affected files + lines, reproduction steps, suggested remediation | Yes |
+| Executive summary suitable for inclusion in our README | Yes |
+| Right to publish the report under MIT or CC-BY-4.0 | Yes — with embargo until we remediate Critical / High |
+| Re-verification round after remediation (within 30 days of fixes landing) | Yes |
+| Verbal Q&A session with the maintainer (1 h) | Yes |
+| Public attestation (LinkedIn / blog post) at our option | Yes |
+
+We do **not** require:
+
+* SOC2 / ISO27001-style management findings.
+* Penetration testing of any external service.
+* Source-code obfuscation review (the repo is intentionally
+  readable).
+
+## 5. Timeline
+
+* **RFP sent:** `<MAINTAINER fills the actual send date>`
+  (target: within 30 days of this commit landing on main).
+* **Quote deadline:** RFP send date + 14 days.
+* **Vendor selected:** RFP send date + 21 days.
+* **Audit starts:** `[ADJUST — agree with the vendor; the earlier
+  2026-06-15 placeholder has passed]`.
+* **Draft report:** start + 3 weeks.
+* **Final report:** draft + 2 weeks (after maintainer fact-check).
+* **Remediation re-verify:** within 30 days of remediation
+  commits landing.
+* **v1.0.0 tag:** after re-verify clean.
+
+## 6. Budget guidance
+
+* **Indicative cap:** **USD 60 000** `[ADJUST — middle of the
+  COMPARISON.md range USD 40k–80k; tier-1 vendors quote toward the
+  high end. Drop to ~ USD 40k if a vendor has clear ML-KEM
+  prior-art and limited scope; bump to ~ USD 80k if expanding
+  scope to all three crates beyond the core (hybrid, PKCS#8, wasm)]`.
+* **Payment terms:** 30 % on contract, 40 % on draft report,
+  30 % on final + re-verify `[ADJUST — adjust to vendor's
+  standard contract; some prefer 50 / 50]`.
+* **Pricing model:** preferred fixed-price for the scope above;
+  T&M acceptable for the re-verify round.
+* **Travel / on-site:** not required.
+
+## 7. Candidate vendors (alphabetical)
+
+| Vendor | Why we're considering them |
+|--------|-----------------------------|
+| **Cryspen** | Built libcrux-ml-kem; deep ML-KEM expertise; some prior bugs (eprint 2026/192) found in their verified code by Symbolic Software, which they remediated. |
+| **Cure53** | Strong Rust audit track record; well-known for clear reports. |
+| **NCC Group — Cryptography Services** | Top-tier crypto practice; previous PQC reviews include audit work for AWS-LC FIPS 3.0. |
+| **Quarkslab** | Strong on side-channel work; consistently good crypto-implementation audits. |
+| **Symbolic Software** | Found bugs in libcrux-ml-kem (eprint 2026/192, Feb 2026); demonstrates ability to find subtle issues in verified code. |
+| **Trail of Bits** | Broad Rust + cryptography expertise; published methodology in Manticore + their CryptoTrail series. |
+
+We will send this RFP to **2–3** of the above. We will not run a
+formal competitive bid — we'd rather pick the team with the
+strongest ML-KEM-specific track record.
+
+## 8. Materials package
+
+See the companion `MATERIALS.md` for the full set of links,
+commit SHAs, and pointers we ship to the chosen vendor on contract
+signing.
+
+## 9. Communications
+
+* **Primary channel:** dedicated `audits/<vendor>` private GitHub
+  repository, shared with the auditor's named team.
+* **Findings repository:** vendor's preference; we mirror to the
+  private repo above.
+* **Slack / Matrix:** not preferred (audit work deserves async
+  considered responses).
+* **Calls:** kick-off (1 h), draft-report walk-through (1 h),
+  final + remediation review (1 h). All recorded with consent.
+
+## 10. Confidentiality + IP
+
+* The kyberlib source is dual MIT / Apache-2.0; no NDA is required
+  to read it.
+* The audit *report* is licensed back to the kyberlib project at
+  CC-BY-4.0 or MIT-equivalent — we want to publish it.
+* Findings that touch *dependencies* (e.g. `x25519-dalek`, `rand`,
+  `zeroize`) follow standard responsible-disclosure to the
+  upstream maintainer first, with embargo as required.
+
+## 11. Acceptance
+
+Maintainer signs this RFP as exhibit A to the master engagement
+contract once a vendor accepts. The vendor counter-signs after
+quote acceptance. Any changes to scope after signing require
+written agreement; budget impact agreed in advance.
+
+---
+
+**Maintainer point-of-contact:** Sebastien Rousseau
+&lt;contact@kyberlib.com&gt;
+**Date prepared:** _(see git log of this commit)_
+**Tracking issue:** [#177](https://github.com/sebastienrousseau/kyberlib/issues/177)

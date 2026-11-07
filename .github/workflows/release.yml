@@ -130,10 +130,9 @@ jobs:
 
       # The release-pipeline validation gates run against each
       # workspace member's default features — same surface as
-      # `cargo install kyberlib`. AVX2 / NASM / 90s features have
-      # known pre-existing compile issues that don't affect the
-      # default user surface; they're not gating for the release
-      # pipeline. The broader cross-feature matrix lives in
+      # `cargo install kyberlib`. The optional feature sets (fips,
+      # hazmat, 90s, the hybrid and PKCS#8 crates) are tested by their
+      # own CI jobs on every pull request. The broader cross-feature matrix lives in
       # `.github/workflows/ci.yml`'s `test-matrix` job.
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
