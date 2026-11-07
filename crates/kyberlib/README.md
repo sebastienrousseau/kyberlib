@@ -43,7 +43,7 @@
 
 - [Migrating to FIPS 203 ML-KEM](#migrating-to-fips-203-ml-kem) — `diff`-style snippets from `pqcrypto-kyber`, `RustCrypto/ml-kem`, `libcrux-ml-kem`, `oqs-rs`, and the legacy `kyberlib` 0.0.6 surface
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.15](#capabilities-in-0015) — release inventory
+- [Capabilities in 0.0.16](#capabilities-in-0016) — release inventory
 - [Two APIs, one KEM](#two-apis-one-kem) — legacy free functions vs. type-state `KemCore`
 - [Features](#features) — Cargo-feature capability list
 - [Library usage](#library-usage) — keygen, encapsulate, decapsulate
@@ -67,7 +67,7 @@
 
 ```toml
 [dependencies]
-kyberlib = "0.0.15"
+kyberlib = "0.0.16"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared MSRV).
@@ -85,7 +85,7 @@ make ci          # fmt + clippy + doc + test + deny + machete + kyberslash-guard
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.15", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.16", default-features = false, features = ["kyber768"] }
 ```
 
 Requires `alloc` (because of `Vec` buffers in the rejection sampler).
@@ -159,7 +159,7 @@ build of `kyberlib`.
 
 ## Migrating to FIPS 203 ML-KEM
 
-`kyberlib` v0.0.15 implements **FIPS 203 ML-KEM** (NIST, August
+`kyberlib` v0.0.16 implements **FIPS 203 ML-KEM** (NIST, August
 2024) — the standardised form of CRYSTALS-Kyber Round 3. v0.0.6
 and earlier shipped the Round-3 surface. The byte-level deltas
 (K-byte domain separator, dropped `m' = H(m)` pre-hash, dropped
@@ -179,7 +179,7 @@ migration paths follow.
 -[dependencies]
 -kyberlib = "0.0.6"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -203,7 +203,7 @@ with every other FIPS 203 endpoint.
 -[dependencies]
 -pqcrypto-kyber = "0.8"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -226,7 +226,7 @@ is pure Rust. Wire-format identical (both FIPS 203 final).
 -[dependencies]
 -ml-kem = "0.2"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -335,7 +335,7 @@ Downstream consumers flip a feature flag; the call sites don't change.
 
 ---
 
-## Capabilities in 0.0.15
+## Capabilities in 0.0.16
 
 | Capability | Status |
 |---|---|
@@ -405,7 +405,7 @@ application needs.
 ```toml
 # Example: run ML-KEM inside the AWS-LC FIPS module (needs CMake, Go, a C compiler)
 [dependencies]
-kyberlib = { version = "0.0.15", features = ["fips"] }
+kyberlib = { version = "0.0.16", features = ["fips"] }
 ```
 
 ---
@@ -592,14 +592,14 @@ Verification recipes for downstream consumers:
 
 ```sh
 # Verify SLSA L3 provenance:
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.15.crate
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.16.crate
 
 # Verify cosign signature:
 cosign verify-blob \
     --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --bundle kyberlib-0.0.15.crate.cosign-bundle.json \
-    kyberlib-0.0.15.crate
+    --bundle kyberlib-0.0.16.crate.cosign-bundle.json \
+    kyberlib-0.0.16.crate
 ```
 
 ---
@@ -625,7 +625,7 @@ cosign verify-blob \
 
 `kyberlib` is the core of a small workspace of focused crates:
 
-| Crate | What it is | Status (v0.0.15) |
+| Crate | What it is | Status (v0.0.16) |
 |---|---|---|
 | **[`kyberlib`](https://crates.io/crates/kyberlib)** (this) | Core library — FIPS 203 ML-KEM | Published; ACVP 180/180 |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit |

@@ -166,7 +166,7 @@ FIPS 203, has no key confirmation or transcript binding, and has no
 published analysis. Read the module's threat model before using it.
 
 ```rust
-// Cargo.toml: kyberlib = { version = "0.0.15", features = ["hazmat"] }
+// Cargo.toml: kyberlib = { version = "0.0.16", features = ["hazmat"] }
 use kyberlib::{hazmat::kex::Ake, keypair};
 
 fn main() -> Result<(), kyberlib::KyberLibError> {

@@ -8,8 +8,8 @@ upstream consumers should track the latest patch number.
 
 | Version  | Supported |
 |----------|:---------:|
-| `0.0.15`  |     ✅    |
-| `< 0.0.15`|     ❌    |
+| `0.0.16`  |     ✅    |
+| `< 0.0.16`|     ❌    |
 
 A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)

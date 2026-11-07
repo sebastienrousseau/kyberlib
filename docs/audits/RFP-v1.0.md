@@ -19,8 +19,8 @@
 * **Language:** Rust (edition 2021, MSRV 1.89)
 * **License:** MIT OR Apache-2.0 (dual)
 * **Repository:** <https://github.com/sebastienrousseau/kyberlib>
-* **Audit target tag:** `v0.0.15`. Fixes from the
-  audit land as `v0.0.16` onward; `v1.0.0` is tagged after the
+* **Audit target tag:** `v0.0.16`. Fixes from the
+  audit land as `v0.0.17` onward; `v1.0.0` is tagged after the
   re-verification round.
 * **Maintainer / point-of-contact:** Sebastien Rousseau
   &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
@@ -75,9 +75,12 @@ against OpenSSL 3.5.
 v0.0.14 adds password-encrypted PKCS#8 (PBES2) with
 limits on the KDF cost a file may request.
 
-v0.0.15 (the audit target) moves the `Uake` / `Ake` key exchanges
+v0.0.15 moves the `Uake` / `Ake` key exchanges
 under `hazmat::kex` (ADR 0008) and marks public types
 `#[non_exhaustive]`.
+
+v0.0.16 (the audit target) removes the AVX2 backend, which never
+compiled, so the crate has no `unsafe` in any build (ADR 0009).
 
 The v1.0.0 release will not ship until this audit signs off.
 

@@ -21,7 +21,7 @@ final KDF + `J(z‖c)` rejection branch) are documented in
 -[dependencies]
 -kyberlib = "0.0.6"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -45,7 +45,7 @@ with every other FIPS 203 endpoint.
 -[dependencies]
 -pqcrypto-kyber = "0.8"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -70,7 +70,7 @@ key material.
 -[dependencies]
 -ml-kem = "0.3"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff
@@ -94,7 +94,7 @@ differences listed in [`COMPARISON.md`](COMPARISON.md).
 -[dependencies]
 -libcrux-ml-kem = "0.0"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 Function-name table:
@@ -119,7 +119,7 @@ a no-op today.
 -[dependencies]
 -oqs = "0.10"
 +[dependencies]
-+kyberlib = "0.0.15"
++kyberlib = "0.0.16"
 ```
 
 ```diff

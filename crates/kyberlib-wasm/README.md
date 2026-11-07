@@ -44,7 +44,7 @@
 
 - [Migrating to `kyberlib-wasm`](#migrating-to-kyberlib-wasm) — `diff`-style snippets from `@noble/post-quantum`, `@cloudflare/pq`, and pre-FIPS-203 Kyber libs
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.15](#capabilities-in-0015) — release inventory
+- [Capabilities in 0.0.16](#capabilities-in-0016) — release inventory
 - [JS API surface](#js-api-surface) — what every export does
 - [Bundle anatomy](#bundle-anatomy) — output shape, sizes, budgets
 - [Parameter set](#parameter-set) — ML-KEM-768 only
@@ -85,7 +85,7 @@ your project, or add it as a local dependency
 
 ```toml
 [dependencies]
-kyberlib-wasm = "0.0.15"
+kyberlib-wasm = "0.0.16"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
@@ -152,7 +152,7 @@ WebCrypto AES-GCM combiner.
 
 ## The kyberlib ecosystem
 
-| Crate | What it is | Status (v0.0.15) | Use case |
+| Crate | What it is | Status (v0.0.16) | Use case |
 |---|---|---|---|
 | [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit | Interop with `draft-ietf-tls-ecdhe-mlkem`; HPKE-style KEM. |
@@ -267,7 +267,7 @@ without its own signed artefacts; see
 
 ---
 
-## Capabilities in 0.0.15
+## Capabilities in 0.0.16
 
 | Capability | Status |
 |---|---|

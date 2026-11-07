@@ -8,6 +8,45 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.16] - Unreleased
+
+### Removed
+
+- **BREAKING: the AVX2 backend, the `avx2` and `nasm` features and the
+  `kyberlib-asm` crate** (#143, ADR 0009). The backend never compiled,
+  back to the first commit; SIMD will come from the libcrux backend
+  (#171, #172). `#![forbid(unsafe_code)]` now holds in every build, and
+  the `cc` and `nasm-rs` build dependencies are gone.
+
+### Added
+
+- CI runs the NIST ACVP vectors (all 180). The test only compiles its
+  cases under `--cfg KYBER_SECURITY_PARAMETERat`, so the plain test run
+  had never executed them.
+- `make reuse` (part of `make ci`): the repository is now REUSE 3.3
+  compliant (it was not on `main`).
+- `make demo` and `.github/demo.gif`, rendered with VHS from
+  `.github/demo.tape`.
+- `docs/POLICIES.md` (versioning, MSRV, what counts as breaking),
+  `docs/MIGRATION.md`, `docs/adr/TEMPLATE.md`, ADR 0009.
+
+### Changed
+
+- Documentation lives under one `docs/` root: the root `doc/` and each
+  crate's `doc/` moved to `docs/` and `docs/<crate>/`.
+- The root README follows the house README template.
+- The `insta` snapshot tests do not run under Miri (they spawn
+  processes); the full weekly Miri sweep now passes, including the
+  big-endian target (v1.0 checklist item 3 met).
+
+### Fixed
+
+- Documentation that described the AVX2 backend as working (including
+  constant-time guarantees in SECURITY.md), a kyberlib comparison column
+  stuck at 0.0.7, the crate README's "60 / 60" ACVP count (it is 180),
+  stale statements in PLAN.md, four broken links, and a missing ADR
+  template that CONTRIBUTING.md told contributors to copy.
+
 ## [0.0.15] - Unreleased
 
 ### Changed
@@ -364,7 +403,8 @@ hardening, and a signed release pipeline. The detailed plan lives in
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
 
-[0.0.15]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.14...feat/v0.0.15
+[0.0.16]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.15...feat/v0.0.16
+[0.0.15]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.14...v0.0.15
 [0.0.14]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.13...v0.0.14
 [0.0.13]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...v0.0.12

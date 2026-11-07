@@ -12,7 +12,7 @@ and key formats.
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.15", features = ["fips"] }
+kyberlib = { version = "0.0.16", features = ["fips"] }
 ```
 
 Building the module needs CMake, Go and a C compiler. Check the module

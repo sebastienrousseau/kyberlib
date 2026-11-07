@@ -2,35 +2,11 @@
 # cargo-vet imports lock
 
 [[unpublished.kyberlib]]
-version = "0.0.12"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib]]
-version = "0.0.13"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib]]
-version = "0.0.14"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib]]
-version = "0.0.15"
+version = "0.0.16"
 audited_as = "0.0.11"
 
 [[unpublished.kyberlib-wasm]]
-version = "0.0.12"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib-wasm]]
-version = "0.0.13"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib-wasm]]
-version = "0.0.14"
-audited_as = "0.0.11"
-
-[[unpublished.kyberlib-wasm]]
-version = "0.0.15"
+version = "0.0.16"
 audited_as = "0.0.11"
 
 [[publisher.aead]]
