@@ -24,3 +24,18 @@ for n in 512 768 1024; do
   "$OPENSSL" pkey -in "$dir/private.pem" -pubout -out "$dir/public.pem"
   "$OPENSSL" pkey -in "$dir/private.pem" -pubout -outform DER -out "$dir/spki.der"
 done
+
+# Password-encrypted PKCS#8 (tests/encrypted.rs). Password below is test
+# data. PBKDF2-HMAC-SHA256 + AES-256-CBC is OpenSSL's -v2 default; the
+# scrypt file uses OpenSSL's scrypt defaults (N=16384, r=8, p=1).
+PASS="kyberlib-test-password"
+for n in 512 768 1024; do
+  dir="ml-kem-$n"
+  "$OPENSSL" pkcs8 -topk8 -in "$dir/private.pem" -v2 aes-256-cbc -v2prf hmacWithSHA256 \
+    -passout "pass:$PASS" -out "$dir/encrypted-pbkdf2.pem"
+  "$OPENSSL" pkcs8 -topk8 -in "$dir/private.pem" -scrypt -v2 aes-256-cbc \
+    -passout "pass:$PASS" -out "$dir/encrypted-scrypt.pem"
+done
+# PBKDF2 with HMAC-SHA-1: must be refused (SHA-1 support is not enabled).
+"$OPENSSL" pkcs8 -topk8 -in ml-kem-768/private.pem -v2 aes-256-cbc -v2prf hmacWithSHA1 \
+  -passout "pass:$PASS" -out ml-kem-768/encrypted-pbkdf2-sha1.pem

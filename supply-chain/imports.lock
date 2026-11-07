@@ -9,6 +9,10 @@ audited_as = "0.0.11"
 version = "0.0.13"
 audited_as = "0.0.11"
 
+[[unpublished.kyberlib]]
+version = "0.0.14"
+audited_as = "0.0.11"
+
 [[unpublished.kyberlib-wasm]]
 version = "0.0.12"
 audited_as = "0.0.11"
@@ -16,6 +20,20 @@ audited_as = "0.0.11"
 [[unpublished.kyberlib-wasm]]
 version = "0.0.13"
 audited_as = "0.0.11"
+
+[[unpublished.kyberlib-wasm]]
+version = "0.0.14"
+audited_as = "0.0.11"
+
+[[publisher.aead]]
+version = "0.6.1"
+when = "2026-06-17"
+trusted-publisher = "github:RustCrypto/traits"
+
+[[publisher.aes-gcm]]
+version = "0.11.1"
+when = "2026-08-21"
+trusted-publisher = "github:RustCrypto/AEADs"
 
 [[publisher.aho-corasick]]
 version = "1.1.3"
@@ -113,6 +131,13 @@ version = "0.12.1"
 when = "2026-06-11"
 trusted-publisher = "github:RustCrypto/utils"
 
+[[publisher.block-padding]]
+version = "0.4.2"
+when = "2025-11-26"
+user-id = 5059
+user-login = "newpavlov"
+user-name = "Artyom Pavlov"
+
 [[publisher.borsh]]
 version = "1.8.1"
 when = "2026-08-26"
@@ -138,6 +163,11 @@ when = "2026-07-08"
 user-id = 6741
 user-login = "Darksonn"
 user-name = "Alice Ryhl"
+
+[[publisher.cbc]]
+version = "0.2.1"
+when = "2026-05-20"
+trusted-publisher = "github:RustCrypto/block-modes"
 
 [[publisher.cc]]
 version = "1.10.0"
@@ -332,6 +362,11 @@ user-id = 5059
 user-login = "newpavlov"
 user-name = "Artyom Pavlov"
 
+[[publisher.ghash]]
+version = "0.6.0"
+when = "2026-02-28"
+trusted-publisher = "github:RustCrypto/universal-hashes"
+
 [[publisher.glob]]
 version = "0.3.4"
 when = "2026-07-21"
@@ -451,6 +486,11 @@ version = "0.14.0"
 when = "2026-07-06"
 trusted-publisher = "github:RustCrypto/elliptic-curves"
 
+[[publisher.pbkdf2]]
+version = "0.13.0"
+when = "2026-04-21"
+trusted-publisher = "github:RustCrypto/password-hashes"
+
 [[publisher.pem-rfc7468]]
 version = "1.0.0"
 when = "2025-11-08"
@@ -458,10 +498,20 @@ user-id = 267
 user-login = "tarcieri"
 user-name = "Tony Arcieri"
 
+[[publisher.pkcs5]]
+version = "0.8.1"
+when = "2026-06-29"
+trusted-publisher = "github:RustCrypto/formats"
+
 [[publisher.pkcs8]]
 version = "0.11.0"
 when = "2026-04-27"
 trusted-publisher = "github:RustCrypto/formats"
+
+[[publisher.polyval]]
+version = "0.7.3"
+when = "2026-07-17"
+trusted-publisher = "github:RustCrypto/universal-hashes"
 
 [[publisher.prettyplease]]
 version = "0.2.37"
@@ -535,6 +585,16 @@ when = "2026-02-22"
 user-id = 6825
 user-login = "sunfishcode"
 user-name = "Dan Gohman"
+
+[[publisher.salsa20]]
+version = "0.11.0"
+when = "2026-03-30"
+trusted-publisher = "github:RustCrypto/stream-ciphers"
+
+[[publisher.scrypt]]
+version = "0.12.0"
+when = "2026-04-22"
+trusted-publisher = "github:RustCrypto/password-hashes"
 
 [[publisher.sec1]]
 version = "0.8.1"
@@ -634,6 +694,11 @@ when = "2024-09-19"
 user-id = 1139
 user-login = "Manishearth"
 user-name = "Manish Goregaokar"
+
+[[publisher.universal-hash]]
+version = "0.6.1"
+when = "2026-02-27"
+trusted-publisher = "github:RustCrypto/traits"
 
 [[publisher.walkdir]]
 version = "2.5.0"

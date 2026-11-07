@@ -33,7 +33,7 @@ homepage     = "https://kyberlib.com"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/sebastienrousseau/kyberlib"
 rust-version = "1.89"
-version      = "0.0.13"
+version      = "0.0.14"
 
 # Shared dependency pins. Members inherit via `dep = { workspace = true }`.
 [workspace.dependencies]
@@ -217,6 +217,20 @@ overflow-checks  = true
 panic            = 'unwind'
 rpath            = false
 strip            = false
+
+# Password-based KDFs (kyberlib-pkcs8 `encryption`) are deliberately
+# slow; unoptimised they turn one scrypt or PBKDF2 test into minutes.
+# Optimise only those crates in dev/test builds (`test` inherits these).
+[profile.dev.package.scrypt]
+opt-level = 3
+[profile.dev.package.salsa20]
+opt-level = 3
+[profile.dev.package.pbkdf2]
+opt-level = 3
+[profile.dev.package.hmac]
+opt-level = 3
+[profile.dev.package.sha2]
+opt-level = 3
 
 [profile.release]
 # Crypto code: optimise hard, trade compile time for runtime speed.

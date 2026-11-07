@@ -27,16 +27,21 @@ alloc = ["pkcs8/alloc", "spki/alloc"]
 # PEM (RFC 7468) on top of the DER encoders and decoders.
 pem   = ["alloc", "pkcs8/pem", "spki/pem"]
 std   = ["alloc", "pkcs8/std", "spki/std", "kyberlib/std"]
+# Password-encrypted PKCS#8 (PBES2). Encryption takes the caller's RNG,
+# like `PrivateKey::generate`; there is deliberately no `getrandom`
+# feature (it would add WASI/UEFI crates to the audited graph).
+encryption = ["alloc", "pkcs8/encryption"]
 
 [dependencies]
 der = { version = "0.8.3", default-features = false }
 # See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
-kyberlib = { path = "../kyberlib", version = "0.0.13", default-features = false, features = ["kyber768"] }
+kyberlib = { path = "../kyberlib", version = "0.0.14", default-features = false, features = ["kyber768"] }
 pkcs8 = { version = "0.11.0", default-features = false }
 spki = { version = "0.8.1", default-features = false }
 zeroize = { workspace = true }
 
 [dev-dependencies]
+rand_core = { workspace = true }
 rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
 
 [[example]]
@@ -46,6 +51,10 @@ required-features = ["pem", "std"]
 [[test]]
 name = "openssl_interop"
 required-features = ["pem", "std"]
+
+[[test]]
+name = "encrypted"
+required-features = ["encryption", "pem", "std"]
 
 [lints]
 workspace = true

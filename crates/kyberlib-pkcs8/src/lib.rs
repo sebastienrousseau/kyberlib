@@ -42,7 +42,14 @@
 //! recommends; pick another with [`PrivateKey::with_format`]. The
 //! pre-standard "bare" layouts some early tools wrote are rejected.
 //!
-//! Encrypted PKCS#8 (`EncryptedPrivateKeyInfo`) is not enabled.
+//! ## Password-encrypted keys
+//!
+//! With the `encryption` feature, `PrivateKey::decrypt_pkcs8_der` and
+//! `decrypt_pkcs8_pem` read PBES2 `EncryptedPrivateKeyInfo` files
+//! (PBKDF2 with HMAC-SHA-2, or scrypt; AES-CBC) as OpenSSL writes them, and
+//! `PrivateKey::encrypt_to_pkcs8_der` / `encrypt_to_pkcs8_pem` write
+//! them. Decryption refuses a file whose KDF cost exceeds
+//! `DecryptLimits` before running the KDF.
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -52,6 +59,8 @@
 extern crate alloc;
 
 mod choice;
+#[cfg(feature = "encryption")]
+mod encrypted;
 mod params;
 mod private;
 mod public;
@@ -62,6 +71,9 @@ pub use kyberlib::oid;
 pub use params::Params;
 pub use private::{PrivateKey, PrivateKeyFormat};
 pub use public::PublicKey;
+
+#[cfg(feature = "encryption")]
+pub use encrypted::DecryptLimits;
 
 /// The RustCrypto crates this API is built on, for callers that need
 /// their types (for example to inspect a `PrivateKeyInfo`).

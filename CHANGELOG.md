@@ -8,6 +8,28 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.14] - Unreleased
+
+### Added
+
+- **Password-encrypted PKCS#8** in kyberlib-pkcs8 (feature `encryption`):
+  `PrivateKey::decrypt_pkcs8_der` / `decrypt_pkcs8_pem` read PBES2
+  `EncryptedPrivateKeyInfo` files (PBKDF2 with HMAC-SHA-2, or scrypt;
+  AES-CBC) as `openssl pkcs8 -topk8` writes them, and
+  `encrypt_to_pkcs8_der` / `encrypt_to_pkcs8_pem` write scrypt +
+  AES-256-CBC, which OpenSSL 3.5 decrypts. Encryption takes the same
+  RNG type as `PrivateKey::generate`.
+- `DecryptLimits`: decryption refuses a file whose KDF cost exceeds
+  10,000,000 PBKDF2 iterations, 256 MiB of scrypt memory or scrypt
+  p > 16 (all adjustable) before running the KDF, so a hostile file
+  cannot stall or exhaust the process. PBKDF2 with HMAC-SHA-1 is refused.
+
+### Changed
+
+- Dev and test builds optimise `scrypt`, `salsa20`, `pbkdf2`, `hmac` and
+  `sha2`, so KDF tests take seconds instead of minutes.
+- The audit RFP targets v0.0.14 and adds PBES2 decryption to the scope.
+
 ## [0.0.13] - Unreleased
 
 ### Added
@@ -289,7 +311,8 @@ hardening, and a signed release pipeline. The detailed plan lives in
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
 
-[0.0.13]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.12...feat/v0.0.13
+[0.0.14]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.13...feat/v0.0.14
+[0.0.13]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.7...v0.0.10

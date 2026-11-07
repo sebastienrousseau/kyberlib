@@ -77,8 +77,21 @@ unchanged. The pre-standard layouts (raw seed or raw key directly in
 RFC 7468 labels `PUBLIC KEY` and `PRIVATE KEY`, 64-character lines, as
 OpenSSL writes them (feature `pem`).
 
-## Not implemented
+## Encrypted PKCS#8 (feature `encryption`)
 
-Encrypted PKCS#8 (`EncryptedPrivateKeyInfo`).
+`EncryptedPrivateKeyInfo` (RFC 5958 §3) with PBES2 (RFC 8018), PEM label
+`ENCRYPTED PRIVATE KEY`. The decrypted bytes are the
+`OneAsymmetricKey` above and get every check above.
+
+| | Read | Written |
+|---|---|---|
+| KDF | PBKDF2 with HMAC-SHA-224/256/384/512, scrypt (PBKDF2 with HMAC-SHA-1 and DES-based schemes are refused) | scrypt, N = 2^14, r = 8, p = 1, 16-byte salt |
+| Cipher | AES-128/192/256-CBC; AES-128/256-GCM is accepted by `pkcs5` but untested here (OpenSSL's `pkcs8` cannot write AEAD) | AES-256-CBC |
+
+Before the KDF runs, its parameters are checked against
+`DecryptLimits`: PBKDF2 iterations <= 10,000,000; scrypt `128 * r * N`
+<= 256 MiB and `p` <= 16; any other KDF or scheme is refused. These
+defaults admit OpenSSL 3.5's output (PBKDF2 2048 iterations; scrypt
+N = 2^14, r = 8, p = 1).
 
 [rfc]: https://www.rfc-editor.org/rfc/rfc9935

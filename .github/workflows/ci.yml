@@ -228,6 +228,8 @@ jobs:
         run: cargo clippy --locked -p kyberlib-pkcs8 --all-targets --all-features -- -D warnings
       - name: Clippy kyberlib-pkcs8 decode-only (no default features)
         run: cargo clippy --locked -p kyberlib-pkcs8 --lib --no-default-features -- -D warnings
+      - name: Clippy kyberlib-pkcs8 with encryption only
+        run: cargo clippy --locked -p kyberlib-pkcs8 --all-targets --no-default-features --features encryption -- -D warnings
       - name: Run the PEM example
         run: cargo run --locked -p kyberlib-pkcs8 --example pem_roundtrip --features pem,std
 
