@@ -23,7 +23,7 @@ members = [
 # cargo-fuzz requires nightly + libFuzzer and adds heavy deps we
 # do not want in normal builds. Driven via `make fuzz` / `cargo +nightly
 # fuzz run ...` from inside the `fuzz/` directory.
-exclude = ["fuzz"]
+exclude = ["fuzz", "crates/kyberlib-hybrid/interop-gen"]
 
 # Shared package metadata. Member crates inherit via `field.workspace = true`.
 [workspace.package]
@@ -33,7 +33,7 @@ homepage     = "https://kyberlib.com"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/sebastienrousseau/kyberlib"
 rust-version = "1.89"
-version      = "0.0.11"
+version      = "0.0.12"
 
 # Shared dependency pins. Members inherit via `dep = { workspace = true }`.
 [workspace.dependencies]
@@ -42,6 +42,14 @@ ctr              = { version = "0.10.1", default-features = false }
 rand             = { version = "0.8.6",  default-features = false }
 rand_core        = { version = "0.6.4",  default-features = false }
 sha2             = { version = "0.11.1", default-features = false }
+sha3             = { version = "0.10.9", default-features = false }
+p256             = { version = "0.14.0", default-features = false, features = ["ecdh"] }
+p384             = { version = "0.14.0", default-features = false, features = ["ecdh"] }
+# Not used directly: pins the curve stack past RUSTSEC-2026-0387
+# (timing leaks in crypto-bigint < 0.7.6). See kyberlib-hybrid.
+crypto-bigint    = { version = "0.7.6", default-features = false }
+# FIPS backend (kyberlib `fips` feature): the FIPS build of AWS-LC only.
+aws-lc-rs        = { version = "1.19.0", default-features = false, features = ["fips"] }
 wasm-bindgen     = { version = "0.2.122", default-features = false }
 wasm-bindgen-test = { version = "0.3.50" }
 zeroize          = { version = "1.8.2",  default-features = false, features = ["derive"] }

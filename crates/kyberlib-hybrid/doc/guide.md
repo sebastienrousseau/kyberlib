@@ -53,8 +53,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Wire: client_share goes over the network as 1216 bytes.
 
     // Server: receive client_share, derive shared_secret + server_share.
-    let (shared_secret_server, server_share) =
-        X25519MlKem768Server::respond(&client_share, &mut rng)?;
+    let (server_share, shared_secret_server) =
+        X25519MlKem768Server::encapsulate(&mut rng, &client_share)?;
 
     // Wire: server_share goes back as 1120 bytes.
 

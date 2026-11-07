@@ -141,23 +141,12 @@
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
-// Phase 5 backend selection. Both backend features are reservations
-// only at this stage — they declare the feature name in the manifest
-// so downstream consumers can pre-wire `--features fips` or
-// `--features verified` against the eventual delegation surface
-// (issues #170 / #171). Today they are pure no-ops: the pure-Rust
-// path is always used regardless of which is enabled.
-//
-// The mutual-exclusion guard between `fips` and `verified` lands
-// alongside the first feature with a non-trivial implementation.
-// Until then we tolerate `--all-features` enabling both for CI's
-// sake.
-
-/// Marker for the `fips` backend (skeleton — see issue #170).
-#[cfg(feature = "fips")]
-#[doc(hidden)]
-pub const __FIPS_BACKEND_STUB: &str =
-    "kyberlib `fips` feature is a phase-5 placeholder — see issue #170";
+// Phase 5 backend selection. `fips` is implemented (module `fips`,
+// issue #170). `verified` is still a reservation (#171): it declares
+// the feature name so downstream consumers can pre-wire it, and is a
+// no-op today. The mutual-exclusion guard between the two lands with
+// the first `verified` implementation; until then `--all-features`
+// enabling both simply uses the `fips` backend.
 
 /// Marker for the `verified` backend (skeleton — see issue #171).
 #[cfg(feature = "verified")]
@@ -220,6 +209,24 @@ pub mod symmetric;
 
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;
+
+/// Seeded key generation and backend dispatch for the typed API.
+mod backend;
+
+/// FIPS 203 §7.2 / §7.3 input checks.
+mod input_check;
+
+/// FIPS 140-3 backend: routes the typed ML-KEM API through the AWS-LC
+/// FIPS module (feature `fips`, issue #170).
+#[cfg(feature = "fips")]
+pub mod fips;
+
+/// Name of the backend serving the typed ML-KEM API in this build.
+#[cfg(not(feature = "fips"))]
+pub const BACKEND: &str = "kyberlib (pure Rust)";
+/// Name of the backend serving the typed ML-KEM API in this build.
+#[cfg(feature = "fips")]
+pub const BACKEND: &str = fips::BACKEND;
 
 /// Parameter-pack trait unifying ML-KEM-512 / 768 / 1024 — foundation
 /// for the const-generic refactor tracked as #130b.

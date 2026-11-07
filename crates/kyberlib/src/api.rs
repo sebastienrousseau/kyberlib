@@ -129,7 +129,8 @@ where
 ///
 /// # Errors
 ///
-/// Returns a `KyberLibError` if the input sizes are incorrect or if an error occurs during encapsulation.
+/// Returns [`KyberLibError::InvalidInput`] if `pk` has the wrong length, or
+/// [`KyberLibError::InvalidKey`] if it fails the FIPS 203 §7.2 modulus check.
 ///
 /// ### Example
 /// ```

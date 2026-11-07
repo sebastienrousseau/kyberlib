@@ -32,6 +32,10 @@ pub enum KyberLibError {
 
     /// Error trying to fill random bytes (i.e., external (hardware) RNG modules can fail).
     RandomBytesGeneration,
+
+    /// The `fips` feature is on but the AWS-LC module is not running in
+    /// FIPS mode (see `kyberlib::fips::fips_mode`).
+    FipsModeUnavailable,
 }
 
 impl core::fmt::Display for KyberLibError {
@@ -50,6 +54,9 @@ impl core::fmt::Display for KyberLibError {
             },
             KyberLibError::InvalidLength => {
                 write!(f, "The length of the input buffer is invalid.")
+            }
+            KyberLibError::FipsModeUnavailable => {
+                write!(f, "The AWS-LC FIPS module is not in FIPS mode.")
             }
         }
     }

@@ -8,8 +8,8 @@ upstream consumers should track the latest patch number.
 
 | Version  | Supported |
 |----------|:---------:|
-| `0.0.11`  |     ✅    |
-| `< 0.0.11`|     ❌    |
+| `0.0.12`  |     ✅    |
+| `< 0.0.12`|     ❌    |
 
 A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)
@@ -120,18 +120,19 @@ Barrett-style multiplication. The audit is documented in
 
 ## FIPS / Regulatory Path
 
-A pure-Rust crate cannot itself be FIPS 140-3 validated. For workloads that
-require CMVP listing (FedRAMP High, NIST SP 800-53 control SC-13, CNSA 2.0)
-kyberlib offers an **optional `fips` feature** ([#170][i170]) that delegates
-all ML-KEM operations to `aws-lc-rs` — the first cryptographic library to
-include ML-KEM in a FIPS 140-3 validation (AWS-LC FIPS 3.0, 2025).
+A pure-Rust crate cannot itself be FIPS 140-3 validated. For workloads
+that require a CMVP-listed module (FedRAMP High, NIST SP 800-53 control
+SC-13, CNSA 2.0) the **`fips` feature** ([#170][i170]) runs the typed
+ML-KEM API inside the AWS-LC FIPS module through `aws-lc-rs`, keeping
+kyberlib's API and the FIPS 203 key encodings. Which operations stay
+outside the module, and what you must check for certificate coverage,
+is in [`doc/FIPS.md`](doc/FIPS.md).
 
-For workloads that prefer **formal verification** over FIPS certification,
-the **`verified` feature** ([#171][i171]) delegates to `libcrux-ml-kem`
-(F\* + hax-verified panic-freedom, functional correctness, and
-secret-independence for portable + AVX2 backends). Documented caveat:
-Symbolic Software (eprint 2026/192, Feb 2026) found 3 bugs in libcrux's
-verified code — verification is necessary, not sufficient.
+The **`verified` feature** ([#171][i171]) is reserved for a
+`libcrux-ml-kem` backend (F\* + hax-verified panic-freedom, functional
+correctness and secret-independence). It is a no-op today. Documented
+caveat: Symbolic Software (eprint 2026/192, Feb 2026) found 3 bugs in
+libcrux's verified code — verification is necessary, not sufficient.
 
 [i141]: https://github.com/sebastienrousseau/kyberlib/issues/141
 [i150]: https://github.com/sebastienrousseau/kyberlib/issues/150
