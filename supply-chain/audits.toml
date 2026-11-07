@@ -373,6 +373,12 @@ user-id = 267 # Tony Arcieri (tarcieri)
 start = "2022-01-13"
 end = "2027-11-06"
 
+[[trusted.base64ct]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2021-01-21"
+end = "2027-11-07"
+
 [[trusted.bindgen]]
 criteria = "safe-to-deploy"
 user-id = 3788 # Emilio Cobos Álvarez (emilio)
@@ -703,6 +709,18 @@ trusted-publisher = "github:RustCrypto/elliptic-curves"
 start = "2026-04-19"
 end = "2027-11-06"
 
+[[trusted.pem-rfc7468]]
+criteria = "safe-to-deploy"
+user-id = 267 # Tony Arcieri (tarcieri)
+start = "2021-02-16"
+end = "2027-11-07"
+
+[[trusted.pkcs8]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/formats"
+start = "2026-02-11"
+end = "2027-11-07"
+
 [[trusted.prettyplease]]
 criteria = "safe-to-deploy"
 user-id = 3618 # David Tolnay (dtolnay)
@@ -816,6 +834,12 @@ criteria = "safe-to-deploy"
 user-id = 6741 # Alice Ryhl (Darksonn)
 start = "2021-10-13"
 end = "2027-10-14"
+
+[[trusted.spki]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/formats"
+start = "2026-04-04"
+end = "2027-11-07"
 
 [[trusted.syn]]
 criteria = "safe-to-deploy"

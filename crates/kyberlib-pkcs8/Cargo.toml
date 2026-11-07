@@ -1,6 +1,6 @@
 [package]
 name = "kyberlib-pkcs8"
-description = "PKCS#8 / SubjectPublicKeyInfo / PEM encoding for kyberlib ML-KEM keys (skeleton)."
+description = "PKCS#8, SubjectPublicKeyInfo and PEM encoding for kyberlib ML-KEM keys (RFC 9935)."
 documentation = "https://docs.rs/kyberlib-pkcs8"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "encoding", "no-std"]
@@ -21,12 +21,31 @@ path = "src/lib.rs"
 crate-type = ["rlib"]
 
 [features]
-default = []
-pem     = []   # Will pull in pem-rfc7468 when activated.
+default = ["alloc"]
+# Encoding (decoding works without it).
+alloc = ["pkcs8/alloc", "spki/alloc"]
+# PEM (RFC 7468) on top of the DER encoders and decoders.
+pem   = ["alloc", "pkcs8/pem", "spki/pem"]
+std   = ["alloc", "pkcs8/std", "spki/std", "kyberlib/std"]
 
 [dependencies]
+der = { version = "0.8.3", default-features = false }
 # See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
 kyberlib = { path = "../kyberlib", version = "0.0.12", default-features = false, features = ["kyber768"] }
+pkcs8 = { version = "0.11.0", default-features = false }
+spki = { version = "0.8.1", default-features = false }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
+
+[[example]]
+name = "pem_roundtrip"
+required-features = ["pem", "std"]
+
+[[test]]
+name = "openssl_interop"
+required-features = ["pem", "std"]
 
 [lints]
 workspace = true
