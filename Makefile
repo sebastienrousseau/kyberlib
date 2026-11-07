@@ -107,6 +107,9 @@ non-exhaustive-guard: ## Fail if a public struct or enum lacks #[non_exhaustive]
 reuse: ## REUSE 3.3 licence and copyright check (requires `reuse`).
 	reuse lint
 
+demo: ## Render .github/demo.gif from .github/demo.tape (requires `vhs`).
+	vhs .github/demo.tape
+
 # --------------------------------------------------------------- ACVP (phase 2)
 acvp: ## Run NIST ACVP ML-KEM-512/768/1024 vectors (180 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
