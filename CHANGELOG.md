@@ -8,6 +8,39 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.13] - Unreleased
+
+### Added
+
+- **kyberlib-pkcs8** ([#168](https://github.com/sebastienrousseau/kyberlib/issues/168)):
+  PKCS#8, `SubjectPublicKeyInfo` and PEM encodings for ML-KEM-512, -768
+  and -1024 keys per RFC 9935. Reads all three private-key forms (seed,
+  expanded, both) and writes the seed form by default. Decoding checks
+  the OID, absent parameters, exact sizes, the seed/expanded consistency
+  of the `both` form, an optional `publicKey`, and the FIPS 203 §7.2 /
+  §7.3 checks. Keys made by OpenSSL 3.5.9 decode and re-encode byte for
+  byte. Built on RustCrypto `der` 0.8, `spki` 0.8 and `pkcs8` 0.11.
+  The crate stays `publish = false` until the audit (#177).
+- `MlKem512EncapKey` / `MlKem768EncapKey` / `MlKem1024EncapKey::validate()`:
+  the FIPS 203 §7.2 modulus check, callable at import.
+- `MlKem768DecapKey::try_from_slice`: ML-KEM-768 decapsulation keys can
+  now be imported from bytes (with the §7.3 hash check), like 512 and
+  1024 already could.
+
+### Changed
+
+- The audit RFP (`doc/audits/RFP-v1.0.md`) targets v0.0.13 and adds the
+  key encodings to the scope.
+- CI: a `kyberlib-pkcs8 (all features)` job, and the MSRV job also
+  checks kyberlib-pkcs8.
+
+### Fixed
+
+- `kyberlib-pkcs8` docs described a pre-standard private-key layout and
+  an 11-byte OID encoding; both are corrected (the OID is 9 bytes).
+- The root README's crate table described kyberlib-hybrid as
+  unfinished.
+
 ## [0.0.12] - Unreleased
 
 ### Fixed
@@ -256,6 +289,7 @@ hardening, and a signed release pipeline. The detailed plan lives in
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
 
-[0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...feat/v0.0.12
+[0.0.13]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.12...feat/v0.0.13
+[0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.10...v0.0.11
 [0.0.10]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.7...v0.0.10

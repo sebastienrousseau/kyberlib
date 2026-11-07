@@ -31,7 +31,7 @@ std   = ["alloc", "pkcs8/std", "spki/std", "kyberlib/std"]
 [dependencies]
 der = { version = "0.8.3", default-features = false }
 # See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
-kyberlib = { path = "../kyberlib", version = "0.0.12", default-features = false, features = ["kyber768"] }
+kyberlib = { path = "../kyberlib", version = "0.0.13", default-features = false, features = ["kyber768"] }
 pkcs8 = { version = "0.11.0", default-features = false }
 spki = { version = "0.8.1", default-features = false }
 zeroize = { workspace = true }

@@ -19,8 +19,8 @@
 * **Language:** Rust (edition 2021, MSRV 1.89)
 * **License:** MIT OR Apache-2.0 (dual)
 * **Repository:** <https://github.com/sebastienrousseau/kyberlib>
-* **Audit target tag:** `v0.0.12` (release PR #252). Fixes from the
-  audit land as `v0.0.13` onward; `v1.0.0` is tagged after the
+* **Audit target tag:** `v0.0.13`. Fixes from the
+  audit land as `v0.0.14` onward; `v1.0.0` is tagged after the
   re-verification round.
 * **Maintainer / point-of-contact:** Sebastien Rousseau
   &lt;contact@kyberlib.com&gt; `[ADJUST — confirm or replace before sending]`
@@ -28,9 +28,9 @@
   7 d triage SLA).
 * **Code statistics (workspace):**
   - 5 publishable + non-publishable Rust crates
-  - 10,810 lines of Rust in `crates/*/src` excluding the AVX2
+  - 11,574 lines of Rust in `crates/*/src` excluding the AVX2
     backend; 3,318 lines of Rust and 1,643 lines of assembly in
-    `crates/kyberlib/src/avx2/` (counted with `wc -l`, v0.0.12)
+    `crates/kyberlib/src/avx2/` (counted with `wc -l`, v0.0.13)
   - 180 / 180 NIST ACVP ML-KEM-512/768/1024 vectors pass
   - Coverage gate: ≥ 80% lines (CI-enforced)
 
@@ -57,7 +57,7 @@ hardening cycle:
 * Added a tag-triggered release pipeline with SLSA L3 attestation +
   keyless cosign signing + CycloneDX 1.6 CBOM (Phase 6.1).
 
-v0.0.12 (the audit target) adds:
+v0.0.12 adds:
 
 * FIPS 203 §7.2 / §7.3 input checks on encapsulation and on imported
   decapsulation keys (commit `994b383`).
@@ -67,6 +67,10 @@ v0.0.12 (the audit target) adds:
   (draft-connolly-cfrg-xwing-kem-11 vectors).
 * The `fips` feature: the typed ML-KEM API dispatched to the AWS-LC
   FIPS module (`doc/FIPS.md`).
+
+v0.0.13 (the audit target) adds kyberlib-pkcs8: RFC 9935 PKCS#8 and
+SubjectPublicKeyInfo encodings for ML-KEM keys, checked byte for byte
+against OpenSSL 3.5.
 
 The v1.0.0 release will not ship until this audit signs off.
 
@@ -81,6 +85,7 @@ The v1.0.0 release will not ship until this audit signs off.
 | **Public API design** | The `KemCore` trait, `MlKem768EncapKey` / `MlKem768DecapKey` split, the deprecation strategy for the legacy `Keypair`/`keypair()` surface. Look for footguns and ergonomic traps. |
 | **Hybrid KEMs** | The three TLS groups (wire order, share lengths, point validation, all-zero X25519 check, secret order) and X-Wing (key expansion, combiner, the one-shot RNG that feeds ML-KEM its message). Dependencies: `x25519-dalek`, `p256` / `p384`, `sha3`. |
 | **Input checks** | The FIPS 203 §7.2 modulus check and §7.3 hash check (`kem.rs`), and what still bypasses them (`from_bytes`). |
+| **Key encodings** | `crates/kyberlib-pkcs8`: parsing untrusted PKCS#8 / SPKI / PEM (RFC 9935 private-key CHOICE, seed/expanded consistency check, parameters-absent rule, §7.2 / §7.3 checks at import), zeroization of encoded secrets. Dependencies: RustCrypto `der`, `spki`, `pkcs8`, `pem-rfc7468`, `base64ct`. |
 | **`fips` dispatch** | Routing in `ml_kem.rs` and `fips.rs`: which calls reach the AWS-LC module, the decapsulation fallback, ignored caller RNG. AWS-LC itself is out of scope (covered by its own CMVP validation). |
 | **Side-channel attacks beyond timing** | Power and EM are out of scope; software-observable channels (memory access patterns, branch mispredictions, cache footprint) are in. |
 | **`unsafe` surface** | `crates/kyberlib-asm/` (when populated — currently a skeleton) and the AVX2 intrinsics in `crates/kyberlib/src/avx2/`. We assume "wait, why does the assembly exist?" will surface. |
