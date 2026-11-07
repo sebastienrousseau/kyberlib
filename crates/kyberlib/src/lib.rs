@@ -79,8 +79,8 @@
 //! ## Architecture
 //!
 //! See [`api`] for the legacy free-function surface, [`ml_kem`] for
-//! the v0.0.7 typed-state API, [`kex`] for the Uake/Ake key-exchange
-//! wrappers, and [`error`] for the [`KyberLibError`] enum.
+//! the v0.0.7 typed-state API, `hazmat::kex` (feature `hazmat`) for the
+//! Uake/Ake key exchanges, and [`error`] for the [`KyberLibError`] enum.
 //!
 //! ## Errors
 //!
@@ -192,10 +192,12 @@ pub use reference::indcpa;
 pub mod api;
 /// Error types for the KyberLib library.
 pub mod error;
+/// Hazardous APIs, behind the `hazmat` feature: the `Uake` / `Ake`
+/// key exchanges (#156, ADR 0008).
+#[cfg(feature = "hazmat")]
+pub mod hazmat;
 /// Key encapsulation module for the KyberLib library.
 pub mod kem;
-/// Key exchange structs for the KyberLib library.
-pub mod kex;
 
 /// Macro utilities for the KyberLib library.
 pub mod macros;
@@ -293,7 +295,6 @@ pub mod oid;
 
 pub use api::*;
 pub use error::KyberLibError;
-pub use kex::*;
 pub use ml_kem::{
     KemCore, MlKem1024, MlKem1024Ciphertext, MlKem1024DecapKey,
     MlKem1024EncapKey, MlKem512, MlKem512Ciphertext, MlKem512DecapKey,

@@ -99,6 +99,7 @@ pub fn decapsulate(
 
 /// Represents Kyber key pair.
 #[wasm_bindgen]
+#[non_exhaustive]
 pub struct Keys {
     pubkey: Box<[u8]>,
     secret: Box<[u8]>,
@@ -106,6 +107,7 @@ pub struct Keys {
 
 /// Represents Kyber encapsulated shared secret.
 #[wasm_bindgen]
+#[non_exhaustive]
 pub struct Kex {
     ciphertext: Box<[u8]>,
     sharedSecret: Box<[u8]>,
@@ -259,6 +261,7 @@ impl Kex {
 /// Represents Kyber parameters.
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
 pub struct Params {
     /// The size of public key bytes.
     #[wasm_bindgen(readonly)]

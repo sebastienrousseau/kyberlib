@@ -101,6 +101,9 @@ dudect: ## Run statistical constant-time analysis on decapsulate (scaffolded —
 kyberslash-guard: ## Fail if any non-annotated `/ KYBER_Q` / `% KYBER_Q` appears in src (ADR 0003).
 	bash scripts/kyberslash-guard.sh
 
+non-exhaustive-guard: ## Fail if a public struct or enum lacks #[non_exhaustive] (#157).
+	bash scripts/non-exhaustive-guard.sh
+
 # --------------------------------------------------------------- ACVP (phase 2)
 acvp: ## Run NIST ACVP ML-KEM-512/768/1024 vectors (180 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
@@ -131,4 +134,4 @@ clean: ## cargo clean.
 	$(CARGO) clean
 
 # --------------------------------------------------------------- CI parity
-ci: fmt-check clippy doc test deny machete kyberslash-guard ## Run the local CI superset.
+ci: fmt-check clippy doc test deny machete kyberslash-guard non-exhaustive-guard ## Run the local CI superset.

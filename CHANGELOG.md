@@ -8,6 +8,59 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.15] - Unreleased
+
+### Changed
+
+- **BREAKING: `Uake` and `Ake` moved to `kyberlib::hazmat::kex`**
+  behind the `hazmat` feature (#156, ADR 0008), with their constants,
+  message types and the `kyberlib_uake_*` / `kyberlib_ake_*` macros.
+  Their authentication is implicit only (no key confirmation or
+  transcript binding) and neither protocol is standardised; the module
+  now documents that threat model. The legacy aliases `PublicKey`,
+  `SecretKey`, `SharedSecret`, `Encapsulated` and `Decapsulated` stay at
+  the crate root.
+- **BREAKING: public types are `#[non_exhaustive]`** across kyberlib,
+  kyberlib-hybrid, kyberlib-pkcs8 and kyberlib-wasm (#157); struct
+  literals and exhaustive matches no longer compile outside the crate.
+  `Keypair` is the annotated exception. `DecryptLimits` gains
+  `with_max_*` builders.
+- The ML-KEM-512/1024 wrappers moved from `ml_kem.rs` to
+  `ml_kem_sized.rs` (no API change), bringing `ml_kem.rs` from 742 to
+  594 lines.
+
+### Added
+
+- `doc/RELEASE-1.0-CHECKLIST.md`: the v1.0.0 criteria with today's
+  status (#178).
+- ADR 0007: kyberlib will not be submitted for CMVP validation; use the
+  `fips` feature (#179). ADR 0008: the `Uake` / `Ake` move.
+- CI: a `hazmat` job and a `#[non_exhaustive]` guard
+  (`make non-exhaustive-guard`).
+
+### Fixed
+
+- The weekly full Miri sweep timed out every week since at least
+  2026-10-19; property tests now run 4 cases under Miri and the job has
+  240 minutes.
+- ADR 0005 and 0006 described the `fips` and seeded-keygen work as
+  planned; they now record what shipped and how it differs.
+- `crates/kyberlib/doc/release-process.md` and
+  `doc/audits/MATERIALS.md` contained stale statements (draft releases,
+  tag message, ML-KEM-512/1024 "not built", dudect "not wired").
+- The READMEs were stuck at 0.0.11 and wrong in places: they listed
+  `fips` as a planned stub (shipped in 0.0.12), the hybrid and PKCS#8
+  crates as skeletons, linked unpublished crates to crates.io, cited
+  closed Dependabot PRs (#180, #181) as plans, and recommended `avx2`
+  for production. They now describe 0.0.15.
+
+### Known issues
+
+- `--features avx2` (and `nasm`) does not compile: a CI run on x86_64
+  (42357137681) reported 20 errors, and its key generation also lacks
+  the FIPS 203 domain-separation byte. Do not enable it; the port is
+  #143.
+
 ## [0.0.14] - Unreleased
 
 ### Added
@@ -311,7 +364,8 @@ hardening, and a signed release pipeline. The detailed plan lives in
 Pre-enterprise-upgrade baseline. CRYSTALS-Kyber Round 3 reference + AVX2
 implementations, KAT-validated, dual MIT / Apache-2.0 licensed.
 
-[0.0.14]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.13...feat/v0.0.14
+[0.0.15]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.14...feat/v0.0.15
+[0.0.14]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.13...v0.0.14
 [0.0.13]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/sebastienrousseau/kyberlib/compare/v0.0.10...v0.0.11

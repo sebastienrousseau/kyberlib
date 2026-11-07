@@ -154,10 +154,8 @@ fn pbkdf2_iterations_are_capped() {
     let file = vector("ml-kem-768", "encrypted-pbkdf2.pem");
     let (_, doc) = Document::from_pem(&file).unwrap();
     // OpenSSL's file uses 2048 iterations: a cap of 1000 refuses it.
-    let tight = DecryptLimits {
-        max_pbkdf2_iterations: 1000,
-        ..DecryptLimits::default()
-    };
+    let tight =
+        DecryptLimits::default().with_max_pbkdf2_iterations(1000);
     assert_refused_fast(doc.as_bytes(), &tight, pbes2::PBKDF2_OID);
 
     let huge = with_params("ml-kem-768", "encrypted-pbkdf2.pem", |p| {
@@ -177,10 +175,8 @@ fn scrypt_memory_and_parallelism_are_capped() {
     let file = vector("ml-kem-768", "encrypted-scrypt.pem");
     let (_, doc) = Document::from_pem(&file).unwrap();
     // OpenSSL's file needs 128 * r * N = 16 MiB: an 8 MiB cap refuses it.
-    let tight = DecryptLimits {
-        max_scrypt_memory: 8 << 20,
-        ..DecryptLimits::default()
-    };
+    let tight =
+        DecryptLimits::default().with_max_scrypt_memory(8 << 20);
     assert_refused_fast(doc.as_bytes(), &tight, pbes2::SCRYPT_OID);
 
     let big_n =

@@ -61,6 +61,7 @@ macro_rules! secp_hybrid {
         ecdh_len: $ecdh_len:expr
     ) => {
         #[doc = concat!("Client state for ", $doc, ": ECDH ephemeral plus ML-KEM key.")]
+        #[non_exhaustive]
         pub struct $client {
             ecdh: $curve::SecretKey,
             ml_kem_dk: kyberlib::$dk,
@@ -74,10 +75,12 @@ macro_rules! secp_hybrid {
 
         #[doc = concat!("Server side of ", $doc, ".")]
         #[derive(Clone, Copy, Debug)]
+        #[non_exhaustive]
         pub struct $server;
 
         #[doc = concat!("Shared secret for ", $doc, ": ECDH X ‖ ML-KEM secret. Zeroized on drop.")]
         #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
+        #[non_exhaustive]
         pub struct $secret([u8; $ecdh_len + 32]);
 
         impl fmt::Debug for $secret {

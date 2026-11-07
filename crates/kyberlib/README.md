@@ -43,7 +43,7 @@
 
 - [Migrating to FIPS 203 ML-KEM](#migrating-to-fips-203-ml-kem) — `diff`-style snippets from `pqcrypto-kyber`, `RustCrypto/ml-kem`, `libcrux-ml-kem`, `oqs-rs`, and the legacy `kyberlib` 0.0.6 surface
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.11](#capabilities-in-0011) — release inventory
+- [Capabilities in 0.0.15](#capabilities-in-0015) — release inventory
 - [Two APIs, one KEM](#two-apis-one-kem) — legacy free functions vs. type-state `KemCore`
 - [Features](#features) — Cargo-feature capability list
 - [Library usage](#library-usage) — keygen, encapsulate, decapsulate
@@ -67,7 +67,7 @@
 
 ```toml
 [dependencies]
-kyberlib = "0.0.11"
+kyberlib = "0.0.15"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared MSRV).
@@ -85,7 +85,7 @@ make ci          # fmt + clippy + doc + test + deny + machete + kyberslash-guard
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.11", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.15", default-features = false, features = ["kyber768"] }
 ```
 
 Requires `alloc` (because of `Vec` buffers in the rejection sampler).
@@ -159,7 +159,7 @@ build of `kyberlib`.
 
 ## Migrating to FIPS 203 ML-KEM
 
-`kyberlib` v0.0.11 implements **FIPS 203 ML-KEM** (NIST, August
+`kyberlib` v0.0.15 implements **FIPS 203 ML-KEM** (NIST, August
 2024) — the standardised form of CRYSTALS-Kyber Round 3. v0.0.6
 and earlier shipped the Round-3 surface. The byte-level deltas
 (K-byte domain separator, dropped `m' = H(m)` pre-hash, dropped
@@ -179,7 +179,7 @@ migration paths follow.
 -[dependencies]
 -kyberlib = "0.0.6"
 +[dependencies]
-+kyberlib = "0.0.11"
++kyberlib = "0.0.15"
 ```
 
 ```diff
@@ -203,7 +203,7 @@ with every other FIPS 203 endpoint.
 -[dependencies]
 -pqcrypto-kyber = "0.8"
 +[dependencies]
-+kyberlib = "0.0.11"
++kyberlib = "0.0.15"
 ```
 
 ```diff
@@ -226,7 +226,7 @@ is pure Rust. Wire-format identical (both FIPS 203 final).
 -[dependencies]
 -ml-kem = "0.2"
 +[dependencies]
-+kyberlib = "0.0.11"
++kyberlib = "0.0.15"
 ```
 
 ```diff
@@ -337,7 +337,7 @@ Downstream consumers flip a feature flag; the call sites don't change.
 
 ---
 
-## Capabilities in 0.0.11
+## Capabilities in 0.0.15
 
 | Capability | Status |
 |---|---|
@@ -349,15 +349,15 @@ Downstream consumers flip a feature flag; the call sites don't change.
 | `KemCore` trait (sealed, generic) | ✓ |
 | `Zeroize` / `ZeroizeOnDrop` on secrets | ✓ unconditional |
 | `no_std` + `alloc` | ✓ |
-| AVX2 SIMD acceleration | ✓ `--features avx2` (x86_64 only) |
+| AVX2 SIMD acceleration | ✗ `--features avx2` does not compile; port tracked in [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
 | NEON / AArch64 acceleration | planned [#172](https://github.com/sebastienrousseau/kyberlib/issues/172) |
 | FIPS 140-3 delegation (`aws-lc-rs`) | planned [#170](https://github.com/sebastienrousseau/kyberlib/issues/170) |
 | Verified delegation (`libcrux-ml-kem`) | planned [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) |
 | SLSA L3 + cosign signed releases | ✓ release pipeline dry-run verified |
 | CycloneDX 1.6 CBOM | ✓ generated per release |
 | WebAssembly bindings | ✓ via [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm) |
-| TLS hybrid (X25519MLKEM768) | ✓ via [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid) |
-| PKCS#8 / SPKI / PEM encoding | skeleton via [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8) |
+| TLS hybrids (X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024) and X-Wing | ✓ via [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) (unpublished until the audit) |
+| PKCS#8 / SPKI / PEM, incl. password-encrypted PKCS#8 (RFC 9935) | ✓ via [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8) (unpublished until the audit) |
 
 ---
 
@@ -395,21 +395,21 @@ application needs.
 | `std`              | ✓ | — | `std::error::Error` impl; `getrandom`-backed default RNG | [Install](#install) |
 | `kyber512`         |   | — | ML-KEM-512 parameter set | `paramsets.rs` |
 | `kyber1024`        |   | — | ML-KEM-1024 parameter set | `paramsets.rs` |
-| `hazmat`           |   | — | IND-CPA primitives — bypasses the FO transform; use with care | [docs.rs `reference::indcpa`](https://docs.rs/kyberlib) |
+| `hazmat`           |   | — | IND-CPA primitives (no FO transform) and `hazmat::kex::{Uake, Ake}` (since 0.0.15); use with care | [docs.rs `hazmat`](https://docs.rs/kyberlib) |
 | `90s`              |   | `sha2` | AES-CTR + SHA-2 instead of SHAKE (Kyber-R3 era; removed from FIPS 203) | CHANGELOG |
 | `90s-fixslice`     |   | `aes`, `ctr` | Bitsliced AES for side-channel hardening of 90s mode | CHANGELOG |
-| `avx2`             |   | `cc` | x86_64 SIMD acceleration of the polynomial arithmetic | [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) |
-| `nasm`             |   | `nasm-rs`, `avx2` | NASM-assembled AVX2 (portable to non-GAS toolchains) | [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) |
+| `avx2`             |   | `cc` | **Does not compile** since the v0.0.7 refactor; do not enable. Port tracked in [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) |
+| `nasm`             |   | `nasm-rs`, `avx2` | NASM build of the AVX2 backend; **does not compile** (as `avx2`, [#143](https://github.com/sebastienrousseau/kyberlib/issues/143)) | [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) |
 | `wasm`             |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — real WASM bindings live in [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm). Do not enable. | CHANGELOG |
 | `zeroize`          |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — `ZeroizeOnDrop` is unconditional since v0.0.7. Do not enable. | CHANGELOG |
 | `benchmarking`     |   | — | Re-exports internal `kem` module for the `benches/api.rs` harness. Not for production. | [`benches/api.rs`](benches/api.rs) |
-| `fips`             |   | (stub) | Planned `aws-lc-rs` delegation for FIPS 140-3 customers — [#170](https://github.com/sebastienrousseau/kyberlib/issues/170) | [SECURITY](../../SECURITY.md) |
-| `verified`         |   | (stub) | Planned `libcrux-ml-kem` delegation for formally-verified primitives — [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) | [SECURITY](../../SECURITY.md) |
+| `fips`             |   | `aws-lc-rs` | Typed ML-KEM API runs inside the AWS-LC FIPS module (since 0.0.12) | [`doc/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/doc/FIPS.md) |
+| `verified`         |   | — | No-op: reserved for a `libcrux-ml-kem` backend, [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) | [SECURITY](../../SECURITY.md) |
 
 ```toml
-# Example: production server with x86_64 SIMD acceleration
+# Example: run ML-KEM inside the AWS-LC FIPS module (needs CMake, Go, a C compiler)
 [dependencies]
-kyberlib = { version = "0.0.11", features = ["avx2"] }
+kyberlib = { version = "0.0.15", features = ["fips"] }
 ```
 
 ---
@@ -465,8 +465,8 @@ Runnable Rust examples live in [`examples/`](examples/):
 | Example | What it shows |
 |---|---|
 | `examples/kem.rs` | Minimal keygen / encap / decap with the legacy free-function API |
-| `examples/uake.rs` | Unilaterally-authenticated KEX (`Uake`) round-trip |
-| `examples/ake.rs` | Mutually-authenticated KEX (`Ake`) round-trip |
+| `examples/uake.rs` | `hazmat::kex::Uake` round-trip (`--features hazmat`) |
+| `examples/ake.rs` | `hazmat::kex::Ake` round-trip (`--features hazmat`) |
 | `examples/typed_kem.rs` | Same round-trip with the typed `KemCore` / `MlKem768` surface |
 | `examples/deterministic_seed.rs` | Deterministic keygen from a 64-byte seed (KAT-friendly) |
 | `examples/no_std_demo.rs` | `#![no_std]`-compatible round-trip with a caller-supplied RNG |
@@ -500,19 +500,19 @@ integration, TLS hybrid pointer).
   instead, which ships the same FIPS 203 primitives through a
   `wasm-bindgen` boundary at ~120 KiB compressed.
 - **Hybrid (X25519MLKEM768) TLS key exchange** — use
-  [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid),
-  which wires the
-  [`draft-ietf-tls-ecdhe-mlkem-04`](https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/)
-  client + server surfaces on top of `kyberlib` and
-  `x25519-dalek`.
+  [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid)
+  (unpublished until the audit), which implements the three
+  [`draft-ietf-tls-ecdhe-mlkem`](https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/)
+  groups and the X-Wing KEM on top of `kyberlib`.
 - **PKCS#8 / SPKI / PEM key encoding** — use
-  [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8)
-  (skeleton in v0.0.7; full impl in
-  [#168](https://github.com/sebastienrousseau/kyberlib/issues/168)).
+  [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8)
+  (RFC 9935, including password-encrypted PKCS#8; unpublished until
+  the audit).
 - **CMVP-validated FIPS 140-3 cryptography** — the `fips` feature
-  ([ADR 0006](../../doc/adr/0006-fips-facade.md), planned for
-  v0.0.9) will delegate to `aws-lc-rs`'s in-process CMVP-validated
-  ML-KEM. Until that lands, use `aws-lc-rs` directly.
+  (since 0.0.12, [`doc/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/doc/FIPS.md))
+  runs the typed ML-KEM API inside the AWS-LC FIPS module through
+  `aws-lc-rs`; certificate coverage depends on the module version and
+  your operating environment.
 - **Streaming encryption** — ML-KEM is a key encapsulation
   mechanism, not a cipher. Use the 32-byte shared secret as a key
   to a symmetric AEAD (`chacha20poly1305`, `aes-gcm`, `WebCrypto`
@@ -596,14 +596,14 @@ Verification recipes for downstream consumers:
 
 ```sh
 # Verify SLSA L3 provenance:
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.11.crate
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.15.crate
 
 # Verify cosign signature:
 cosign verify-blob \
     --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --bundle kyberlib-0.0.11.crate.cosign-bundle.json \
-    kyberlib-0.0.11.crate
+    --bundle kyberlib-0.0.15.crate.cosign-bundle.json \
+    kyberlib-0.0.15.crate
 ```
 
 ---
@@ -629,12 +629,12 @@ cosign verify-blob \
 
 `kyberlib` is the core of a small workspace of focused crates:
 
-| Crate | What it is | Status (v0.0.11) |
+| Crate | What it is | Status (v0.0.15) |
 |---|---|---|
 | **[`kyberlib`](https://crates.io/crates/kyberlib)** (this) | Core library — FIPS 203 ML-KEM | Published; ACVP 180/180 |
-| [`kyberlib-asm`](https://crates.io/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
-| [`kyberlib-hybrid`](https://crates.io/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs — X25519MLKEM768 + ECDHE variants | `X25519MlKem768` wired |
-| [`kyberlib-pkcs8`](https://crates.io/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM encoding with LAMPS-registered OIDs | Skeleton — [#168](https://github.com/sebastienrousseau/kyberlib/issues/168) |
+| [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
+| [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit |
+| [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM per RFC 9935, incl. encrypted PKCS#8 | Implemented; unpublished until the audit |
 | [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm) | `wasm-bindgen` wrapper for browser / Node / Workers / Deno | Published alongside `kyberlib` |
 
 See the workspace [`README.md`](../../README.md) for the full

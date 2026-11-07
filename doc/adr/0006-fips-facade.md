@@ -1,6 +1,8 @@
 # ADR 0006 — FIPS 140-3 facade via `aws-lc-rs` delegation
 
-* **Status:** Proposed (planned for v0.0.9, branch `feat/v0.0.9-fips`)
+* **Status:** Accepted, implemented differently in v0.0.12 (PR #252); see
+  [Implementation notes](#implementation-notes-v0012). The `verified`
+  backend is not implemented (#171).
 * **Date:** 2026-05-20
 * **Authors:** sebastienrousseau
 * **Tracking issue:** [#170](https://github.com/sebastienrousseau/kyberlib/issues/170)
@@ -301,6 +303,36 @@ parity with C consumers, which is already covered by the
   test suite. Property tests confirm behavioural parity.
 * **Phase 6** — Document the CMVP / validation status in
   `SECURITY.md` with the active `aws-lc-rs` version pin.
+
+## Implementation notes (v0.0.12)
+
+The `fips` feature shipped in v0.0.12 (PR #252, `crates/kyberlib/src/fips.rs`,
+`crates/kyberlib/src/backend.rs`, `doc/FIPS.md`) and departs from the
+design above in these ways:
+
+* **Keys stay FIPS 203 byte arrays.** `MlKem*DecapKey` and friends keep
+  their byte representation under every backend; each call imports the
+  bytes into `aws_lc_rs::kem` and exports the result. Keys therefore move
+  between builds with and without `fips`, at the cost of secret bytes
+  living in kyberlib's own (zeroized) buffers rather than only inside the
+  module.
+* **The caller's RNG is ignored, not refused.** `generate` and
+  `encapsulate` keep their `&mut rng` parameter; under `fips` the module's
+  own DRBG is used and the argument is unused. Nothing fails closed.
+* **Seeded key generation stays pure Rust.** `KemCore::generate_from_seed`
+  (ADR 0005) runs the pure-Rust `KeyGen_internal` under `fips` too, because
+  AWS-LC exposes no seeded key generation. It is outside the module.
+* **Decapsulation falls back.** A decapsulation key the module rejects
+  (reachable only through the unchecked `from_bytes` constructors) is
+  decapsulated by the pure-Rust code with implicit rejection.
+* **No new error variant for the boundary, and no mutual-exclusion
+  `compile_error!`.** Module failures map onto existing variants;
+  `KyberLibError::FipsModeUnavailable` reports a module not in FIPS mode
+  (`kyberlib::fips::fips_mode()`). `fips` combined with `avx2`/`hazmat`
+  is not rejected at compile time: those paths simply stay pure Rust.
+* **Parity is tested, not property-tested.** `tests/test_fips.rs` checks
+  byte-for-byte agreement between the backends, including implicit
+  rejection, for all three parameter sets.
 
 ## References
 

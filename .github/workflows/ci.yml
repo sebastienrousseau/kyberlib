@@ -209,6 +209,35 @@ jobs:
       - name: Clippy kyberlib-hybrid with every group
         run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
 
+  # `hazmat` (IND-CPA primitives, `hazmat::kex` Uake/Ake) is outside the
+  # default-feature matrix. Test and lint it here (#156).
+  hazmat:
+    name: kyberlib (hazmat)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: Test kyberlib with hazmat
+        run: cargo test --locked -p kyberlib --features hazmat
+      - name: Clippy kyberlib with hazmat
+        run: cargo clippy --locked -p kyberlib --all-targets --features hazmat -- -D warnings
+      - name: Run the Uake / Ake examples
+        run: |
+          cargo run --locked -p kyberlib --example uake --features hazmat
+          cargo run --locked -p kyberlib --example ake --features hazmat
+
+  non-exhaustive-guard:
+    name: "#[non_exhaustive] guard (#157)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: bash scripts/non-exhaustive-guard.sh
+
   # kyberlib-pkcs8 (#168): the OpenSSL interop test and the example need
   # `pem` + `std`, outside the default-feature matrix. Also lint the
   # decode-only no_std build.

@@ -24,6 +24,7 @@ use pkcs8::{EncryptedPrivateKeyInfoRef, SecretDocument};
 /// OpenSSL's 32 MiB memory ceiling and beyond) and refuse costs meant
 /// to stall or exhaust the process.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct DecryptLimits {
     /// Most PBKDF2 iterations accepted. Default 10,000,000.
     pub max_pbkdf2_iterations: u32,
@@ -45,6 +46,30 @@ impl Default for DecryptLimits {
 }
 
 impl DecryptLimits {
+    /// Sets the most PBKDF2 iterations accepted.
+    #[must_use]
+    pub const fn with_max_pbkdf2_iterations(mut self, n: u32) -> Self {
+        self.max_pbkdf2_iterations = n;
+        self
+    }
+
+    /// Sets the most scrypt memory accepted, in bytes (`128 * r * N`).
+    #[must_use]
+    pub const fn with_max_scrypt_memory(mut self, bytes: u64) -> Self {
+        self.max_scrypt_memory = bytes;
+        self
+    }
+
+    /// Sets the most scrypt parallelism `p` accepted.
+    #[must_use]
+    pub const fn with_max_scrypt_parallelization(
+        mut self,
+        p: u16,
+    ) -> Self {
+        self.max_scrypt_parallelization = p;
+        self
+    }
+
     /// Refuses a scheme whose KDF costs exceed the limits, or that is
     /// not PBES2.
     fn check(

@@ -3,13 +3,14 @@
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "hazmat")]
     use kyberlib::{
+        hazmat::kex::{Ake, Uake},
         keypair, kyberlib_ake_client_confirm, kyberlib_ake_client_init,
-        kyberlib_ake_server_receive, kyberlib_assert, kyberlib_max,
-        kyberlib_min, kyberlib_uake_client_confirm,
-        kyberlib_uake_client_init, kyberlib_uake_server_receive, Ake,
-        Uake,
+        kyberlib_ake_server_receive, kyberlib_uake_client_confirm,
+        kyberlib_uake_client_init, kyberlib_uake_server_receive,
     };
+    use kyberlib::{kyberlib_assert, kyberlib_max, kyberlib_min};
     use kyberlib::{
         kyberlib_decrypt_message, kyberlib_encrypt_message,
         kyberlib_generate_key_pair,
@@ -128,6 +129,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_uake_client_init() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
@@ -139,6 +141,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_uake_server_receive() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
@@ -156,6 +159,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_uake_client_confirm() {
         let mut rng = OsRng;
         let alice = Uake::new();
@@ -177,6 +181,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_ake_client_init() {
         let mut rng = OsRng;
         let bob_keys = keypair(&mut rng).unwrap();
@@ -188,6 +193,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_ake_server_receive() {
         let mut rng = OsRng;
         let alice_keys = keypair(&mut rng).unwrap();
@@ -207,6 +213,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "hazmat")]
     fn test_kyberlib_ake_client_confirm() {
         let mut rng = OsRng;
         let alice = Ake::new();

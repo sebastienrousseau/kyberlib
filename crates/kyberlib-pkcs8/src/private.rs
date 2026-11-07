@@ -13,6 +13,7 @@ use zeroize::Zeroizing;
 
 /// Which RFC 9935 private-key form to write.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum PrivateKeyFormat {
     /// `seed [0]`: the 64-byte seed `d ‖ z` only. RFC 9935 recommends
     /// it; it is also the smallest.
@@ -39,6 +40,7 @@ pub enum PrivateKeyFormat {
 /// - an optional `publicKey` field must match the derived key.
 ///
 /// The seed is zeroized on drop; the decapsulation key zeroizes itself.
+#[non_exhaustive]
 pub struct PrivateKey<P: Params> {
     seed: Option<Zeroizing<[u8; SEED_LEN]>>,
     dk: P::DecapsulationKey,

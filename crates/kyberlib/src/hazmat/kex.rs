@@ -1,25 +1,36 @@
 // Copyright © 2024 kyberlib. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Authenticated key-exchange wrappers around the KEM core.
+//! Key exchanges built from two or three ML-KEM operations, ported from
+//! the CRYSTALS-Kyber reference code (`kex.c`).
 //!
-//! Two protocols on top of the bare encapsulate/decapsulate surface:
+//! - [`Uake`]: the client encapsulates to the server's long-term key and
+//!   to an ephemeral key of its own. Only the server is authenticated,
+//!   and only implicitly.
+//! - [`Ake`]: as `Uake`, plus an encapsulation to the client's long-term
+//!   key, so both sides are implicitly authenticated.
 //!
-//! - [`Uake`] — **U**nilaterally **A**uthenticated **K**ey **E**xchange.
-//!   Server authenticates to client (typical TLS shape). Client is
-//!   anonymous.
-//! - [`Ake`] — Mutually **A**uthenticated **K**ey **E**xchange. Both
-//!   parties authenticate.
+//! # Threat model
 //!
-//! Both protocols are three-message handshakes wrapping
-//! [`crate::encapsulate`] / [`crate::decapsulate`] plus an extra KDF
-//! pass that mixes in the authenticating keypair(s).
+//! Authentication here is **implicit**: a party that does not hold the
+//! expected long-term decapsulation key ends up with a different shared
+//! secret, but nothing tells either side so. There is no key
+//! confirmation, no binding of identities or of the transcript into the
+//! key, no replay protection and no negotiation. Neither protocol is
+//! specified in FIPS 203 or any RFC, and kyberlib knows of no security
+//! analysis of them. They moved here from the crate root in v0.0.15
+//! because their names promise more than they deliver (#156, ADR 0008).
+//!
+//! Before using them, confirm your protocol supplies the missing parts
+//! (for example, a MAC over the transcript with the derived key). For new
+//! designs, use an analysed protocol instead.
 //!
 //! # Example
 //!
 //! ```
 //! # fn main() -> Result<(), kyberlib::KyberLibError> {
-//! use kyberlib::{keypair, Uake};
+//! use kyberlib::hazmat::kex::Uake;
+//! use kyberlib::keypair;
 //!
 //! let mut rng = rand::thread_rng();
 //! let mut alice = Uake::new();
@@ -36,6 +47,7 @@
 
 use core::fmt;
 
+use crate::api::{PublicKey, SecretKey, SharedSecret};
 use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
 use rand_core::{CryptoRng, RngCore};
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -51,23 +63,6 @@ pub const AKE_INIT_BYTES: usize =
 /// Mutual Key Exchange Response Byte Length
 pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXT_BYTES;
 
-/// Result of encapsulating a public key which includes the ciphertext and shared secret
-pub type Encapsulated = Result<
-    (
-        [u8; KYBER_CIPHERTEXT_BYTES],
-        [u8; KYBER_SHARED_SECRET_BYTES],
-    ),
-    KyberLibError,
->;
-/// Decapsulated ciphertext
-pub type Decapsulated =
-    Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
-/// Kyber public key
-pub type PublicKey = [u8; KYBER_PUBLIC_KEY_BYTES];
-/// Kyber secret key
-pub type SecretKey = [u8; KYBER_SECRET_KEY_BYTES];
-/// Kyber Shared Secret
-pub type SharedSecret = [u8; KYBER_SHARED_SECRET_BYTES];
 /// Bytes to send when initiating a unilateral key exchange
 pub type UakeSendInit = [u8; UAKE_INIT_BYTES];
 /// Bytes to send when responding to a unilateral key exchange
@@ -129,6 +124,7 @@ fn fmt_exchange(
 /// # Example:
 /// ```
 /// # use kyberlib::*;
+/// # use kyberlib::hazmat::kex::*;
 /// # fn main() -> Result<(), KyberLibError> {
 /// let mut rng = rand::thread_rng();
 ///
@@ -147,6 +143,7 @@ fn fmt_exchange(
 /// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
 /// fields are zeroized on drop.
 #[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[non_exhaustive]
 pub struct Uake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
@@ -183,7 +180,7 @@ impl Uake {
     ///
     /// # Example:
     /// ```
-    /// # use kyberlib::Uake;
+    /// # use kyberlib::hazmat::kex::Uake;
     /// let mut kex = Uake::new();
     /// ```
     pub fn new() -> Self {
@@ -195,6 +192,7 @@ impl Uake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// let mut rng = rand::thread_rng();
     /// let mut alice = Uake::new();
@@ -225,6 +223,7 @@ impl Uake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// # let mut rng = rand::thread_rng();
     /// let mut alice = Uake::new();
@@ -259,6 +258,7 @@ impl Uake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// # let mut rng = rand::thread_rng();
     /// # let mut alice = Uake::new();
@@ -289,6 +289,7 @@ impl Uake {
 /// # Example:
 /// ```
 /// # use kyberlib::*;
+/// # use kyberlib::hazmat::kex::*;
 /// # fn main() -> Result<(), KyberLibError> {
 /// let mut rng = rand::thread_rng();
 ///
@@ -309,6 +310,7 @@ impl Uake {
 /// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
 /// fields are zeroized on drop.
 #[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[non_exhaustive]
 pub struct Ake {
     /// The resulting shared secret from a key exchange
     pub shared_secret: SharedSecret,
@@ -345,7 +347,7 @@ impl Ake {
     ///
     /// # Example:
     /// ```
-    /// # use kyberlib::Ake;
+    /// # use kyberlib::hazmat::kex::Ake;
     /// let mut kex = Ake::new();
     /// ```
     pub fn new() -> Self {
@@ -357,6 +359,7 @@ impl Ake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// let mut rng = rand::thread_rng();
     /// let mut alice = Ake::new();
@@ -387,6 +390,7 @@ impl Ake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// # let mut rng = rand::thread_rng();
     /// let mut alice = Ake::new();
@@ -424,6 +428,7 @@ impl Ake {
     /// # Example:
     /// ```
     /// # use kyberlib::*;
+    /// # use kyberlib::hazmat::kex::*;
     /// # fn main() -> Result<(), KyberLibError> {
     /// # let mut rng = rand::thread_rng();
     /// # let mut alice = Ake::new();

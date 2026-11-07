@@ -46,6 +46,7 @@ const LABEL: &[u8; 6] = b"\\.//^\\";
 /// X-Wing decapsulation key. Holds the 32-byte seed and caches its
 /// expansion (draft §5.5.1). Zeroized on drop.
 #[derive(Zeroize, ZeroizeOnDrop)]
+#[non_exhaustive]
 pub struct XWingDecapKey {
     seed: [u8; XWING_SEED_BYTES],
     sk_m: MlKem768DecapKey,
@@ -62,6 +63,7 @@ impl fmt::Debug for XWingDecapKey {
 
 /// X-Wing encapsulation key: `pk_M ‖ pk_X`, 1216 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct XWingEncapKey([u8; XWING_ENCAP_KEY_BYTES]);
 
 impl fmt::Debug for XWingEncapKey {
@@ -72,6 +74,7 @@ impl fmt::Debug for XWingEncapKey {
 
 /// X-Wing ciphertext: `ct_M ‖ ct_X`, 1120 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct XWingCiphertext([u8; XWING_CIPHERTEXT_BYTES]);
 
 impl fmt::Debug for XWingCiphertext {
@@ -82,6 +85,7 @@ impl fmt::Debug for XWingCiphertext {
 
 /// 32-byte X-Wing shared secret. Zeroized on drop.
 #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct XWingSharedSecret([u8; XWING_SHARED_SECRET_BYTES]);
 
 impl fmt::Debug for XWingSharedSecret {

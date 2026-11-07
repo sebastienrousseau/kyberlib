@@ -128,11 +128,12 @@ macro_rules! kyberlib_decrypt_message {
 /// # Returns
 ///
 /// The bytes to send when initiating a unilateral key exchange (UakeSendInit).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to initiate a Unilaterally Authenticated Key Exchange."]
 macro_rules! kyberlib_uake_client_init {
     ($pubkey:expr, $rng:expr) => {
-        kyberlib::kex::Uake::new().client_init($pubkey, $rng)
+        kyberlib::hazmat::kex::Uake::new().client_init($pubkey, $rng)
     };
 }
 
@@ -147,11 +148,12 @@ macro_rules! kyberlib_uake_client_init {
 /// # Returns
 ///
 /// The bytes to send when responding to a unilateral key exchange (UakeSendResponse).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to handle the output of a Unilaterally Authenticated Key Exchange."]
 macro_rules! kyberlib_uake_server_receive {
     ($send_a:expr, $secretkey:expr, $rng:expr) => {
-        kyberlib::kex::Uake::new()
+        kyberlib::hazmat::kex::Uake::new()
             .server_receive($send_a, $secretkey, $rng)
     };
 }
@@ -166,11 +168,12 @@ macro_rules! kyberlib_uake_server_receive {
 /// # Returns
 ///
 /// Nothing (the shared secret is stored in the `Uake` struct).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to decapsulate and authenticate the shared secret from a Unilaterally Authenticated Key Exchange."]
 macro_rules! kyberlib_uake_client_confirm {
     ($send_b:expr) => {
-        kyberlib::kex::Uake::new().client_confirm($send_b)
+        kyberlib::hazmat::kex::Uake::new().client_confirm($send_b)
     };
 }
 
@@ -184,11 +187,12 @@ macro_rules! kyberlib_uake_client_confirm {
 /// # Returns
 ///
 /// The bytes to send when initiating a mutual key exchange (AkeSendInit).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to initiate a Mutually Authenticated Key Exchange."]
 macro_rules! kyberlib_ake_client_init {
     ($pubkey:expr, $rng:expr) => {
-        kyberlib::kex::Ake::new().client_init($pubkey, $rng)
+        kyberlib::hazmat::kex::Ake::new().client_init($pubkey, $rng)
     };
 }
 
@@ -204,11 +208,12 @@ macro_rules! kyberlib_ake_client_init {
 /// # Returns
 ///
 /// The bytes to send when responding to a mutual key exchange (AkeSendResponse).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to handle the output of a Mutually Authenticated Key Exchange."]
 macro_rules! kyberlib_ake_server_receive {
     ($ake_send_a:expr, $pubkey:expr, $secretkey:expr, $rng:expr) => {
-        kyberlib::kex::Ake::new().server_receive(
+        kyberlib::hazmat::kex::Ake::new().server_receive(
             $ake_send_a,
             $pubkey,
             $secretkey,
@@ -228,10 +233,12 @@ macro_rules! kyberlib_ake_server_receive {
 /// # Returns
 ///
 /// Nothing (the shared secret is stored in the `Ake` struct).
+#[cfg(feature = "hazmat")]
 #[macro_export]
 #[doc = "Macro to decapsulate and authenticate the shared secret from a Mutually Authenticated Key Exchange."]
 macro_rules! kyberlib_ake_client_confirm {
     ($send_b:expr, $secretkey:expr) => {
-        kyberlib::kex::Ake::new().client_confirm($send_b, $secretkey)
+        kyberlib::hazmat::kex::Ake::new()
+            .client_confirm($send_b, $secretkey)
     };
 }

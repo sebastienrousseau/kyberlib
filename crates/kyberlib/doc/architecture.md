@@ -16,7 +16,7 @@ crates/kyberlib/src/
 ├── api.rs              legacy free-function surface (keypair / encapsulate / decapsulate)
 ├── error.rs            `KyberLibError` enum (non_exhaustive)
 ├── kem.rs              FO transform on top of indcpa (the kem_*_generic pipeline)
-├── kex.rs              `Uake` / `Ake` authenticated key-exchange wrappers
+├── hazmat/kex.rs       `Uake` / `Ake` key exchanges (feature `hazmat`, ADR 0008)
 ├── macros.rs           kyberlib_* convenience macros (legacy surface)
 ├── ml_kem.rs           v0.0.7 typed-state API (KemCore trait + MlKem512/768/1024)
 ├── oid.rs              IETF LAMPS object identifiers

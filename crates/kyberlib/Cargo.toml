@@ -95,6 +95,15 @@ harness = false   # criterion provides its own main via `criterion_main!`
 name    = "dudect"
 harness = false   # dudect-bencher provides its own main via `ctbench_main!`
 
+# `Uake` / `Ake` live under `kyberlib::hazmat::kex` (#156).
+[[example]]
+name              = "uake"
+required-features = ["hazmat"]
+
+[[example]]
+name              = "ake"
+required-features = ["hazmat"]
+
 [features]
 ### Security Levels ###
 # Defaults to `kyber768` if none selected. Phase 3 of the v0.0.7 roadmap

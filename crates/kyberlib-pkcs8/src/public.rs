@@ -14,6 +14,7 @@ use spki::{AlgorithmIdentifierRef, SubjectPublicKeyInfoRef};
 /// Decoding enforces RFC 9935: the algorithm OID must match `P`, the
 /// parameters field must be absent, the key must have the exact length,
 /// and it must pass the FIPS 203 §7.2 modulus check.
+#[non_exhaustive]
 pub struct PublicKey<P: Params>(P::EncapsulationKey);
 
 impl<P: Params> PublicKey<P> {
