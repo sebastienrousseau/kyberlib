@@ -11,9 +11,7 @@
 # detecting issues that bytewise testing misses (provenance violations,
 # uninitialised reads, etc.).
 #
-# The AVX2 backend is excluded — Miri cannot interpret x86_64
-# intrinsics. We rely on `cargo test` and the assembly's deterministic
-# nature for that surface.
+# kyberlib has no `unsafe` code and no SIMD backend of its own (ADR 0009).
 
 set -euo pipefail
 
@@ -47,8 +45,7 @@ cargo "+$TOOLCHAIN" miri setup >/dev/null
 case "$MODE" in
     focused)
         echo ":: focused Miri subset (lib tests only, no-default-features)"
-        # Cap test time and run the safe core only. AVX2 is excluded
-        # via the absence of the avx2 feature.
+        # Lib tests only, to keep the per-PR run short.
         cargo "+$TOOLCHAIN" miri test \
             -p kyberlib \
             --no-default-features \

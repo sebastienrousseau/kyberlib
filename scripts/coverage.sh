@@ -4,7 +4,7 @@
 # Why cargo-llvm-cov over tarpaulin:
 #   - faster (single instrumented build instead of ptrace re-runs)
 #   - more accurate for #[cfg(feature = ...)]-heavy crates (which
-#     kyberlib is — security-level, 90s, avx2, nasm, hazmat …)
+#     kyberlib is — security-level, 90s, fips, hazmat …)
 #   - emits LCOV + Cobertura + HTML in one pass
 #   - integrates with codecov.io and GitHub PR annotations
 #

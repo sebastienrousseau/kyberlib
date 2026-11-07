@@ -5,7 +5,6 @@ documentation = "https://docs.rs/kyberlib"
 readme = "README.md"
 categories = ["algorithms", "cryptography", "no-std"]
 keywords = ["ml-kem", "kyber", "kem", "post-quantum", "fips203"]
-build = "build.rs"
 
 # Inherit shared metadata from the workspace root.
 authors.workspace      = true
@@ -22,7 +21,6 @@ include = [
     "/LICENSE-MIT",
     "/README.md",
     "/SECURITY.md",
-    "/build.rs",
     "/Cargo.toml",
     "/examples/**",
     "/src/**",
@@ -68,12 +66,6 @@ insta       = { workspace = true }
 # Welch's t-test for the constant-time analysis harness
 # (`benches/dudect.rs`). Pairs with `scripts/dudect.sh`.
 dudect-bencher = { workspace = true }
-
-[build-dependencies]
-# `optional = true` on a build-dep is gated by the matching `dep:`
-# reference in the `[features]` table (see `avx2`, `nasm`).
-cc      = { workspace = true, optional = true }
-nasm-rs = { workspace = true, optional = true }
 
 [lib]
 # v0.0.7 narrows `crate-type` from `["cdylib", "rlib", "staticlib"]` to `rlib`
@@ -126,8 +118,6 @@ hazmat = []
 # Removed from FIPS 203; retained pre-spec-migration for compatibility.
 90s          = ["dep:sha2"]
 90s-fixslice = ["90s", "dep:aes", "dep:ctr"]
-avx2         = ["dep:cc"]
-nasm         = ["dep:nasm-rs", "avx2"]
 std          = ["zeroize/std"]
 # `benchmarking` re-exports the internal `kem::*` module for hazmat-
 # style access from `benches/api.rs`. Not for production use — the

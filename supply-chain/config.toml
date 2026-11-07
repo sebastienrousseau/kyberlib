@@ -29,10 +29,6 @@ url = "https://raw.githubusercontent.com/zcash/rust-ecosystem/main/supply-chain/
 audit-as-crates-io = true
 criteria = "safe-to-deploy"
 
-[policy.kyberlib-asm]
-audit-as-crates-io = false
-criteria = "safe-to-deploy"
-
 [policy.kyberlib-wasm]
 audit-as-crates-io = true
 criteria = "safe-to-deploy"

@@ -1,6 +1,7 @@
 # ADR 0002 — Quarantining SIMD `unsafe` into `kyberlib-asm`
 
-* **Status:** Proposed (skeleton landed in v0.0.7 / phase 1.2; full move tracked in #143)
+* **Status:** Superseded by [ADR 0009](./0009-remove-avx2-backend.md) (v0.0.16): the AVX2
+  backend never compiled and was removed with `kyberlib-asm`.
 * **Date:** 2026-05-19
 * **Stakeholders:** core maintainers; downstream consumers requiring `#![forbid(unsafe_code)]` provenance
 
