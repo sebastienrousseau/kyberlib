@@ -209,6 +209,27 @@ jobs:
       - name: Clippy kyberlib-hybrid with every group
         run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
 
+  # The AVX2 backend (`--features avx2`, x86_64 only) was never built in
+  # CI. Run the NIST ACVP vectors against it so it is held to FIPS 203
+  # like the reference path.
+  avx2:
+    name: kyberlib (avx2, ACVP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: CPU supports AVX2
+        run: grep -q avx2 /proc/cpuinfo
+      - name: ACVP vectors with the AVX2 backend
+        env:
+          RUSTFLAGS: --cfg KYBER_SECURITY_PARAMETERat
+        run: cargo test --locked -p kyberlib --features avx2 --test test_acvp
+      - name: Full test suite with the AVX2 backend
+        run: cargo test --locked -p kyberlib --features avx2
+
   # `hazmat` (IND-CPA primitives, `hazmat::kex` Uake/Ake) is outside the
   # default-feature matrix. Test and lint it here (#156).
   hazmat:
