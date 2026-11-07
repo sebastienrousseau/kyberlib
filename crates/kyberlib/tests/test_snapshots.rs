@@ -21,6 +21,11 @@
 // Run with:
 //   cargo test --test test_snapshots
 //   cargo insta review   # to accept intentional changes
+//
+// Not run under Miri: `insta` spawns processes (`fork` on macOS,
+// `socketpair` on Linux), which Miri cannot interpret. These tests check
+// formatting, not memory safety; the native `cargo test` run covers them.
+#![cfg(not(miri))]
 
 use kyberlib::{
     KemCore, KyberLibError, MlKem768, MlKem768Ciphertext,
