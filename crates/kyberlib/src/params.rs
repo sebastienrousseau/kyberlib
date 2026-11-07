@@ -12,8 +12,9 @@
 //! ML-KEM-1024) once #130c lands, prefer the inherent associated
 //! constants on the marker types — e.g. [`crate::MlKem768::PUBLIC_KEY_BYTES`].
 //! The free constants in this module pin to the **current build's**
-//! parameter set (currently always ML-KEM-768; `kyber512` and
-//! `kyber1024` Cargo features are reserved but disabled).
+//! parameter set: ML-KEM-768 by default, ML-KEM-512 with the `kyber512`
+//! feature, ML-KEM-1024 with `kyber1024`. The typed API always has all
+//! three.
 
 // ============================================================================
 // Canonical names (ML_KEM_*) — use these in new code
