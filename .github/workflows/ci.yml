@@ -205,7 +205,24 @@ jobs:
       - name: Clippy kyberlib-hybrid with every group
         run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
 
-
+  # NIST ACVP conformance. tests/test_acvp.rs only compiles its tests under
+  # `--cfg KYBER_SECURITY_PARAMETERat`, so the plain test run executes none
+  # of them; this job runs all 180 vectors (ML-KEM-512, -768, -1024).
+  acvp:
+    name: NIST ACVP vectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: ACVP keyGen, encapDecap (180 vectors)
+        env:
+          RUSTFLAGS: --cfg KYBER_SECURITY_PARAMETERat
+        run: |
+          cargo test --locked -p kyberlib --test test_acvp -- --nocapture | tee acvp.log
+          grep -q "test result: ok. 3 passed" acvp.log
 
   # `hazmat` (IND-CPA primitives, `hazmat::kex` Uake/Ake) is outside the
   # default-feature matrix. Test and lint it here (#156).
