@@ -143,7 +143,7 @@ benchmarking = []
 # `fips` — run `KemCore::generate` and each parameter set's
 #   `encapsulate` / `decapsulate` inside the AWS-LC FIPS module via
 #   aws-lc-rs (#170). Building it needs CMake, Go and a C compiler; see
-#   doc/FIPS.md for what is and is not inside the module boundary.
+#   docs/FIPS.md for what is and is not inside the module boundary.
 fips = ["std", "dep:aws-lc-rs"]
 # `verified` — reserved for a `libcrux-ml-kem` backend (#171). Still a
 #   no-op: enabling it changes nothing. F* + hax-verified for

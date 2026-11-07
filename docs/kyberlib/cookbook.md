@@ -237,7 +237,7 @@ combines ML-KEM with classical X25519 per draft-ietf-tls-ecdhe-mlkem-04.
 This is the construction the IETF TLS WG settled on for post-quantum
 TLS 1.3.
 
-See [`crates/kyberlib-hybrid/doc/architecture.md`](../../kyberlib-hybrid/doc/architecture.md).
+See [`docs/kyberlib-hybrid/architecture.md`](../kyberlib-hybrid/architecture.md).
 
 [`Ake`]: https://docs.rs/kyberlib/latest/kyberlib/hazmat/kex/struct.Ake.html
 [`Uake`]: https://docs.rs/kyberlib/latest/kyberlib/hazmat/kex/struct.Uake.html

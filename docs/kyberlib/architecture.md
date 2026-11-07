@@ -5,7 +5,7 @@
 How the `kyberlib` crate is laid out, the mental model required to
 understand it, and why each module exists. Targeted at advanced users
 and new contributors. For *using* the library, see
-[`GETTING_STARTED.md`](../../../GETTING_STARTED.md); for the per-item
+[`GETTING_STARTED.md`](../../GETTING_STARTED.md); for the per-item
 API reference see [docs.rs/kyberlib](https://docs.rs/kyberlib).
 
 ## Module map
@@ -93,7 +93,7 @@ use a `MAX_K = 4` fixed-size stack-allocated array with only the
 first `P::K` slots used. Stack overhead is ~14 KB per top-level
 call — acceptable for non-embedded targets.
 
-See [`paramsets.rs`](../src/paramsets.rs) for the trait itself
+See [`paramsets.rs`](../../crates/kyberlib/src/paramsets.rs) for the trait itself
 and the unit tests verifying FIPS 203 §6 formulas.
 
 ## Two backends — which one is active?
@@ -116,7 +116,7 @@ and the unit tests verifying FIPS 203 §6 formulas.
   performed against this backend; FIPS 203 ACVP conformance is verified
   against this backend (180 / 180 vectors green).
 * `avx2/` is performance-only. Lifting it into a dedicated crate is
-  tracked as #143 (see [ADR 0002](../../../doc/adr/0002-asm-quarantine.md)).
+  tracked as #143 (see [ADR 0002](../adr/0002-asm-quarantine.md)).
 
 ## Safety boundaries
 
@@ -141,7 +141,7 @@ constant-time guarantees.
   application protocols)
 * [`release-process.md`](./release-process.md) — for maintainers:
   tagging, SLSA L3 attestation, cosign keyless signing
-* [`../../../doc/adr/`](../../../doc/adr/) — workspace-wide ADRs
+* [`../../../doc/adr/`](../adr/) — workspace-wide ADRs
 
 [`MlKem512`]: https://docs.rs/kyberlib/latest/kyberlib/struct.MlKem512.html
 [`MlKem768`]: https://docs.rs/kyberlib/latest/kyberlib/struct.MlKem768.html

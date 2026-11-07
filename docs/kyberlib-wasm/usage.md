@@ -215,6 +215,6 @@ costs ~1% of that budget.
   smoke test under `wasm-bindgen-test`.
 * [`architecture.md`](./architecture.md) — design and
   surface rationale.
-* `crates/kyberlib/doc/cookbook.md` — non-WASM cookbook
+* `docs/kyberlib/cookbook.md` — non-WASM cookbook
   whose recipes also apply to JS once you've crossed the
   WASM boundary.

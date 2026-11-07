@@ -307,7 +307,7 @@ parity with C consumers, which is already covered by the
 ## Implementation notes (v0.0.12)
 
 The `fips` feature shipped in v0.0.12 (PR #252, `crates/kyberlib/src/fips.rs`,
-`crates/kyberlib/src/backend.rs`, `doc/FIPS.md`) and departs from the
+`crates/kyberlib/src/backend.rs`, `docs/FIPS.md`) and departs from the
 design above in these ways:
 
 * **Keys stay FIPS 203 byte arrays.** `MlKem*DecapKey` and friends keep

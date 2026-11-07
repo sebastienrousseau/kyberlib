@@ -1,4 +1,4 @@
-# `doc/audits/`
+# `docs/audits/`
 
 This directory holds materials prepared for **third-party security
 audits** of kyberlib.

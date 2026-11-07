@@ -99,7 +99,7 @@ ladder, which is the field's reference CT implementation
 
 The ML-KEM half: inherits the FIPS 203 §6.3 implicit-
 rejection construction from `kyberlib` v0.0.7. See
-`crates/kyberlib/doc/safety.md` for the CT story.
+`docs/kyberlib/safety.md` for the CT story.
 
 The *combination* is straight byte concatenation — no
 secret-dependent branches and no compression. The full
@@ -126,7 +126,7 @@ CT primitive).
   codepoint, byte by byte.
 * [`guide.md`](./guide.md) — copy-pasteable how-to,
   including TLS-stack integration.
-* [`crates/kyberlib/doc/safety.md`](../../kyberlib/doc/safety.md)
+* [`docs/kyberlib/safety.md`](../kyberlib/safety.md)
   — ML-KEM safety / CT guarantees.
 
 [draft]: https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/

@@ -26,7 +26,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -145,7 +145,7 @@ exchange.free();
 
 The same surface works in Node, Deno, Bun, and Cloudflare Workers
 with a different build target — see
-[`doc/usage.md`](doc/usage.md) for the full bundler matrix and
+[`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the full bundler matrix and
 WebCrypto AES-GCM combiner.
 
 ---
@@ -215,7 +215,7 @@ regeneration.
 > encaps pre-hash, and the rejection KDF — so pre-2024 secret
 > keys, ciphertexts, and shared secrets are wire-incompatible
 > with `kyberlib-wasm`. You must regenerate keys on both peers
-> in lockstep. See [ADR 0001](../../doc/adr/0001-fips203-migration.md)
+> in lockstep. See [ADR 0001](../../docs/adr/0001-fips203-migration.md)
 > for the byte-level deltas.
 
 ---
@@ -360,7 +360,7 @@ The v0.0.7 trimming came from the tarball-include audit
 
 WASM module size counts against the 10 MB Workers deployment cap.
 At ~122 KiB compressed, `kyberlib-wasm` costs ~1.2% of that
-budget. See [`doc/usage.md`](doc/usage.md) for the
+budget. See [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the
 `wrangler.toml` wiring and the `--target bundler` invocation.
 
 ---
@@ -394,7 +394,7 @@ Runnable JS examples live in the `examples/` directory:
 Each example is fully commented — explaining *why* each step is
 needed (not just *what* the code does). The full bundler matrix
 and Cloudflare Workers recipe live in
-[`doc/usage.md`](doc/usage.md).
+[`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md).
 
 ---
 
@@ -410,14 +410,14 @@ modern security guarantees. It is **not** the right pick for:
 - **Streaming encryption.** ML-KEM is a key encapsulation
   mechanism, not a cipher. Use the 32-byte shared secret as the
   key to a symmetric AEAD (`@noble/ciphers`, `WebCrypto`'s
-  AES-GCM); see [`doc/usage.md`](doc/usage.md) for the recipe.
+  AES-GCM); see [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) for the recipe.
 - **Long-running session keys.** The KEM output is a one-shot
   secret. Derive a session key via HKDF
   (`crypto.subtle.deriveBits`) before using it across messages.
 - **FIPS 140-3 certified browser cryptography.** WebAssembly
   modules can't be CMVP-validated as a single shipped artefact
   the way native modules can. The native crate's `fips` feature
-  ([`doc/FIPS.md`](../../doc/FIPS.md)) delegates to `aws-lc-rs` and is
+  ([`docs/FIPS.md`](../../docs/FIPS.md)) delegates to `aws-lc-rs` and is
   **not** available in WASM.
 - **Hybrid KEMs (X25519MLKEM768).** Not exposed in WASM. For native
   consumers, [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) implements
@@ -469,7 +469,7 @@ have a safe way to pass it.
 `kyberlib` uses the upstream pq-crystals Barrett-style
 multiply-and-shift; there are no `udiv` / `sdiv` instructions
 on secret inputs anywhere in the source tree
-([ADR 0003](../../doc/adr/0003-kyberslash-audit.md)). The
+([ADR 0003](../../docs/adr/0003-kyberslash-audit.md)). The
 KyberSlash regression gate (`scripts/kyberslash-guard.sh`)
 runs on every PR.
 
@@ -506,13 +506,13 @@ with `wasm-pack` as shown in [Install](#install).
 
 | Document | What it covers |
 |---|---|
-| [`doc/architecture.md`](doc/architecture.md) | Why a sidecar crate, surface design, bundle anatomy, RNG sourcing, target matrix |
-| [`doc/usage.md`](doc/usage.md) | Browser / Node / Deno / Bun / Cloudflare Workers integration; AES-GCM combiner; TypeScript; resource management |
+| [`docs/kyberlib-wasm/architecture.md`](../../docs/kyberlib-wasm/architecture.md) | Why a sidecar crate, surface design, bundle anatomy, RNG sourcing, target matrix |
+| [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) | Browser / Node / Deno / Bun / Cloudflare Workers integration; AES-GCM combiner; TypeScript; resource management |
 | [`../../README.md`](../../README.md) | Workspace root README (full FIPS 203 + ecosystem context) |
-| [`../../doc/COMPARISON.md`](../../doc/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
-| [`../../doc/BENCHMARKS.md`](../../doc/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
+| [`../../doc/COMPARISON.md`](../../docs/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
+| [`../../doc/BENCHMARKS.md`](../../docs/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
 | [`../../SECURITY.md`](../../SECURITY.md) | Threat model, CT guarantees, audit posture, FIPS path |
-| [`../../doc/adr/`](../../doc/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
+| [`../../doc/adr/`](../../docs/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
 
 ---
 

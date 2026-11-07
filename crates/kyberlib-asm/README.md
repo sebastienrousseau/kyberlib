@@ -10,6 +10,6 @@ in `kyberlib`'s `src/avx2/` module — gated behind the `avx2` and `nasm`
 Cargo features. The move into this crate is tracked by
 [issue #143](https://github.com/sebastienrousseau/kyberlib/issues/143);
 the design rationale is documented in
-[`doc/adr/0002-asm-quarantine.md`](../../doc/adr/0002-asm-quarantine.md).
+[`docs/adr/0002-asm-quarantine.md`](../../docs/adr/0002-asm-quarantine.md).
 
 Until that move lands, this crate is `publish = false`.

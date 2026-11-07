@@ -7,7 +7,7 @@ export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.
 ```
 
 This library uses [Criterion](https://github.com/bheisler/criterion.rs) for benchmarks. 
-After running the bench command the report can be viewed at [`target/criterion/report/index.html`](../target/criterion/report/index.html).
+After running the bench command the report can be viewed at `target/criterion/report/index.html`.
 
 Note that that keypair generation often bounces around a fair bit even without code changes. 
 Don't be surprised to significant speedups and regressions.

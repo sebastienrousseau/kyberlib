@@ -15,9 +15,9 @@ whenever an item changes.
 | # | Criterion | How it is checked | Status (2026-11-07) |
 |---|-----------|-------------------|---------------------|
 | 1 | NIST ACVP vectors pass for ML-KEM-512, -768 and -1024 | `make acvp` (`crates/kyberlib/tests/test_acvp.rs`), in CI | Met: 180/180 |
-| 2 | dudect shows no leakage in decapsulation | `cargo xtask dudect full` on a quiet, pinned machine (`doc/BENCHMARKS.md`) | Not met: no full run recorded for the current code |
+| 2 | dudect shows no leakage in decapsulation | `cargo xtask dudect full` on a quiet, pinned machine (`docs/BENCHMARKS.md`) | Not met: no full run recorded for the current code |
 | 3 | Full Miri sweep clean, including the big-endian target | `.github/workflows/miri-weekly.yml` (`scripts/miri.sh full`) | Not met: the weekly sweep timed out on 2026-10-19, 10-26 and 11-02; fixed in v0.0.15, awaiting a clean run |
 | 4 | Fuzzing soak without crashes for 4 consecutive weeks | A scheduled fuzz job | Not met: only the 10-second per-PR smoke run exists |
 | 5 | cargo-vet clean with no exemptions for kyberlib's own dependencies | `cargo vet`; `supply-chain/config.toml` | Not met: exemptions remain for `aes` 0.8.4, `criterion` 0.5.1 and `serde` 1.0.229 |
-| 6 | Third-party audit findings resolved and re-verified | Published report under `doc/audits/` | Not met: audit not started (RFP ready: `doc/audits/RFP-v1.0.md`) |
+| 6 | Third-party audit findings resolved and re-verified | Published report under `docs/audits/` | Not met: audit not started (RFP ready: `docs/audits/RFP-v1.0.md`) |
 | 7 | Public API frozen for 4 weeks (no SemVer-breaking change merged) | `cargo-semver-checks` in CI, merge history | Not met: breaking changes still planned (#156, #158) |

@@ -165,7 +165,7 @@ affect QUIC connection-establishment cost.
 * [`spec.md`](./spec.md) — wire format byte by byte.
 * [`architecture.md`](./architecture.md) — sealed-trait
   rationale.
-* [`examples/x25519_mlkem768_round_trip.rs`](../examples/x25519_mlkem768_round_trip.rs)
+* [`examples/x25519_mlkem768_round_trip.rs`](../../crates/kyberlib-hybrid/examples/x25519_mlkem768_round_trip.rs)
   — full runnable example.
 
 [draft]: https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/

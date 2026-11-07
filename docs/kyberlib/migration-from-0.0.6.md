@@ -6,7 +6,7 @@ Explicit before/after walkthrough of the breaking and notable
 behavioural changes in v0.0.7. For the *new* features (the typed-
 state API, multi-parameter-set support in one build), see
 [`architecture.md`](./architecture.md) and the workspace
-[`GETTING_STARTED.md`](../../../GETTING_STARTED.md).
+[`GETTING_STARTED.md`](../../GETTING_STARTED.md).
 
 ## TL;DR
 

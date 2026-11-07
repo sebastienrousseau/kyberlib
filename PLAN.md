@@ -132,7 +132,7 @@ consistency across the contributor's Rust projects.
 * ✅ Phase 7.2 project documentation (this file +
   `GETTING_STARTED.md` + `GLOSSARY.md`).
 * ✅ Phase 7.3 per-crate consistency — `LICENSE-APACHE` /
-  `LICENSE-MIT` / `doc/` / `examples/` / `tests/` / `benches/` on
+  `LICENSE-MIT` / `docs/` / `examples/` / `tests/` / `benches/` on
   every workspace member.
 * ✅ Phase 7.4 `xtask/` workspace member — Rust-native task runner
   wrapping `scripts/*.sh` invocations.
@@ -165,4 +165,4 @@ a new phase is planned, append below the last completed phase with a
 its issue number; the work-in-progress section (Phases 3–4) sorted
 chronologically.
 
-[adr0002]: ./doc/adr/0002-asm-quarantine.md
+[adr0002]: docs/adr/0002-asm-quarantine.md

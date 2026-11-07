@@ -54,8 +54,8 @@ KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
 
 Test files:
 
-* [kat.rs](./kat.rs)  - Runs a battery of test vectors using the Known Answer Test file of the selected security level and mode. There are 10,000 KATs per file.
+* [test_kat.rs](./test_kat.rs) - Legacy CRYSTALS-Kyber Round 3 Known Answer Test harness. Its KAT data files are not in the repository; FIPS 203 conformance is checked by [test_acvp.rs](./test_acvp.rs) (NIST ACVP, 180 vectors).
 
-* [kex.rs](./kex.rs) - Goes through a full key exchange procedure for both the UAKE and AKE functions.
+* [test_kex.rs](./test_kex.rs) - Full `Uake` and `Ake` key exchanges (`kyberlib::hazmat::kex`, needs `--features hazmat`).
 
-* [kem.rs](./kem.rs) - A single run of random key generation, encapsulation and decapsulation.
+* [test_kem.rs](./test_kem.rs) - Random key generation, encapsulation and decapsulation.

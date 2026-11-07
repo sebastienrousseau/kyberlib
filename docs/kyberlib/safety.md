@@ -35,13 +35,13 @@ Every secret-dependent `/` and `%` against `KYBER_Q = 3329` in the
 source tree uses a Barrett-style multiply-and-shift sequence inherited
 from the pq-crystals upstream. There are no `udiv` / `sdiv` / `urem`
 instructions emitted on any secret. The audit log is
-[ADR 0003](../../../doc/adr/0003-kyberslash-audit.md); the regression
+[ADR 0003](../adr/0003-kyberslash-audit.md); the regression
 gate is `scripts/kyberslash-guard.sh` (annotated safe-site exceptions
 are `// kyberslash-guard: safe — <reason>; ADR 0003`).
 
 ### 2. Algorithmic — verify + cmov
 
-[`reference/verify.rs`](../src/reference/verify.rs) implements two
+[`reference/verify.rs`](../../crates/kyberlib/src/reference/verify.rs) implements two
 constant-time primitives:
 
 * `verify(a, b, len) -> u8` — returns `1` if `a != b` over `len`
@@ -55,7 +55,7 @@ These drive the FIPS 203 §6.3 implicit-rejection selection in
 
 ### 3. Empirical — dudect
 
-[`benches/dudect.rs`](../benches/dudect.rs) implements two
+[`benches/dudect.rs`](../../crates/kyberlib/benches/dudect.rs) implements two
 constant-time benches using Welch's t-test (de Reijke & Bertoni,
 eprint 2016/1123):
 
@@ -87,7 +87,7 @@ only on invariants verified by the type system at the call site:
   `10` or `11` at the trait level; the `_` arm cannot be reached by
   any valid `P: MlKemParams`.
 
-[`tests/test_properties.rs`](../tests/test_properties.rs) runs
+[`tests/test_properties.rs`](../../crates/kyberlib/tests/test_properties.rs) runs
 proptest-driven panic-freedom checks against the public surface:
 
 * `encap_key_try_from_slice_total` — any input byte slice either
@@ -107,7 +107,7 @@ Every public type that holds secret material carries:
 
 * `#[derive(Zeroize, ZeroizeOnDrop)]` — bytes are wiped on drop.
 * Custom `Debug` impl that prints `[REDACTED N bytes]` (verified by
-  [`tests/test_snapshots.rs`](../tests/test_snapshots.rs)).
+  [`tests/test_snapshots.rs`](../../crates/kyberlib/tests/test_snapshots.rs)).
 * `pub` accessor for the bytes (`as_bytes() -> &[u8; N]`) so
   consumers can serialize them deliberately. No accidental leakage
   through default `Debug` / `Display`.
@@ -135,4 +135,4 @@ keeps the secret bytes private behind `as_bytes()`.
 
 ## Reporting vulnerabilities
 
-See [`SECURITY.md`](../../../SECURITY.md) at the workspace root.
+See [`SECURITY.md`](../../SECURITY.md) at the workspace root.

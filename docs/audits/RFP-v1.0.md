@@ -66,7 +66,7 @@ v0.0.12 adds:
   SecP384r1MLKEM1024 (checked against rustls) and the X-Wing KEM
   (draft-connolly-cfrg-xwing-kem-11 vectors).
 * The `fips` feature: the typed ML-KEM API dispatched to the AWS-LC
-  FIPS module (`doc/FIPS.md`).
+  FIPS module (`docs/FIPS.md`).
 
 v0.0.13 adds kyberlib-pkcs8: RFC 9935 PKCS#8 and
 SubjectPublicKeyInfo encodings for ML-KEM keys, checked byte for byte
@@ -115,7 +115,7 @@ We prefer the audit to:
    onto the source.
 2. **Read the three FIPS 203 patches** (`417595a` / `27e4b6b` /
    `b0f3bfb`) and their corresponding evidence document
-   (`doc/patches/phase-2b-evidence.md`).
+   (`docs/patches/phase-2b-evidence.md`).
 3. **Spot-check the KyberSlash audit** (ADR 0003 + the static
    guard at `scripts/kyberslash-guard.sh`).
 4. **Re-run the ACVP harness** locally and reproduce 180 / 180.

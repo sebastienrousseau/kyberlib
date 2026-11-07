@@ -17,11 +17,11 @@
 | 1 | `README.md` | What kyberlib does and how to install it |
 | 2 | `SECURITY.md` | Threat model, CT guarantees, FIPS path, disclosure SLA |
 | 3 | `CHANGELOG.md` (the `[0.0.7]` block) | What changed in this release |
-| 4 | `doc/COMPARISON.md` | How kyberlib stacks against `ml-kem`, `libcrux-ml-kem`, `oqs`, `aws-lc-rs` |
-| 5 | `doc/adr/0001-fips203-migration.md` | Why and how kyberlib migrated from Kyber R3 to FIPS 203 |
-| 6 | `doc/adr/0002-asm-quarantine.md` | The `kyberlib-asm` separation strategy |
-| 7 | `doc/adr/0003-kyberslash-audit.md` | The KyberSlash audit + regression-guard scheme |
-| 8 | `doc/patches/phase-2b-evidence.md` | Per-patch ACVP evidence for the FIPS 203 migration |
+| 4 | `docs/COMPARISON.md` | How kyberlib stacks against `ml-kem`, `libcrux-ml-kem`, `oqs`, `aws-lc-rs` |
+| 5 | `docs/adr/0001-fips203-migration.md` | Why and how kyberlib migrated from Kyber R3 to FIPS 203 |
+| 6 | `docs/adr/0002-asm-quarantine.md` | The `kyberlib-asm` separation strategy |
+| 7 | `docs/adr/0003-kyberslash-audit.md` | The KyberSlash audit + regression-guard scheme |
+| 8 | `docs/patches/phase-2b-evidence.md` | Per-patch ACVP evidence for the FIPS 203 migration |
 
 ## 3. Code to read (suggested route)
 
@@ -162,9 +162,9 @@ Flag if they're materially different from how we've documented them:
   attention should be on the typed `MlKem768::generate()` path.
 * **`dudect` results are not tied to a commit.** The harness is wired
   (`crates/kyberlib/benches/dudect.rs`, `cargo xtask dudect`) and
-  `doc/BENCHMARKS.md` reports passing t-statistics, but no full run is
+  `docs/BENCHMARKS.md` reports passing t-statistics, but no full run is
   recorded against the current code with its date and commit
-  (`doc/RELEASE-1.0-CHECKLIST.md`, item 2).
+  (`docs/RELEASE-1.0-CHECKLIST.md`, item 2).
 
 ## 10. Re-verification
 

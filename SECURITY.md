@@ -15,7 +15,7 @@ A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)
 is complete and all findings have been resolved + re-verified.
 The audit RFP, materials package, and readiness checklist live at
-[`doc/audits/`](doc/audits/README.md).
+[`docs/audits/`](docs/audits/README.md).
 
 ## Reporting a Vulnerability
 
@@ -93,7 +93,7 @@ kyberlib's CT claims are **per-function** and per-implementation:
 | `poly_compress`, `poly_tomsg` | ✅ CT (KyberSlash audit clean — [ADR 0003][adr3]) | ✅ CT (SIMD multiply-high, no divide) |
 | Key serialisation | ✅ CT in secret bytes | ✅ CT |
 
-[adr3]: https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0003-kyberslash-audit.md
+[adr3]: https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0003-kyberslash-audit.md
 
 The CT property is validated statistically by `dudect` ([#161][i161]) — see
 `scripts/dudect.sh`. KyberSlash 1 & 2 (TCHES 2025) and the analogous
@@ -126,7 +126,7 @@ SC-13, CNSA 2.0) the **`fips` feature** ([#170][i170]) runs the typed
 ML-KEM API inside the AWS-LC FIPS module through `aws-lc-rs`, keeping
 kyberlib's API and the FIPS 203 key encodings. Which operations stay
 outside the module, and what you must check for certificate coverage,
-is in [`doc/FIPS.md`](doc/FIPS.md).
+is in [`docs/FIPS.md`](docs/FIPS.md).
 
 The **`verified` feature** ([#171][i171]) is reserved for a
 `libcrux-ml-kem` backend (F\* + hax-verified panic-freedom, functional

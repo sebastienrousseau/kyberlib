@@ -24,7 +24,7 @@
 //! Whether this build is covered by a CMVP certificate depends on the
 //! AWS-LC FIPS module version and on running inside its tested
 //! operational environment; check [`crate::fips::fips_mode`] at start-up and
-//! read `doc/FIPS.md`.
+//! read `docs/FIPS.md`.
 
 use crate::error::KyberLibError;
 use aws_lc_rs::kem::{

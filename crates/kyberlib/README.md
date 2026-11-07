@@ -27,7 +27,7 @@
 
 <p align="center">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
-  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/doc/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
+  <a href="https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0001-fips203-migration.md"><img src="https://img.shields.io/badge/FIPS_203-ML--KEM_ACVP_180%2F180-success?style=for-the-badge" alt="FIPS 203 conformance" /></a>
 </p>
 
 ---
@@ -164,7 +164,7 @@ build of `kyberlib`.
 and earlier shipped the Round-3 surface. The byte-level deltas
 (K-byte domain separator, dropped `m' = H(m)` pre-hash, dropped
 final KDF + `J(z‖c)` rejection branch) are documented in
-[ADR 0001](../../doc/adr/0001-fips203-migration.md). Five concrete
+[ADR 0001](../../docs/adr/0001-fips203-migration.md). Five concrete
 migration paths follow.
 
 ### From `kyberlib` 0.0.6 → 0.0.7
@@ -250,7 +250,7 @@ the KyberSlash regression gate.
 
 `libcrux-ml-kem` is the F\* + hax verified backend. `kyberlib`
 plans to delegate to it under the `verified` feature flag
-([ADR 0006](../../doc/adr/0006-fips-facade.md), tracked in
+([ADR 0006](../../docs/adr/0006-fips-facade.md), tracked in
 [#171](https://github.com/sebastienrousseau/kyberlib/issues/171))
 — letting consumers pick "speed" (pure-Rust + AVX2) vs. "proof"
 (libcrux-verified) at compile time without changing call sites.
@@ -293,7 +293,7 @@ when a backend feature is explicitly enabled.
 **KyberSlash-clean.** The TCHES 2025 class of timing
 side-channels (secret-dependent `/`/`%` against `KYBER_Q`) is
 audited and enforced going forward by `scripts/kyberslash-guard.sh`
-in CI ([ADR 0003](../../doc/adr/0003-kyberslash-audit.md)). The
+in CI ([ADR 0003](../../docs/adr/0003-kyberslash-audit.md)). The
 reference backend uses the upstream Barrett multiply-and-shift;
 the AVX2 backend uses SIMD multiply-high intrinsics — no
 `udiv`/`sdiv` on secret inputs anywhere in the source tree.
@@ -344,7 +344,7 @@ Downstream consumers flip a feature flag; the call sites don't change.
 | FIPS 203 ML-KEM-512 / -768 / -1024 keygen / encap / decap | ✓ ACVP 180/180 (60 per parameter set) |
 | All three parameter sets in one build | ✓ const-generic refactor [#130b](https://github.com/sebastienrousseau/kyberlib/issues/130) |
 | Implicit rejection (`J(z‖c)` per §6.3) | ✓ |
-| KyberSlash audit + CI regression guard | ✓ [ADR 0003](../../doc/adr/0003-kyberslash-audit.md) |
+| KyberSlash audit + CI regression guard | ✓ [ADR 0003](../../docs/adr/0003-kyberslash-audit.md) |
 | Typed `EncapsulationKey` / `DecapsulationKey` split | ✓ |
 | `KemCore` trait (sealed, generic) | ✓ |
 | `Zeroize` / `ZeroizeOnDrop` on secrets | ✓ unconditional |
@@ -403,7 +403,7 @@ application needs.
 | `wasm`             |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — real WASM bindings live in [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm). Do not enable. | CHANGELOG |
 | `zeroize`          |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — `ZeroizeOnDrop` is unconditional since v0.0.7. Do not enable. | CHANGELOG |
 | `benchmarking`     |   | — | Re-exports internal `kem` module for the `benches/api.rs` harness. Not for production. | [`benches/api.rs`](benches/api.rs) |
-| `fips`             |   | `aws-lc-rs` | Typed ML-KEM API runs inside the AWS-LC FIPS module (since 0.0.12) | [`doc/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/doc/FIPS.md) |
+| `fips`             |   | `aws-lc-rs` | Typed ML-KEM API runs inside the AWS-LC FIPS module (since 0.0.12) | [`docs/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/docs/FIPS.md) |
 | `verified`         |   | — | No-op: reserved for a `libcrux-ml-kem` backend, [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) | [SECURITY](../../SECURITY.md) |
 
 ```toml
@@ -453,8 +453,8 @@ fn main() -> Result<(), kyberlib::KyberLibError> {
 ```
 
 For the deeper architectural picture see
-[`doc/architecture.md`](doc/architecture.md); for the FIPS 203
-spec migration narrative see [ADR 0001](../../doc/adr/0001-fips203-migration.md).
+[`docs/kyberlib/architecture.md`](../../docs/kyberlib/architecture.md); for the FIPS 203
+spec migration narrative see [ADR 0001](../../docs/adr/0001-fips203-migration.md).
 
 ---
 
@@ -483,7 +483,7 @@ cargo run --example deterministic_seed
 cargo run --example no_std_demo
 ```
 
-Copy-pasteable recipe collection: [`doc/cookbook.md`](doc/cookbook.md)
+Copy-pasteable recipe collection: [`docs/kyberlib/cookbook.md`](../../docs/kyberlib/cookbook.md)
 (vanilla KEM, runtime parameter-set choice, deterministic keygen,
 wire serialisation, no_std, mutually-authenticated KEX, AEAD
 integration, TLS hybrid pointer).
@@ -509,14 +509,14 @@ integration, TLS hybrid pointer).
   (RFC 9935, including password-encrypted PKCS#8; unpublished until
   the audit).
 - **CMVP-validated FIPS 140-3 cryptography** — the `fips` feature
-  (since 0.0.12, [`doc/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/doc/FIPS.md))
+  (since 0.0.12, [`docs/FIPS.md`](https://github.com/sebastienrousseau/kyberlib/blob/main/docs/FIPS.md))
   runs the typed ML-KEM API inside the AWS-LC FIPS module through
   `aws-lc-rs`; certificate coverage depends on the module version and
   your operating environment.
 - **Streaming encryption** — ML-KEM is a key encapsulation
   mechanism, not a cipher. Use the 32-byte shared secret as a key
   to a symmetric AEAD (`chacha20poly1305`, `aes-gcm`, `WebCrypto`
-  AES-GCM in the browser). See `doc/cookbook.md` for the recipe.
+  AES-GCM in the browser). See `docs/kyberlib/cookbook.md` for the recipe.
 - **Power-analysis-resistant hardware** — `kyberlib` is
   software-only. Hardware countermeasures (masking, randomised
   execution) are out of scope.
@@ -552,7 +552,7 @@ make bench                   # full criterion run + HTML report
 make bench-quick             # quick smoke (~2 min)
 ```
 
-See [`doc/release-process.md`](doc/release-process.md) for the
+See [`docs/kyberlib/release-process.md`](../../docs/kyberlib/release-process.md) for the
 release-cut checklist.
 
 ---
@@ -564,7 +564,7 @@ constant-time primitives, audited Barrett reduction, FIPS 203 §6.3
 implicit rejection, unconditional `ZeroizeOnDrop` on secrets, and
 `#![forbid(unsafe_code)]` on the safe core.
 
-**Constant-time guarantees**: see [`doc/safety.md`](doc/safety.md)
+**Constant-time guarantees**: see [`docs/kyberlib/safety.md`](../../docs/kyberlib/safety.md)
 for the three-layer story (Barrett structural, `verify` + `cmov`
 algorithmic, dudect empirical) and the workspace
 [`SECURITY.md`](../../SECURITY.md) for the threat model, the
@@ -612,16 +612,16 @@ cosign verify-blob \
 
 | Document | What it covers |
 |---|---|
-| [`doc/architecture.md`](doc/architecture.md) | Module map, two APIs, const-generic pipeline, backends, safety boundaries |
-| [`doc/safety.md`](doc/safety.md) | Unsafe-code policy, CT guarantees in 3 layers, panic-freedom, secret handling |
-| [`doc/cookbook.md`](doc/cookbook.md) | Copy-pasteable recipes (round-trip, no_std, hybrid, AEAD integration) |
-| [`doc/migration-from-0.0.6.md`](doc/migration-from-0.0.6.md) | Explicit before/after for the v0.0.6 → v0.0.7 breaking changes |
-| [`doc/release-process.md`](doc/release-process.md) | Maintainer checklist for cutting a release |
+| [`docs/kyberlib/architecture.md`](../../docs/kyberlib/architecture.md) | Module map, two APIs, const-generic pipeline, backends, safety boundaries |
+| [`docs/kyberlib/safety.md`](../../docs/kyberlib/safety.md) | Unsafe-code policy, CT guarantees in 3 layers, panic-freedom, secret handling |
+| [`docs/kyberlib/cookbook.md`](../../docs/kyberlib/cookbook.md) | Copy-pasteable recipes (round-trip, no_std, hybrid, AEAD integration) |
+| [`docs/kyberlib/migration-from-0.0.6.md`](../../docs/kyberlib/migration-from-0.0.6.md) | Explicit before/after for the v0.0.6 → v0.0.7 breaking changes |
+| [`docs/kyberlib/release-process.md`](../../docs/kyberlib/release-process.md) | Maintainer checklist for cutting a release |
 | [`../../README.md`](../../README.md) | Workspace root README — ecosystem overview |
-| [`../../doc/COMPARISON.md`](../../doc/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
-| [`../../doc/BENCHMARKS.md`](../../doc/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
+| [`../../doc/COMPARISON.md`](../../docs/COMPARISON.md) | kyberlib vs. competing Rust ML-KEM crates |
+| [`../../doc/BENCHMARKS.md`](../../docs/BENCHMARKS.md) | criterion + dudect numbers + reproduction recipe |
 | [`../../SECURITY.md`](../../SECURITY.md) | Threat model, CT guarantees, audit posture, FIPS path |
-| [`../../doc/adr/`](../../doc/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
+| [`../../doc/adr/`](../../docs/adr/) | Architecture decision records (FIPS 203, asm quarantine, KyberSlash, multi-param, BYOE deterministic API, FIPS facade) |
 
 ---
 
@@ -638,7 +638,7 @@ cosign verify-blob \
 | [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm) | `wasm-bindgen` wrapper for browser / Node / Workers / Deno | Published alongside `kyberlib` |
 
 See the workspace [`README.md`](../../README.md) for the full
-ecosystem context and the [`doc/adr/`](../../doc/adr/) directory
+ecosystem context and the [`docs/adr/`](../../docs/adr/) directory
 for the architecture decision records.
 
 ---

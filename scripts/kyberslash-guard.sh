@@ -14,7 +14,7 @@
 # safe. The guard's job is to surface NEW occurrences for a fresh
 # decision.
 #
-# Reference: doc/adr/0003-kyberslash-audit.md
+# Reference: docs/adr/0003-kyberslash-audit.md
 #
 # Run with:
 #   bash scripts/kyberslash-guard.sh
@@ -111,7 +111,7 @@ if [[ "$VIOLATIONS" -gt 0 ]]; then
 
 KyberSlash regression detected.
 
-The KyberSlash audit (doc/adr/0003-kyberslash-audit.md) requires
+The KyberSlash audit (docs/adr/0003-kyberslash-audit.md) requires
 that every `/` and `%` on a secret-derived value use a Barrett-
 style multiply-and-shift, not a literal `/` or `%` against
 `KYBER_Q`. The hits above bypass that guard.

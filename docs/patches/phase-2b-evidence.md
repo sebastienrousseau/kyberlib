@@ -184,7 +184,7 @@ should additionally `Closes: #147`.
 
 ```sh
 # Apply
-git apply doc/patches/phase-2b-fips203.patch
+git apply docs/patches/phase-2b-fips203.patch
 
 # Verify
 cargo test --workspace                                       # 141 / 141

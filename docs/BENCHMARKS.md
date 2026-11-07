@@ -107,7 +107,7 @@ cargo xtask dudect full
 
 The CI runners are too noisy for dudect — full runs happen on a
 quiescent baremetal host before each release per the release
-process (see [`crates/kyberlib/doc/release-process.md`](../crates/kyberlib/doc/release-process.md)).
+process (see [`docs/kyberlib/release-process.md`](kyberlib/release-process.md)).
 
 ## Reproducing locally
 
@@ -131,7 +131,7 @@ codspeed-CI dashboard in v0.0.8 (#176 follow-up).
 
 The full benchmark matrix vs `RustCrypto/ml-kem`, `libcrux-ml-kem`,
 `pqcrypto-mlkem`, `oqs-rs`, and `aws-lc-rs` lives in
-[`doc/COMPARISON.md`](./COMPARISON.md). Headline (M1 Pro, single
+[`docs/COMPARISON.md`](./COMPARISON.md). Headline (M1 Pro, single
 core, mean of 1000 samples, lower is better):
 
 | Crate | Keygen | Encap | Decap | Wire-format |
@@ -148,7 +148,7 @@ over portable pure-Rust on aarch64. With the `avx2` feature on
 x86_64 (issue [#143] / [#172] NEON port) the pure-Rust gap closes
 to within 10–15 %.
 
-See [`doc/COMPARISON.md`](./COMPARISON.md) for the full
+See [`docs/COMPARISON.md`](./COMPARISON.md) for the full
 methodology + reproducible scripts.
 
 [#143]: https://github.com/sebastienrousseau/kyberlib/issues/143

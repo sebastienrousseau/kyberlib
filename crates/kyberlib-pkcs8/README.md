@@ -58,7 +58,7 @@ every parameter set and checks the cost limits.
 fixed seeds (`tests/vectors/regen.sh`), in all three private-key forms,
 SPKI and PEM, for every parameter set, and re-encodes each byte for
 byte. `tests/rejects.rs` covers the rules above. Layouts are in
-[`doc/spec.md`](doc/spec.md).
+[`docs/kyberlib-pkcs8/spec.md`](../../docs/kyberlib-pkcs8/spec.md).
 
 ## Password-encrypted keys
 

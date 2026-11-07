@@ -144,16 +144,17 @@ Open the PR with:
 
 For decisions that change the **public API**, **algorithm conformance**, or
 **security posture**, write an Architecture Decision Record under
-`doc/adr/`:
+`docs/adr/`:
 
 ```
-doc/adr/
+docs/adr/
   0001-fips203-migration.md
-  0002-trait-based-api.md
+  0002-asm-quarantine.md
+  ...
   TEMPLATE.md
 ```
 
-The ADR ships in the same PR as the change. Use `doc/adr/TEMPLATE.md`.
+The ADR ships in the same PR as the change. Use `docs/adr/TEMPLATE.md`.
 
 ## Crypto-specific conventions
 

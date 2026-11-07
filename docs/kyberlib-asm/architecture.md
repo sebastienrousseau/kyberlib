@@ -18,7 +18,7 @@ The audit-target safe core (`crates/kyberlib/`) carries
 `unsafe` block in the SIMD intrinsics + assembly
 trampolines lives behind a `--features avx2` / `--features
 nasm` gate. The gate already makes the safe-core property
-hold (see [ADR 0002][adr2] and `crates/kyberlib/doc/safety.md`),
+hold (see [ADR 0002][adr2] and `docs/kyberlib/safety.md`),
 but the *file layout* still puts `unsafe` code under the
 same crate root as the audit target — so a reviewer must
 read `src/lib.rs`'s `#[cfg_attr(...)]` to know which lints
@@ -120,4 +120,4 @@ See [`roadmap.md`](./roadmap.md) for the detailed work
 plan.
 
 [#143]: https://github.com/sebastienrousseau/kyberlib/issues/143
-[adr2]: ../../../doc/adr/0002-asm-quarantine.md
+[adr2]: ../adr/0002-asm-quarantine.md

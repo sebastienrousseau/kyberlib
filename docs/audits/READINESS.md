@@ -10,7 +10,7 @@
 |------|:------:|-------|
 | FIPS 203 byte-level conformance | ✅ | 60 / 60 ACVP ML-KEM-768 cases pass (commit `b0f3bfb`) |
 | ACVP harness committed and reproducible | ✅ | `crates/kyberlib/tests/test_acvp.rs` + checked-in vectors + SHA256SUMS |
-| All three Round-3 → FIPS-203 patches documented | ✅ | `doc/patches/phase-2b-evidence.md` + commit messages on `417595a` / `27e4b6b` / `b0f3bfb` |
+| All three Round-3 → FIPS-203 patches documented | ✅ | `docs/patches/phase-2b-evidence.md` + commit messages on `417595a` / `27e4b6b` / `b0f3bfb` |
 | ML-KEM-512 / ML-KEM-1024 | 🟡 | Marker types declared, implementation pending #130b. Out of scope per RFP §3.2. |
 | OID re-exports from core | 🟡 | Currently in `kyberlib-pkcs8`; #150 will re-export from core too |
 
@@ -95,8 +95,8 @@
 | CONTRIBUTING.md with conventional commits + signed-commits requirement | ✅ | |
 | ADR series (0001 / 0002 / 0003) | ✅ | All three ADRs landed |
 | Per-public-item rustdoc enforced | ✅ | `#![deny(missing_docs)]` on the safe core |
-| Comparison vs. competitors | ✅ | `doc/COMPARISON.md` |
-| Audit packet | ✅ | `doc/audits/` (this directory) |
+| Comparison vs. competitors | ✅ | `docs/COMPARISON.md` |
+| Audit packet | ✅ | `docs/audits/` (this directory) |
 
 ## Aggregate
 

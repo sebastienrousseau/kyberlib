@@ -15,7 +15,7 @@ path = [
     "SECURITY.md",
     "CONTRIBUTING.md",
     "AUTHORS.md",
-    "doc/**",
+    "docs/**",
     "crates/*/README.md",
     "crates/*/CHANGELOG.md",
     ".github/**",

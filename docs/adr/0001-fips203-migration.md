@@ -120,8 +120,8 @@ Round 3 bytes break.
 ### The three patches in detail
 
 The unified diff was staged in
-`doc/patches/phase-2b-fips203.patch` and reviewed against ACVP
-evidence in `doc/patches/phase-2b-evidence.md` before any commit
+`docs/patches/phase-2b-fips203.patch` and reviewed against ACVP
+evidence in `docs/patches/phase-2b-evidence.md` before any commit
 landed.
 
 | # | Commit    | File                                          | What changed                                                                            |
@@ -232,5 +232,5 @@ documented inline at the patch site.
 * **pq-crystals/kyber** upstream — the Round 3 reference that
   kyberlib was forked from. <https://github.com/pq-crystals/kyber>
 * **Phase 2(a) ACVP harness** — commit `d6ded86` (this repo).
-* **Phase 2(b) review packet** — `doc/patches/phase-2b-evidence.md`
+* **Phase 2(b) review packet** — `docs/patches/phase-2b-evidence.md`
   (this repo).
