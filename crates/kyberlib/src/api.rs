@@ -236,6 +236,7 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 // the literal-constructor would only break existing call sites
 // without buying us safety, since the new typed API is where the
 // `#[non_exhaustive]` rigour lives.
+// non-exhaustive-guard: exempt (soft-deprecated; literals stay valid until removal)
 #[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct Keypair {
     /// The public key.

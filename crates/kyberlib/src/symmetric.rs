@@ -57,6 +57,7 @@ pub type XofState = Aes256CtrCtx;
 /// The lanes hold data derived from whatever was absorbed, which may be
 /// a seed or key, so `Debug` redacts them and shows only `pos`.
 #[derive(Copy, Clone, Default)]
+#[non_exhaustive]
 pub struct KeccakState {
     /// State array for Keccak
     pub s: [u64; 25],

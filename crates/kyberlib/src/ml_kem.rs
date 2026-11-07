@@ -229,158 +229,9 @@ impl MlKem1024 {
 
 // ---------------------------------------------------------------- ML-KEM-512 + 1024 typed wrappers
 
-macro_rules! sized_wrapper_types {
-    ($p:ident, $ek:ident, $dk:ident, $ct:ident, $pk_bytes:expr, $sk_bytes:expr, $ct_bytes:expr) => {
-        /// Public encapsulation key.
-        #[derive(Clone, Copy, Eq, PartialEq)]
-        pub struct $ek([u8; $pk_bytes]);
-
-        impl $ek {
-            /// Construct from raw bytes.
-            pub fn from_bytes(bytes: [u8; $pk_bytes]) -> Self {
-                Self(bytes)
-            }
-            /// Construct from a borrowed slice, validating the length.
-            ///
-            /// # Errors
-            ///
-            /// [`KyberLibError::InvalidLength`] on length mismatch.
-            pub fn try_from_slice(
-                bytes: &[u8],
-            ) -> Result<Self, KyberLibError> {
-                if bytes.len() != $pk_bytes {
-                    return Err(KyberLibError::InvalidLength);
-                }
-                let mut buf = [0u8; $pk_bytes];
-                buf.copy_from_slice(bytes);
-                Ok(Self(buf))
-            }
-            /// Borrow as raw bytes.
-            pub fn as_bytes(&self) -> &[u8; $pk_bytes] {
-                &self.0
-            }
-        }
-
-        impl fmt::Debug for $ek {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.debug_tuple(stringify!($ek))
-                    .field(&format_args!(
-                        "[{} bytes; not secret]",
-                        $pk_bytes
-                    ))
-                    .finish()
-            }
-        }
-
-        /// Secret decapsulation key. Zeroized on drop.
-        #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
-        pub struct $dk([u8; $sk_bytes]);
-
-        impl $dk {
-            /// Construct from raw bytes.
-            pub fn from_bytes(bytes: [u8; $sk_bytes]) -> Self {
-                Self(bytes)
-            }
-            /// Construct from a borrowed slice, validating the length
-            /// and the FIPS 203 §7.3 hash check (the stored `H(ek)`
-            /// must match the embedded encapsulation key).
-            ///
-            /// # Errors
-            ///
-            /// [`KyberLibError::InvalidLength`] on length mismatch;
-            /// [`KyberLibError::InvalidKey`] if the hash check fails.
-            pub fn try_from_slice(
-                bytes: &[u8],
-            ) -> Result<Self, KyberLibError> {
-                if bytes.len() != $sk_bytes {
-                    return Err(KyberLibError::InvalidLength);
-                }
-                if !crate::input_check::dk_hash_check::<$p>(bytes) {
-                    return Err(KyberLibError::InvalidKey);
-                }
-                let mut buf = [0u8; $sk_bytes];
-                buf.copy_from_slice(bytes);
-                Ok(Self(buf))
-            }
-            /// Borrow as raw bytes. Sparingly — the secret state is
-            /// exposed.
-            pub fn as_bytes(&self) -> &[u8; $sk_bytes] {
-                &self.0
-            }
-        }
-
-        impl fmt::Debug for $dk {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.write_str(concat!(
-                    stringify!($dk),
-                    "([REDACTED ",
-                    stringify!($sk_bytes),
-                    " bytes])"
-                ))
-            }
-        }
-
-        /// Ciphertext.
-        #[derive(Clone, Copy, Eq, PartialEq)]
-        pub struct $ct([u8; $ct_bytes]);
-
-        impl $ct {
-            /// Construct from raw bytes.
-            pub fn from_bytes(bytes: [u8; $ct_bytes]) -> Self {
-                Self(bytes)
-            }
-            /// Construct from a borrowed slice, validating the length.
-            ///
-            /// # Errors
-            ///
-            /// [`KyberLibError::InvalidLength`] on length mismatch.
-            pub fn try_from_slice(
-                bytes: &[u8],
-            ) -> Result<Self, KyberLibError> {
-                if bytes.len() != $ct_bytes {
-                    return Err(KyberLibError::InvalidLength);
-                }
-                let mut buf = [0u8; $ct_bytes];
-                buf.copy_from_slice(bytes);
-                Ok(Self(buf))
-            }
-            /// Borrow as raw bytes.
-            pub fn as_bytes(&self) -> &[u8; $ct_bytes] {
-                &self.0
-            }
-        }
-
-        impl fmt::Debug for $ct {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.debug_tuple(stringify!($ct))
-                    .field(&format_args!(
-                        "[{} bytes; opaque]",
-                        $ct_bytes
-                    ))
-                    .finish()
-            }
-        }
-    };
-}
-
-sized_wrapper_types!(
-    MlKem512,
-    MlKem512EncapKey,
-    MlKem512DecapKey,
-    MlKem512Ciphertext,
-    800,
-    1632,
-    768
-);
-sized_wrapper_types!(
-    MlKem1024,
-    MlKem1024EncapKey,
-    MlKem1024DecapKey,
-    MlKem1024Ciphertext,
-    1568,
-    3168,
-    1568
-);
+#[path = "ml_kem_sized.rs"]
+mod sized;
+pub use sized::*;
 
 // ---------------------------------------------------------------- shared secret
 
@@ -428,6 +279,7 @@ impl Eq for SharedSecret {}
 
 /// ML-KEM-768 encapsulation key (public). 1184 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct MlKem768EncapKey([u8; KYBER_PUBLIC_KEY_BYTES]);
 
 impl MlKem768EncapKey {
@@ -521,6 +373,7 @@ impl MlKem768DecapKey {
 
 /// ML-KEM-768 ciphertext. 1088 bytes.
 #[derive(Clone, Copy, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct MlKem768Ciphertext([u8; KYBER_CIPHERTEXT_BYTES]);
 
 impl MlKem768Ciphertext {

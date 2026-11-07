@@ -81,6 +81,7 @@ mod sealed {
 /// See [the module-level docs](crate) for the wire format.
 #[cfg(feature = "x25519")]
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct X25519MlKem768;
 
 #[cfg(feature = "x25519")]
@@ -113,6 +114,7 @@ mod x25519_impl {
     /// Client-side decapsulation key for X25519MLKEM768: the
     /// ML-KEM-768 secret key plus the X25519 ephemeral secret.
     #[derive(Zeroize, ZeroizeOnDrop)]
+    #[non_exhaustive]
     pub struct X25519MlKem768Client {
         ml_kem_dk: MlKem768DecapKey,
         x25519_sk: StaticSecret,
@@ -201,6 +203,7 @@ mod x25519_impl {
     /// produces both the server's reply and the agreed-on shared
     /// secret.
     #[derive(Clone, Copy, Debug)]
+    #[non_exhaustive]
     pub struct X25519MlKem768Server;
 
     impl X25519MlKem768Server {
@@ -270,6 +273,7 @@ mod x25519_impl {
     /// 64-byte hybrid shared secret (`ML-KEM-768.ss || X25519.ss`).
     /// Zeroized on drop.
     #[derive(Clone, Zeroize, ZeroizeOnDrop)]
+    #[non_exhaustive]
     pub struct SharedSecret([u8; X25519_MLKEM768_SHARED_SECRET]);
 
     impl SharedSecret {
@@ -323,6 +327,7 @@ pub use xwing::{
 /// SecP256r1 + ML-KEM-768 hybrid (TLS codepoint `0x11EB`).
 #[cfg(feature = "secp256r1")]
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct SecP256r1MlKem768;
 
 #[cfg(feature = "secp256r1")]
@@ -339,6 +344,7 @@ impl Hybrid for SecP256r1MlKem768 {
 /// SecP384r1 + ML-KEM-1024 hybrid (TLS codepoint `0x11ED`).
 #[cfg(feature = "secp384r1")]
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct SecP384r1MlKem1024;
 
 #[cfg(feature = "secp384r1")]

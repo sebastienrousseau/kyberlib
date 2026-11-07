@@ -230,7 +230,13 @@ jobs:
           cargo run --locked -p kyberlib --example uake --features hazmat
           cargo run --locked -p kyberlib --example ake --features hazmat
 
-
+  non-exhaustive-guard:
+    name: "#[non_exhaustive] guard (#157)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: bash scripts/non-exhaustive-guard.sh
 
   # kyberlib-pkcs8 (#168): the OpenSSL interop test and the example need
   # `pem` + `std`, outside the default-feature matrix. Also lint the
