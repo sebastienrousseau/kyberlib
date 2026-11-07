@@ -163,6 +163,8 @@ jobs:
         # Cargo 1.89 reads the committed v4 lock as is, so the graph
         # validated is exactly the committed one.
         run: cargo +1.89.0 check -p kyberlib --locked
+      - name: Check (kyberlib-pkcs8, every feature, on 1.89)
+        run: cargo +1.89.0 check -p kyberlib-pkcs8 --all-features --all-targets --locked
 
   no-std:
     name: no_std build
@@ -206,6 +208,28 @@ jobs:
         run: cargo test --locked -p kyberlib-hybrid --all-features
       - name: Clippy kyberlib-hybrid with every group
         run: cargo clippy --locked -p kyberlib-hybrid --all-targets --all-features -- -D warnings
+
+  # kyberlib-pkcs8 (#168): the OpenSSL interop test and the example need
+  # `pem` + `std`, outside the default-feature matrix. Also lint the
+  # decode-only no_std build.
+  pkcs8-all-features:
+    name: kyberlib-pkcs8 (all features)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      - name: Test kyberlib-pkcs8 with every feature (incl. OpenSSL 3.5 vectors)
+        run: cargo test --locked -p kyberlib-pkcs8 --all-features
+      - name: Clippy kyberlib-pkcs8 with every feature
+        run: cargo clippy --locked -p kyberlib-pkcs8 --all-targets --all-features -- -D warnings
+      - name: Clippy kyberlib-pkcs8 decode-only (no default features)
+        run: cargo clippy --locked -p kyberlib-pkcs8 --lib --no-default-features -- -D warnings
+      - name: Run the PEM example
+        run: cargo run --locked -p kyberlib-pkcs8 --example pem_roundtrip --features pem,std
 
   # FIPS backend (#170): builds the AWS-LC FIPS module (CMake, Go and a
   # C compiler, all preinstalled on ubuntu-latest), checks the module
