@@ -85,11 +85,12 @@ mod tests {
     }
 
     /// Tests for unilaterally authenticated key exchange
+    #[cfg(feature = "hazmat")]
     mod unilaterally_authenticated_key_exchange {
         #[test]
         fn test_uake() {
+            use kyberlib::hazmat::kex::Uake;
             use kyberlib::keypair;
-            use kyberlib::Uake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -114,11 +115,12 @@ mod tests {
     }
 
     /// Tests for mutually authenticated key exchange
+    #[cfg(feature = "hazmat")]
     mod mutually_authenticated_key_exchange {
         #[test]
         fn test_ake() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -268,9 +270,10 @@ mod tests {
         }
         #[test]
         // Test UAKE with invalid public key
+        #[cfg(feature = "hazmat")]
         fn test_uake_invalid_public_key() {
+            use kyberlib::hazmat::kex::Uake;
             use kyberlib::keypair;
-            use kyberlib::Uake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -291,9 +294,10 @@ mod tests {
         }
         #[test]
         // Test UAKE with invalid secret key
+        #[cfg(feature = "hazmat")]
         fn test_uake_invalid_secret_key() {
+            use kyberlib::hazmat::kex::Uake;
             use kyberlib::keypair;
-            use kyberlib::Uake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -314,9 +318,10 @@ mod tests {
         }
         #[test]
         // Test AKE with invalid public key
+        #[cfg(feature = "hazmat")]
         fn test_ake_invalid_public_key() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -345,9 +350,10 @@ mod tests {
         }
         #[test]
         // Test AKE with invalid secret key
+        #[cfg(feature = "hazmat")]
         fn test_ake_invalid_secret_key() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -376,9 +382,10 @@ mod tests {
         }
         #[test]
         // Test AKE with invalid shared secret
+        #[cfg(feature = "hazmat")]
         fn test_ake_invalid_shared_secret() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -407,9 +414,10 @@ mod tests {
         }
         #[test]
         // Test AKE with invalid server send
+        #[cfg(feature = "hazmat")]
         fn test_ake_invalid_server_send() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -438,9 +446,10 @@ mod tests {
         }
         #[test]
         // Test AKE with invalid client confirm
+        #[cfg(feature = "hazmat")]
         fn test_ake_invalid_client_confirm() {
+            use kyberlib::hazmat::kex::Ake;
             use kyberlib::keypair;
-            use kyberlib::Ake;
             use rand::rngs::StdRng;
             use rand::SeedableRng;
 
@@ -519,8 +528,9 @@ mod tests {
     }
     #[test]
     // Test AKE with valid inputs
+    #[cfg(feature = "hazmat")]
     fn test_ake_valid_inputs() {
-        use kyberlib::{keypair, Ake};
+        use kyberlib::{hazmat::kex::Ake, keypair};
         use rand::rngs::StdRng;
         use rand::SeedableRng;
 

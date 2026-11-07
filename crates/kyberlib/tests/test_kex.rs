@@ -1,3 +1,7 @@
+//! `Uake` / `Ake` live under `kyberlib::hazmat::kex` (feature `hazmat`).
+#![cfg(feature = "hazmat")]
+
+use kyberlib::hazmat::kex::*;
 use kyberlib::*;
 mod utils;
 use utils::*;
@@ -389,15 +393,14 @@ fn uake_ake_zeroize_clears_secrets() {
     assert_eq!(ake.temp_key, [0u8; KYBER_SHARED_SECRET_BYTES]);
 }
 
-// Adding `ZeroizeOnDrop` gives the types a `Drop` impl. Every field is
-// a `Copy` byte array, so reading, destructuring and struct-update
-// syntax keep working for callers.
+// Since v0.0.15 both types are `#[non_exhaustive]` (#157): callers can
+// no longer build them with a struct literal or struct-update syntax
+// (use `new()` / `default()`), but reading fields and destructuring with
+// `..` keep working.
 #[test]
 fn uake_ake_fields_still_destructure() {
-    let u = Uake {
-        shared_secret: [7u8; KYBER_SHARED_SECRET_BYTES],
-        ..Uake::default()
-    };
+    let mut u = Uake::default();
+    u.shared_secret = [7u8; KYBER_SHARED_SECRET_BYTES];
     let Uake { shared_secret, .. } = u;
     assert_eq!(shared_secret, [7u8; KYBER_SHARED_SECRET_BYTES]);
     let a = Ake::default();

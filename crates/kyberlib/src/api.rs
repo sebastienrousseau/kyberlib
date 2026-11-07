@@ -34,13 +34,27 @@
 use core::fmt;
 
 use crate::{
-    error::KyberLibError,
-    kem::*,
-    kex::{Decapsulated, Encapsulated, PublicKey, SecretKey},
-    params::*,
-    CryptoRng, RngCore,
+    error::KyberLibError, kem::*, params::*, CryptoRng, RngCore,
 };
 use zeroize::{Zeroize, ZeroizeOnDrop};
+
+/// Result of encapsulating a public key which includes the ciphertext and shared secret
+pub type Encapsulated = Result<
+    (
+        [u8; KYBER_CIPHERTEXT_BYTES],
+        [u8; KYBER_SHARED_SECRET_BYTES],
+    ),
+    KyberLibError,
+>;
+/// Decapsulated ciphertext
+pub type Decapsulated =
+    Result<[u8; KYBER_SHARED_SECRET_BYTES], KyberLibError>;
+/// Kyber public key
+pub type PublicKey = [u8; KYBER_PUBLIC_KEY_BYTES];
+/// Kyber secret key
+pub type SecretKey = [u8; KYBER_SECRET_KEY_BYTES];
+/// Kyber Shared Secret
+pub type SharedSecret = [u8; KYBER_SHARED_SECRET_BYTES];
 
 /// Generate a key pair for Kyber encryption with a provided RNG.
 ///

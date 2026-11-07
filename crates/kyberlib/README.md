@@ -465,8 +465,8 @@ Runnable Rust examples live in [`examples/`](examples/):
 | Example | What it shows |
 |---|---|
 | `examples/kem.rs` | Minimal keygen / encap / decap with the legacy free-function API |
-| `examples/uake.rs` | Unilaterally-authenticated KEX (`Uake`) round-trip |
-| `examples/ake.rs` | Mutually-authenticated KEX (`Ake`) round-trip |
+| `examples/uake.rs` | `hazmat::kex::Uake` round-trip (`--features hazmat`) |
+| `examples/ake.rs` | `hazmat::kex::Ake` round-trip (`--features hazmat`) |
 | `examples/typed_kem.rs` | Same round-trip with the typed `KemCore` / `MlKem768` surface |
 | `examples/deterministic_seed.rs` | Deterministic keygen from a 64-byte seed (KAT-friendly) |
 | `examples/no_std_demo.rs` | `#![no_std]`-compatible round-trip with a caller-supplied RNG |

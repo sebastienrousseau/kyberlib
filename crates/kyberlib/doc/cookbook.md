@@ -158,12 +158,16 @@ for the breakdown.
 
 ## Mutually authenticated key exchange
 
-The [`Ake`] wrapper adds mutual authentication on top of the bare KEM.
-Three messages: client → server → client; both parties end with the
-same 32-byte shared secret.
+The [`Ake`] wrapper adds implicit mutual authentication on top of the
+bare KEM. Three messages: client → server → client; both parties end
+with the same 32-byte shared secret. It lives under
+`kyberlib::hazmat::kex` and needs the `hazmat` feature: it is outside
+FIPS 203, has no key confirmation or transcript binding, and has no
+published analysis. Read the module's threat model before using it.
 
 ```rust
-use kyberlib::{keypair, Ake};
+// Cargo.toml: kyberlib = { version = "0.0.15", features = ["hazmat"] }
+use kyberlib::{hazmat::kex::Ake, keypair};
 
 fn main() -> Result<(), kyberlib::KyberLibError> {
     let mut rng = rand::thread_rng();
@@ -193,7 +197,7 @@ fn main() -> Result<(), kyberlib::KyberLibError> {
 }
 ```
 
-See [`kex` module docs](https://docs.rs/kyberlib/latest/kyberlib/kex/index.html)
+See [`hazmat::kex` module docs](https://docs.rs/kyberlib/latest/kyberlib/hazmat/kex/index.html)
 for the [`Uake`] (unilaterally authenticated) variant.
 
 ## Integration with `aead`-style symmetric ciphers
@@ -235,5 +239,5 @@ TLS 1.3.
 
 See [`crates/kyberlib-hybrid/doc/architecture.md`](../../kyberlib-hybrid/doc/architecture.md).
 
-[`Ake`]: https://docs.rs/kyberlib/latest/kyberlib/struct.Ake.html
-[`Uake`]: https://docs.rs/kyberlib/latest/kyberlib/struct.Uake.html
+[`Ake`]: https://docs.rs/kyberlib/latest/kyberlib/hazmat/kex/struct.Ake.html
+[`Uake`]: https://docs.rs/kyberlib/latest/kyberlib/hazmat/kex/struct.Uake.html

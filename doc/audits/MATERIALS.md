@@ -154,17 +154,17 @@ Flag if they're materially different from how we've documented them:
   under #143 because the AVX2 build doesn't compile on the
   maintainer's aarch64 macOS workstation. The ACVP harness only
   exercises the reference path.
-* **ML-KEM-512 and ML-KEM-1024 are not yet built.** The marker types
-  are declared but unimplemented (#130b).
-* **`Uake` and `Ake`** in `crates/kyberlib/src/kex.rs` are
-  experimental key-exchange helpers, not part of the FIPS 203 KEM
-  surface. They should not be in production use.
+* **`Uake` and `Ake`** live in `crates/kyberlib/src/hazmat/kex.rs`
+  behind the `hazmat` feature since v0.0.15 (#156, ADR 0008). They are
+  key-exchange helpers outside FIPS 203 with implicit authentication
+  only; the module documents the threat model.
 * **The legacy `keypair()` / `Keypair`** is soft-deprecated. Audits
   attention should be on the typed `MlKem768::generate()` path.
-* **`dudect` harness is scaffolded, not wired.** The gating
-  preconditions (FIPS 203 migration + KyberSlash audit) are now
-  satisfied but the actual `dudect-bencher` integration is future
-  work. We accept this audit cycle without dudect evidence.
+* **`dudect` results are not tied to a commit.** The harness is wired
+  (`crates/kyberlib/benches/dudect.rs`, `cargo xtask dudect`) and
+  `doc/BENCHMARKS.md` reports passing t-statistics, but no full run is
+  recorded against the current code with its date and commit
+  (`doc/RELEASE-1.0-CHECKLIST.md`, item 2).
 
 ## 10. Re-verification
 
