@@ -1,6 +1,6 @@
 # Release process
 
-> Last Updated: 2026-05-22
+> Last Updated: 2026-11-07
 
 Checklist for maintainers cutting a new kyberlib release. Walks
 through everything from version bump to crates.io publish + signed
@@ -17,9 +17,12 @@ GitHub Release.
 
 ## Pre-flight
 
-1. **Verify the milestone is empty.**
-   `gh issue list --milestone vX.Y.Z --state open` should return zero.
-   If not, either close the issues or move them to the next milestone.
+1. **Zero open issues and Dependabot alerts.** `~/Code/AGENTS.md` §0
+   and §3 forbid tagging while any is open:
+   `gh issue list --state open` and
+   `gh api repos/sebastienrousseau/kyberlib/dependabot/alerts?state=open --jq length`
+   must both return nothing / `0`. Issues are closed by fixing them; only
+   the maintainer closes one unresolved, with the reason written on it.
 
 2. **Refresh ACVP vectors** (annual or on NIST update).
    `cargo xtask acvp-refresh` (or `bash scripts/acvp-refresh.sh`).
@@ -68,9 +71,10 @@ GitHub Release.
    convention pins it per-version (default is unversioned — keep
    as-is).
 
-4. **Refresh `CHANGELOG.md`.** Move `## [Unreleased]` content under
-   a new `## [0.0.7] - YYYY-MM-DD` heading. Add a new empty
-   `## [Unreleased]` section above it.
+4. **Refresh `CHANGELOG.md`.** Each iteration's section is headed
+   `## [0.0.N] - Unreleased` while its `feat/v0.0.N` branch is open; the
+   tag date replaces `Unreleased` when the version is tagged (a later
+   iteration may record the date for an earlier tag).
 
 5. **Refresh `README.md`** install instructions if the version
    number appears in the install snippet.
@@ -101,12 +105,13 @@ cosign keyless signing, and CBOM generation are all exercised.
 
    ```sh
    git checkout main && git pull
-   git tag -s v0.0.7 -m "Release v0.0.7"
+   git tag -s v0.0.7 -m "kyberlib v0.0.7"
    git push origin v0.0.7
    ```
 
-   The `-s` flag SSH-signs the tag (relies on the contributor's
-   `gpg.format=ssh` config).
+   The `-s` flag SSH-signs the annotated tag (relies on the
+   contributor's `gpg.format=ssh` config). The first line of the tag
+   message is exactly `kyberlib v<VERSION>`.
 
 3. **CI takes over.** `.github/workflows/release.yml` runs on the
    tag and:
@@ -120,10 +125,19 @@ cosign keyless signing, and CBOM generation are all exercised.
    - Cosign keyless signs the `.crate` blob (Fulcio + Rekor).
    - Publishes to crates.io (workspace order: `kyberlib` then
      `kyberlib-wasm`).
-   - Creates a draft GitHub Release with every artefact attached.
+   - Publishes the GitHub Release titled `kyberlib <VERSION>` (no
+     leading `v`) with every artefact attached, using this version's
+     CHANGELOG section as provisional notes.
 
-4. **Publish the GitHub Release draft.** Manually flip the draft to
-   "Latest" once the release notes look right.
+4. **Rewrite the release notes** to the house format (`~/Code/AGENTS.md`
+   §3, modelled on passmcp v0.0.5), with no em dashes:
+   `## Highlights ⭐️` (2 to 4 bullets), `## What's Changed`
+   (`* <PR title> by @<author> in <PR URL>`), `## New Contributors`
+   (only if any), `## Checksums` (`SHA-256 of every asset attached to
+   this release:` and a `text` block with every asset), and
+   `**Full Changelog**: …/compare/<prev_tag>...<tag>`. Apply with
+   `gh release edit <tag> --title "kyberlib <VERSION>" --notes-file <file>`,
+   then check the live page with `gh release view <tag> --json name,body`.
 
 ## Verification recipe for downstream consumers
 
