@@ -1,6 +1,9 @@
 # ADR 0005 — Bring-Your-Own-Entropy (BYOE) deterministic API
 
-* **Status:** Proposed (planned for v0.0.8, branch `feat/v0.0.8-byoe`)
+* **Status:** Partially implemented. v0.0.12 added the key-generation half
+  as `KemCore::generate_from_seed(d, z)` (FIPS 203 `KeyGen_internal`);
+  `encapsulate_deterministic` is not implemented, and the RNG-taking
+  `generate` / `encapsulate` remain the public API.
 * **Date:** 2026-05-20
 * **Authors:** sebastienrousseau
 * **Tracking issue:** TBD on v0.0.8 kickoff
