@@ -5,8 +5,16 @@
 version = "0.0.12"
 audited_as = "0.0.11"
 
+[[unpublished.kyberlib]]
+version = "0.0.13"
+audited_as = "0.0.11"
+
 [[unpublished.kyberlib-wasm]]
 version = "0.0.12"
+audited_as = "0.0.11"
+
+[[unpublished.kyberlib-wasm]]
+version = "0.0.13"
 audited_as = "0.0.11"
 
 [[publisher.aho-corasick]]
@@ -82,6 +90,13 @@ user-name = "Justin W Smith"
 [[publisher.base16ct]]
 version = "1.0.0"
 when = "2026-01-03"
+user-id = 267
+user-login = "tarcieri"
+user-name = "Tony Arcieri"
+
+[[publisher.base64ct]]
+version = "1.8.3"
+when = "2026-01-12"
 user-id = 267
 user-login = "tarcieri"
 user-name = "Tony Arcieri"
@@ -436,6 +451,18 @@ version = "0.14.0"
 when = "2026-07-06"
 trusted-publisher = "github:RustCrypto/elliptic-curves"
 
+[[publisher.pem-rfc7468]]
+version = "1.0.0"
+when = "2025-11-08"
+user-id = 267
+user-login = "tarcieri"
+user-name = "Tony Arcieri"
+
+[[publisher.pkcs8]]
+version = "0.11.0"
+when = "2026-04-27"
+trusted-publisher = "github:RustCrypto/formats"
+
 [[publisher.prettyplease]]
 version = "0.2.37"
 when = "2025-08-19"
@@ -553,6 +580,11 @@ when = "2026-01-31"
 user-id = 6741
 user-login = "Darksonn"
 user-name = "Alice Ryhl"
+
+[[publisher.spki]]
+version = "0.8.1"
+when = "2026-10-05"
+trusted-publisher = "github:RustCrypto/formats"
 
 [[publisher.syn]]
 version = "2.0.117"

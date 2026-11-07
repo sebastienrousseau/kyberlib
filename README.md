@@ -204,19 +204,19 @@ Five crates ship from this workspace. The core library is `kyberlib`;
 the four satellites quarantine `unsafe`, add the TLS hybrid surface,
 expose PKCS#8 / SPKI encoding, and wrap the library for the browser.
 
-| Crate | What it is | Status (v0.0.11) | Use case |
+| Crate | What it is | Status (`main`) | Use case |
 |---|---|---|---|
 | **[`kyberlib`](crates/kyberlib/)** | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
 | **[`kyberlib-asm`](crates/kyberlib-asm/)** | AVX2 / NEON / SIMD acceleration backend (planned relocation of `crates/kyberlib/src/avx2/`) | Skeleton — see [ADR 0002](doc/adr/0002-asm-quarantine.md) and issue [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | High-throughput servers; embedded NEON targets. |
-| **[`kyberlib-hybrid`](crates/kyberlib-hybrid/)** | TLS 1.3 hybrid KEMs — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 | `X25519MlKem768` wired; ECDHE variants in [#167b](https://github.com/sebastienrousseau/kyberlib/issues/167) | Direct interop with `draft-ietf-tls-ecdhe-mlkem-04`. |
-| **[`kyberlib-pkcs8`](crates/kyberlib-pkcs8/)** | PKCS#8 / `SubjectPublicKeyInfo` / PEM encoding with LAMPS-registered OIDs | Skeleton — issue [#168](https://github.com/sebastienrousseau/kyberlib/issues/168) | X.509 cert chains, CMS, PEM exchange. |
+| **[`kyberlib-hybrid`](crates/kyberlib-hybrid/)** | TLS 1.3 hybrid KEMs — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 | All three TLS groups plus the X-Wing KEM; checked against rustls and the X-Wing draft vectors. Unpublished until the audit ([#177](https://github.com/sebastienrousseau/kyberlib/issues/177)) | Direct interop with `draft-ietf-tls-ecdhe-mlkem`; X-Wing for HPKE-style use. |
+| **[`kyberlib-pkcs8`](crates/kyberlib-pkcs8/)** | PKCS#8 / `SubjectPublicKeyInfo` / PEM encoding per RFC 9935 | All three private-key forms (seed, expanded, both); re-encodes OpenSSL 3.5 keys byte for byte. Unpublished until the audit | Key files, X.509 public keys, PEM exchange with OpenSSL. |
 | **[`kyberlib-wasm`](crates/kyberlib-wasm/)** | `wasm-bindgen` wrapper for browser / Node / Cloudflare Workers / Deno | Published with `kyberlib` | Browser cryptography; npm-installable. |
 
 Per-crate READMEs cover the surface specific to each artifact:
 
 - **ASM**: [`crates/kyberlib-asm/README.md`](crates/kyberlib-asm/README.md)
 - **Hybrid**: [`crates/kyberlib-hybrid/README.md`](crates/kyberlib-hybrid/README.md) — wire-format constants, codepoints
-- **PKCS#8**: [`crates/kyberlib-pkcs8/README.md`](crates/kyberlib-pkcs8/README.md) — OID table, encoding traits
+- **PKCS#8**: [`crates/kyberlib-pkcs8/README.md`](crates/kyberlib-pkcs8/README.md) — RFC 9935 key encodings, OpenSSL interop
 - **WASM**: [`crates/kyberlib-wasm/README.md`](crates/kyberlib-wasm/README.md) — JS API, bundling
 
 #### `kyberlib-hybrid` versioning policy
@@ -712,8 +712,8 @@ Full target list: `make help`.
 crates/
   kyberlib/           safe core   ←  this README + most of the development effort
   kyberlib-asm/       SIMD/ASM     (skeleton — relocation of `src/avx2/` per #143)
-  kyberlib-hybrid/    TLS hybrids  (X25519MlKem768 wired; ECDHE pending)
-  kyberlib-pkcs8/     PKCS#8/SPKI  (skeleton — issue #168)
+  kyberlib-hybrid/    TLS hybrids + X-Wing
+  kyberlib-pkcs8/     PKCS#8/SPKI/PEM (RFC 9935)
   kyberlib-wasm/      WASM shim
 fuzz/                 cargo-fuzz harness (excluded from workspace)
 scripts/              acvp-refresh, miri, dudect, cbom, kyberslash-guard

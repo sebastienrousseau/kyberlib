@@ -216,6 +216,9 @@ mod backend;
 /// FIPS 203 §7.2 / §7.3 input checks.
 mod input_check;
 
+/// Typed-key import with the FIPS 203 §7.2 / §7.3 checks.
+mod key_import;
+
 /// FIPS 140-3 backend: routes the typed ML-KEM API through the AWS-LC
 /// FIPS module (feature `fips`, issue #170).
 #[cfg(feature = "fips")]
