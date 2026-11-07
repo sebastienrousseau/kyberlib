@@ -205,8 +205,13 @@ impl<P: Params> TryFrom<PrivateKeyInfoRef<'_>> for PrivateKey<P> {
 }
 
 #[cfg(feature = "alloc")]
-impl<P: Params> pkcs8::EncodePrivateKey for PrivateKey<P> {
-    fn to_pkcs8_der(&self) -> pkcs8::Result<der::SecretDocument> {
+impl<P: Params> PrivateKey<P> {
+    /// Builds the `PrivateKeyInfo` for this key in its chosen form and
+    /// hands it to `f` (plain or encrypted encoding).
+    pub(crate) fn with_info<T>(
+        &self,
+        f: impl FnOnce(&PrivateKeyInfoRef<'_>) -> pkcs8::Result<T>,
+    ) -> pkcs8::Result<T> {
         let seed = self.seed.as_deref().map(<[u8; SEED_LEN]>::as_slice);
         let expanded = P::dk_bytes(&self.dk);
         let choice = match (self.format, seed) {
@@ -228,7 +233,16 @@ impl<P: Params> pkcs8::EncodePrivateKey for PrivateKey<P> {
             crate::public::algorithm::<P>(),
             der::asn1::OctetStringRef::new(&inner)?,
         );
-        Ok(der::SecretDocument::encode_msg(&info)?)
+        f(&info)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<P: Params> pkcs8::EncodePrivateKey for PrivateKey<P> {
+    fn to_pkcs8_der(&self) -> pkcs8::Result<der::SecretDocument> {
+        self.with_info(|info| {
+            Ok(der::SecretDocument::encode_msg(info)?)
+        })
     }
 }
 

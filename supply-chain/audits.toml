@@ -307,6 +307,18 @@ criteria = "safe-to-deploy"
 version = "2.0.1"
 notes = "Full audit of x25519-dalek 2.0.1 (12 files, 4 .rs files, 682 lines of Rust): 0 lines mention unsafe; no build.rs; dependencies: curve25519-dalek, rand_core, serde, zeroize."
 
+[[trusted.aead]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/traits"
+start = "2026-06-08"
+end = "2027-11-07"
+
+[[trusted.aes-gcm]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/AEADs"
+start = "2026-08-21"
+end = "2027-11-07"
+
 [[trusted.aho-corasick]]
 criteria = "safe-to-deploy"
 user-id = 189 # Andrew Gallant (BurntSushi)
@@ -403,6 +415,12 @@ trusted-publisher = "github:RustCrypto/utils"
 start = "2026-02-24"
 end = "2027-10-26"
 
+[[trusted.block-padding]]
+criteria = "safe-to-deploy"
+user-id = 5059 # Artyom Pavlov (newpavlov)
+start = "2019-04-22"
+end = "2027-11-07"
+
 [[trusted.borsh]]
 criteria = "safe-to-deploy"
 user-id = 134703 # nearprotocol-ci
@@ -420,6 +438,12 @@ criteria = "safe-to-deploy"
 user-id = 6741 # Alice Ryhl (Darksonn)
 start = "2021-01-11"
 end = "2027-10-26"
+
+[[trusted.cbc]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/block-modes"
+start = "2026-02-27"
+end = "2027-11-07"
 
 [[trusted.cc]]
 criteria = "safe-to-deploy"
@@ -589,6 +613,12 @@ user-id = 5059 # Artyom Pavlov (newpavlov)
 start = "2019-06-28"
 end = "2027-10-14"
 
+[[trusted.ghash]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/universal-hashes"
+start = "2026-02-28"
+end = "2027-11-07"
+
 [[trusted.glob]]
 criteria = "safe-to-deploy"
 user-id = 55123 # rust-lang-owner
@@ -709,16 +739,34 @@ trusted-publisher = "github:RustCrypto/elliptic-curves"
 start = "2026-04-19"
 end = "2027-11-06"
 
+[[trusted.pbkdf2]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/password-hashes"
+start = "2026-04-21"
+end = "2027-11-07"
+
 [[trusted.pem-rfc7468]]
 criteria = "safe-to-deploy"
 user-id = 267 # Tony Arcieri (tarcieri)
 start = "2021-02-16"
 end = "2027-11-07"
 
+[[trusted.pkcs5]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/formats"
+start = "2026-04-24"
+end = "2027-11-07"
+
 [[trusted.pkcs8]]
 criteria = "safe-to-deploy"
 trusted-publisher = "github:RustCrypto/formats"
 start = "2026-02-11"
+end = "2027-11-07"
+
+[[trusted.polyval]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/universal-hashes"
+start = "2026-02-10"
 end = "2027-11-07"
 
 [[trusted.prettyplease]]
@@ -793,6 +841,18 @@ user-id = 6825 # Dan Gohman (sunfishcode)
 start = "2021-10-29"
 end = "2027-10-14"
 
+[[trusted.salsa20]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/stream-ciphers"
+start = "2026-03-30"
+end = "2027-11-07"
+
+[[trusted.scrypt]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/password-hashes"
+start = "2026-04-22"
+end = "2027-11-07"
+
 [[trusted.sec1]]
 criteria = "safe-to-deploy"
 trusted-publisher = "github:RustCrypto/formats"
@@ -864,6 +924,12 @@ criteria = "safe-to-deploy"
 user-id = 6743 # Ed Page (epage)
 start = "2025-07-08"
 end = "2027-10-26"
+
+[[trusted.universal-hash]]
+criteria = "safe-to-deploy"
+trusted-publisher = "github:RustCrypto/traits"
+start = "2026-02-27"
+end = "2027-11-07"
 
 [[trusted.walkdir]]
 criteria = "safe-to-run"

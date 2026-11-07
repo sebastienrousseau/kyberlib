@@ -14,6 +14,8 @@ src/
 ├── params.rs   sealed `Params` trait for MlKem512/768/1024: OID, sizes,
 │               and the checked kyberlib key constructors
 ├── choice.rs   the RFC 9935 private-key CHOICE (seed / expanded / both)
+├── encrypted.rs (feature `encryption`) PBES2 encrypt/decrypt,
+│               `DecryptLimits`, rand_core 0.6 -> 0.10 RNG adapter
 ├── private.rs  `PrivateKey<P>`: generate, from_seed, from_expanded,
 │               PKCS#8 encode/decode, consistency checks
 └── public.rs   `PublicKey<P>`: SPKI encode/decode
@@ -37,6 +39,13 @@ src/
   built in a pre-sized `Zeroizing<Vec>` so no copy is left in a
   reallocated block; the outer document is a `der::SecretDocument`.
   `Debug` prints no key material.
+- **Bounded decryption.** A PBES2 file names its own KDF cost.
+  `decrypt_pkcs8_*` refuse costs over `DecryptLimits` before running the
+  KDF, so a hostile file cannot stall or exhaust the process.
+- **One RNG type.** Encryption takes the same `RngCore + CryptoRng` as
+  `PrivateKey::generate` and adapts it to the `rand_core` 0.10 traits
+  `pkcs8` uses. There is no `getrandom` feature: it would add WASI and
+  UEFI crates to the audited graph.
 - **`no_std`.** Decoding needs no allocator; `alloc` (default) adds
   encoding.
 
@@ -48,6 +57,5 @@ publishers this repository trusts in `supply-chain/audits.toml`.
 
 ## Out of scope
 
-- Encrypted PKCS#8.
 - CMS (RFC 9936) and COSE: see #169.
 - X.509 certificates and CSRs: use `x509-cert` with the SPKI from here.
