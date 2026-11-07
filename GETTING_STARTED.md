@@ -110,7 +110,7 @@ fn main() -> Result<(), kyberlib::KyberLibError> {
 * [`SECURITY.md`](./SECURITY.md) — threat model, constant-time
   guarantees, ACVP conformance status.
 * [`docs/adr/`](docs/adr/) — architectural decision records (KyberSlash
-  audit, AVX2 quarantine, FIPS 203 migration).
+  audit, FIPS 203 migration, AVX2 removal, key exchanges under `hazmat`).
 * [`GLOSSARY.md`](./GLOSSARY.md) — FIPS 203 / ML-KEM / lattice-cryptography
   terminology.
 * [`PLAN.md`](./PLAN.md) — v0.0.7 audit roadmap and the multi-day

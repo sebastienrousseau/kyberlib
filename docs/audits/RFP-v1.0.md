@@ -28,9 +28,9 @@
   7 d triage SLA).
 * **Code statistics (workspace):**
   - 5 publishable + non-publishable Rust crates
-  - 11,574 lines of Rust in `crates/*/src` excluding the AVX2
-    backend; 3,318 lines of Rust and 1,643 lines of assembly in
-    `crates/kyberlib/src/avx2/` (counted with `wc -l`, v0.0.13)
+  - Rust in `crates/*/src`: see `wc -l` at the audit tag (the AVX2
+    backend, 3,318 lines of Rust and 1,643 of assembly, was removed in
+    v0.0.16, ADR 0009); no assembly and no `unsafe` remain
   - 180 / 180 NIST ACVP ML-KEM-512/768/1024 vectors pass
   - Coverage gate: ≥ 80% lines (CI-enforced)
 
@@ -95,7 +95,7 @@ The v1.0.0 release will not ship until this audit signs off.
 | **Key encodings** | `crates/kyberlib-pkcs8`: parsing untrusted PKCS#8 / SPKI / PEM (RFC 9935 private-key CHOICE, seed/expanded consistency check, parameters-absent rule, §7.2 / §7.3 checks at import), zeroization of encoded secrets; PBES2 decryption and the `DecryptLimits` checks that run before the KDF; the rand_core 0.6 to 0.10 RNG adapter. Dependencies: RustCrypto `der`, `spki`, `pkcs8`, `pkcs5`, `pem-rfc7468`, `base64ct`, `pbkdf2`, `scrypt`, `aes`, `cbc`, `aes-gcm`. |
 | **`fips` dispatch** | Routing in `ml_kem.rs` and `fips.rs`: which calls reach the AWS-LC module, the decapsulation fallback, ignored caller RNG. AWS-LC itself is out of scope (covered by its own CMVP validation). |
 | **Side-channel attacks beyond timing** | Power and EM are out of scope; software-observable channels (memory access patterns, branch mispredictions, cache footprint) are in. |
-| **`unsafe` surface** | `crates/kyberlib-asm/` (when populated — currently a skeleton) and the AVX2 intrinsics in `crates/kyberlib/src/avx2/`. We assume "wait, why does the assembly exist?" will surface. |
+| **`unsafe` surface** | None: `#![forbid(unsafe_code)]` in every build since v0.0.16 (ADR 0009). Confirm no dependency path reintroduces it in kyberlib's own code. |
 | **Supply chain** | `Cargo.toml` deps, the `cargo-vet` import set, the SHA-pinning of GitHub Actions in `.github/workflows/*`, the SLSA L3 + cosign release pipeline. |
 
 ### 3.2 Out of scope
@@ -122,9 +122,9 @@ We prefer the audit to:
 5. **Examine** the typed-key API (`crates/kyberlib/src/ml_kem.rs`),
    the hybrids (`crates/kyberlib-hybrid/src/{lib,secp,xwing}.rs`) and
    the FIPS dispatch (`crates/kyberlib/src/fips.rs`).
-6. **Flag any unsafe block in `crates/kyberlib/src/avx2/`** that
-   lacks a `// SAFETY:` justification, even if the code is otherwise
-   correct.
+6. **Confirm the `unsafe` boundary**: kyberlib's own crates contain no
+   `unsafe` (`#![forbid(unsafe_code)]`); the only native code is AWS-LC
+   behind the opt-in `fips` feature.
 7. **Re-test under `cargo +nightly miri`** if practicable.
 8. **Report** in the format described in §4.
 
@@ -169,8 +169,7 @@ We do **not** require:
   COMPARISON.md range USD 40k–80k; tier-1 vendors quote toward the
   high end. Drop to ~ USD 40k if a vendor has clear ML-KEM
   prior-art and limited scope; bump to ~ USD 80k if expanding
-  scope to the full AVX2 backend or to the (currently deferred)
-  ML-KEM-512 / ML-KEM-1024 surface]`.
+  scope to all three crates beyond the core (hybrid, PKCS#8, wasm)]`.
 * **Payment terms:** 30 % on contract, 40 % on draft report,
   30 % on final + re-verify `[ADJUST — adjust to vendor's
   standard contract; some prefer 50 / 50]`.

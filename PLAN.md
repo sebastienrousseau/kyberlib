@@ -18,8 +18,8 @@ issue set (`gh issue list --milestone v0.0.7`).
 ## Phase 0 — Foundation
 
 * ✅ **#128** Workspace split: `kyberlib` (safe core) + satellite
-  crates `kyberlib-asm`, `kyberlib-hybrid`, `kyberlib-pkcs8`,
-  `kyberlib-wasm`.
+  crates `kyberlib-hybrid`, `kyberlib-pkcs8`, `kyberlib-wasm`
+  (`kyberlib-asm` was removed in v0.0.16).
 * ✅ **#137** `#![deny(missing_docs)]` on the safe core; every
   public item carries `///` documentation.
 * ✅ **#141** Reusable CI workflow pinned by commit SHA;
@@ -27,11 +27,10 @@ issue set (`gh issue list --milestone v0.0.7`).
 
 ## Phase 1 — Safety architecture
 
-* ✅ **#143** AVX2 quarantine. Granular unsafe-code gate in the safe
-  core: `forbid(unsafe_code)` under default features;
-  `deny(unsafe_code)` + per-module `allow(unsafe_code)` only on
-  `mod avx2;` when `--features avx2`. Documented in
-  [ADR 0002][adr0002].
+* ✅ **#143** No `unsafe` in the core. The AVX2 backend never compiled;
+  v0.0.16 removed it with `kyberlib-asm`, and `forbid(unsafe_code)` now
+  holds in every build ([ADR 0009][adr0009], superseding
+  [ADR 0002][adr0002]). SIMD is planned through libcrux (#171).
 * ✅ **#144** `kyberlib-wasm` split out — the safe core has no
   `wasm-bindgen` dependency.
 
@@ -149,13 +148,6 @@ The following items are tracked but deferred to v0.1 or beyond:
   F* + hax-verified backend. Symbolic Software's eprint 2026/192
   found three bugs in libcrux's verified surface; we're tracking
   remediation before adopting.
-* **#177** `kyberlib-hybrid` activation. The crate scaffolding is
-  in place; the FIPS 203-conformant X25519MLKEM768 implementation
-  per draft-ietf-tls-ecdhe-mlkem-04 lands in v0.1.
-* **#143 file-level relocation** of the AVX2 backend into
-  `kyberlib-asm`. The safety property has already landed via the
-  granular unsafe gate (Phase 1, ADR 0002); the file move is pure
-  housekeeping.
 
 ## How to update this file
 
@@ -166,3 +158,4 @@ its issue number; the work-in-progress section (Phases 3–4) sorted
 chronologically.
 
 [adr0002]: docs/adr/0002-asm-quarantine.md
+[adr0009]: docs/adr/0009-remove-avx2-backend.md

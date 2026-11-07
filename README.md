@@ -39,7 +39,7 @@ Releases adhere strictly to https://github.com/sebastienrousseau/passmcp/release
 
 **The kyberlib ecosystem**
 
-- [The kyberlib ecosystem](#the-kyberlib-ecosystem) — `kyberlib`, `kyberlib-hybrid`, `kyberlib-pkcs8`, `kyberlib-wasm`, `kyberlib-asm`
+- [The kyberlib ecosystem](#the-kyberlib-ecosystem) — `kyberlib`, `kyberlib-hybrid`, `kyberlib-pkcs8`, `kyberlib-wasm`
 
 **Library reference**
 
@@ -145,7 +145,7 @@ The 32-byte shared secret is a key for a symmetric cipher such as an AEAD.
 
 ## The kyberlib ecosystem
 
-The workspace ships five crates at one shared version. `kyberlib` and
+The workspace ships four crates at one shared version. `kyberlib` and
 `kyberlib-wasm` are published on crates.io; the others stay unpublished
 until the third-party audit.
 
@@ -155,7 +155,6 @@ until the third-party audit.
 | [`kyberlib-hybrid`](crates/kyberlib-hybrid/README.md) | TLS 1.3 hybrid groups X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024 (`draft-ietf-tls-ecdhe-mlkem-05`) and the X-Wing KEM (`draft-connolly-cfrg-xwing-kem-11`); unpublished | TLS stacks; HPKE-style protocols that need one 32-byte hybrid secret |
 | [`kyberlib-pkcs8`](crates/kyberlib-pkcs8/README.md) | PKCS#8, SubjectPublicKeyInfo and PEM per RFC 9935, including password-encrypted PKCS#8; unpublished | Key files that OpenSSL 3.5 reads and writes |
 | [`kyberlib-wasm`](crates/kyberlib-wasm/README.md) | `wasm-bindgen` bindings for ML-KEM-768 | Browsers, Node.js, Deno, Cloudflare Workers |
-| [`kyberlib-asm`](crates/kyberlib-asm/README.md) | Home for the SIMD backends; a skeleton today ([#143](https://github.com/sebastienrousseau/kyberlib/issues/143)) | None yet |
 
 ---
 
@@ -171,8 +170,7 @@ until the third-party audit.
 | Side channels | KyberSlash-clean arithmetic, enforced by a CI guard | ✓ ([ADR 0003](docs/adr/0003-kyberslash-audit.md)) |
 | Targets | `no_std` with an allocator; `wasm32` | ✓ |
 | Backends | AWS-LC FIPS module via `aws-lc-rs` (`fips` feature) | ✓ ([`docs/FIPS.md`](docs/FIPS.md)) |
-| Backends | AVX2 (`avx2` feature) | ✗ does not compile ([#143](https://github.com/sebastienrousseau/kyberlib/issues/143)) |
-| Backends | libcrux (`verified`), NEON | planned ([#171](https://github.com/sebastienrousseau/kyberlib/issues/171), [#172](https://github.com/sebastienrousseau/kyberlib/issues/172)) |
+| Backends | libcrux (`verified`), bringing AVX2 and NEON | planned ([#171](https://github.com/sebastienrousseau/kyberlib/issues/171), [#172](https://github.com/sebastienrousseau/kyberlib/issues/172)); the never-working in-tree AVX2 code was removed ([ADR 0009](docs/adr/0009-remove-avx2-backend.md)) |
 | Hybrids | Three TLS groups and X-Wing, checked against rustls and the draft's vectors | ✓ in `kyberlib-hybrid` |
 | Key files | RFC 9935 PKCS#8 / SPKI / PEM, encrypted PKCS#8, byte-for-byte with OpenSSL 3.5 | ✓ in `kyberlib-pkcs8` |
 | Releases | SLSA build provenance, keyless cosign signature, CycloneDX 1.6 CBOM | ✓ |
@@ -237,6 +235,9 @@ the FIPS 203 §7.2 and §7.3 checks, and encapsulation always runs §7.2.
 **Implicit rejection.** `decapsulate` never panics and never branches on
 ciphertext validity; a tampered ciphertext gives `J(z‖c)`.
 
+**No `unsafe`.** The core crate is `#![forbid(unsafe_code)]` in every
+build.
+
 **Constant time.** Arithmetic on secrets uses Barrett multiply-and-shift,
 never `/` or `%` against `KYBER_Q`; `scripts/kyberslash-guard.sh` fails CI
 on a new occurrence. The dudect harness (`cargo xtask dudect`) tests
@@ -264,7 +265,6 @@ default.
 | `fips` | | Typed API runs inside the AWS-LC FIPS module ([`docs/FIPS.md`](docs/FIPS.md)) |
 | `hazmat` | | IND-CPA primitives and `hazmat::kex::{Uake, Ake}` |
 | `90s`, `90s-fixslice` | | CRYSTALS-Kyber "90s" variant (AES/SHA-2); not in FIPS 203 |
-| `avx2`, `nasm` | | **Do not enable**: does not compile ([#143](https://github.com/sebastienrousseau/kyberlib/issues/143)) |
 | `verified` | | No-op; reserved for a libcrux backend ([#171](https://github.com/sebastienrousseau/kyberlib/issues/171)) |
 | `wasm`, `zeroize` | | No-ops kept for compatibility with 0.0.6 |
 
@@ -300,8 +300,8 @@ From the repository root:
   `fips` feature runs ML-KEM inside the AWS-LC FIPS module, but kyberlib
   holds no certificate ([ADR 0007](docs/adr/0007-no-cmvp-submission.md));
   coverage depends on the AWS-LC version and your environment.
-- **You need SIMD speed.** The AVX2 backend does not compile; the pure-Rust
-  path is what ships.
+- **You need SIMD speed today.** kyberlib is pure Rust; SIMD arrives with
+  the libcrux backend ([#171](https://github.com/sebastienrousseau/kyberlib/issues/171)).
 - **You want the hybrid or key-file crates from crates.io.** They are
   unpublished until the audit; use them as git or path dependencies.
 - **You want a command-line tool.** kyberlib is a library.
@@ -404,6 +404,6 @@ Dual-licensed under either of
 - [Apache License 2.0](LICENSE-APACHE) (`Apache-2.0`)
 - [MIT License](LICENSE-MIT) (`MIT`)
 
-at your option (`SPDX-License-Identifier: Apache-2.0 OR MIT`). Unless you
+at your option (SPDX expression `Apache-2.0 OR MIT`). Unless you
 state otherwise, any contribution you submit for inclusion is licensed as
 above, without additional terms.

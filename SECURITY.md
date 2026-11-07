@@ -85,13 +85,16 @@ Within those constraints, kyberlib defends against:
 
 kyberlib's CT claims are **per-function** and per-implementation:
 
-| Function | Reference impl | AVX2 impl |
-|---|---|---|
-| `decapsulate` (in secret key) | ✅ CT | ✅ CT (asm + intrinsics) |
-| `encapsulate` (in public key) | ✅ CT | ✅ CT |
-| `verify`, `cmov` | ✅ CT (audited bitwise) | ✅ CT |
-| `poly_compress`, `poly_tomsg` | ✅ CT (KyberSlash audit clean — [ADR 0003][adr3]) | ✅ CT (SIMD multiply-high, no divide) |
-| Key serialisation | ✅ CT in secret bytes | ✅ CT |
+| Function | Pure-Rust implementation |
+|---|---|
+| `decapsulate` (in secret key) | ✅ CT |
+| `encapsulate` (in public key) | ✅ CT |
+| `verify`, `cmov` | ✅ CT (audited bitwise) |
+| `poly_compress`, `poly_tomsg` | ✅ CT (KyberSlash audit clean — [ADR 0003][adr3]) |
+| Key serialisation | ✅ CT in secret bytes |
+
+With the `fips` feature these operations run in the AWS-LC FIPS module
+and its own constant-time properties apply.
 
 [adr3]: https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0003-kyberslash-audit.md
 

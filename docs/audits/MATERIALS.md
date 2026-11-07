@@ -19,7 +19,7 @@
 | 3 | `CHANGELOG.md` (the `[0.0.7]` block) | What changed in this release |
 | 4 | `docs/COMPARISON.md` | How kyberlib stacks against `ml-kem`, `libcrux-ml-kem`, `oqs`, `aws-lc-rs` |
 | 5 | `docs/adr/0001-fips203-migration.md` | Why and how kyberlib migrated from Kyber R3 to FIPS 203 |
-| 6 | `docs/adr/0002-asm-quarantine.md` | The `kyberlib-asm` separation strategy |
+| 6 | `docs/adr/0009-remove-avx2-backend.md` | Why there is no SIMD or `unsafe` code (supersedes ADR 0002) |
 | 7 | `docs/adr/0003-kyberslash-audit.md` | The KyberSlash audit + regression-guard scheme |
 | 8 | `docs/patches/phase-2b-evidence.md` | Per-patch ACVP evidence for the FIPS 203 migration |
 
@@ -47,11 +47,6 @@
 
 9. `crates/kyberlib-hybrid/src/lib.rs` — X25519MlKem768
    implementation per `draft-ietf-tls-ecdhe-mlkem-04`.
-
-### AVX2 backend (separate review pass)
-
-10. `crates/kyberlib/src/avx2/` — SIMD primitives. Audit attention
-    on `unsafe` block coverage and the GAS/NASM assembly.
 
 ### Tests
 
@@ -118,7 +113,7 @@ Does not run by default.
 | Invariant | Where enforced |
 |-----------|----------------|
 | `decapsulate` never panics, never branches on validity | `crates/kyberlib/src/kem.rs::decrypt_message`; FIPS 203 §6.3 implicit rejection |
-| Public API on the safe core: zero `unsafe` | `#![cfg_attr(not(any(feature = "avx2", feature = "nasm")), forbid(unsafe_code))]` at lib.rs root |
+| Zero `unsafe` in kyberlib | `#![forbid(unsafe_code)]` at the `crates/kyberlib/src/lib.rs` root, in every build |
 | Secret keys are `!Copy + ZeroizeOnDrop` | `MlKem768DecapKey` in `crates/kyberlib/src/ml_kem.rs`; legacy `Keypair` likewise |
 | No secret-dependent `/` or `%` against `KYBER_Q` | `scripts/kyberslash-guard.sh` CI gate + 5 audited `// kyberslash-guard: safe` annotations |
 | Length validation surfaces `Err(InvalidInput / InvalidLength)`, never panics | `try_from_slice` constructors on the typed wrappers; `fuzz/fuzz_targets/fuzz_decap.rs` exercises this |
@@ -149,11 +144,6 @@ cargo build --offline --locked --all-features
 The audit is going to find these because we already know about them.
 Flag if they're materially different from how we've documented them:
 
-* **AVX2 backend's `indcpa_keypair` still needs the K-byte patch.**
-  The reference impl carries the fix; the AVX2 mirror is tracked
-  under #143 because the AVX2 build doesn't compile on the
-  maintainer's aarch64 macOS workstation. The ACVP harness only
-  exercises the reference path.
 * **`Uake` and `Ake`** live in `crates/kyberlib/src/hazmat/kex.rs`
   behind the `hazmat` feature since v0.0.15 (#156, ADR 0008). They are
   key-exchange helpers outside FIPS 203 with implicit authentication

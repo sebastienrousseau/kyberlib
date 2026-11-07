@@ -252,8 +252,8 @@ the KyberSlash regression gate.
 plans to delegate to it under the `verified` feature flag
 ([ADR 0006](../../docs/adr/0006-fips-facade.md), tracked in
 [#171](https://github.com/sebastienrousseau/kyberlib/issues/171))
-— letting consumers pick "speed" (pure-Rust + AVX2) vs. "proof"
-(libcrux-verified) at compile time without changing call sites.
+— which would also bring libcrux's AVX2 and NEON code paths, without
+changing call sites. The feature is a no-op today.
 
 ### From `oqs-rs`
 
@@ -279,24 +279,22 @@ the box.
 
 **Spec conformance, not just "it parses".** `kyberlib` is
 validated against the **NIST ACVP corpus** (`usnistgov/ACVP-Server`)
-on every commit: **60 / 60 ML-KEM-768 vectors pass byte-for-byte**.
+on every commit: **180 / 180 vectors (60 each for ML-KEM-512, -768 and
+-1024) pass byte-for-byte**.
 The harness is checked in at
 [`tests/test_acvp.rs`](tests/test_acvp.rs); the vectors live in
 [`tests/acvp/`](tests/acvp/). Run with `make acvp` locally.
 
-**`#![forbid(unsafe_code)]` on the safe core.** Default-feature
-builds (no `avx2`, no `nasm`) compile with `unsafe` actively
-forbidden by the compiler. The cfg-gated `forbid` lives at
-[`src/lib.rs:159`](src/lib.rs). SIMD intrinsics opt back in only
-when a backend feature is explicitly enabled.
+**`#![forbid(unsafe_code)]` in every build.** The compiler rejects
+`unsafe` anywhere in the crate, whatever features are enabled
+([`src/lib.rs`](src/lib.rs)).
 
 **KyberSlash-clean.** The TCHES 2025 class of timing
 side-channels (secret-dependent `/`/`%` against `KYBER_Q`) is
 audited and enforced going forward by `scripts/kyberslash-guard.sh`
 in CI ([ADR 0003](../../docs/adr/0003-kyberslash-audit.md)). The
-reference backend uses the upstream Barrett multiply-and-shift;
-the AVX2 backend uses SIMD multiply-high intrinsics — no
-`udiv`/`sdiv` on secret inputs anywhere in the source tree.
+implementation uses Barrett multiply-and-shift: no `udiv`/`sdiv` on
+secret inputs anywhere in the source tree.
 
 **Secrets that defend themselves.** `MlKem768DecapKey` is
 `!Copy`, `ZeroizeOnDrop`, and its `Debug` impl is redacted by
@@ -349,7 +347,7 @@ Downstream consumers flip a feature flag; the call sites don't change.
 | `KemCore` trait (sealed, generic) | ✓ |
 | `Zeroize` / `ZeroizeOnDrop` on secrets | ✓ unconditional |
 | `no_std` + `alloc` | ✓ |
-| AVX2 SIMD acceleration | ✗ `--features avx2` does not compile; port tracked in [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
+| SIMD acceleration | planned through the libcrux backend ([#171](https://github.com/sebastienrousseau/kyberlib/issues/171)); the AVX2 backend was removed in 0.0.16 ([ADR 0009](https://github.com/sebastienrousseau/kyberlib/blob/main/docs/adr/0009-remove-avx2-backend.md)) |
 | NEON / AArch64 acceleration | planned [#172](https://github.com/sebastienrousseau/kyberlib/issues/172) |
 | FIPS 140-3 delegation (`aws-lc-rs`) | planned [#170](https://github.com/sebastienrousseau/kyberlib/issues/170) |
 | Verified delegation (`libcrux-ml-kem`) | planned [#171](https://github.com/sebastienrousseau/kyberlib/issues/171) |
@@ -398,8 +396,6 @@ application needs.
 | `hazmat`           |   | — | IND-CPA primitives (no FO transform) and `hazmat::kex::{Uake, Ake}` (since 0.0.15); use with care | [docs.rs `hazmat`](https://docs.rs/kyberlib) |
 | `90s`              |   | `sha2` | AES-CTR + SHA-2 instead of SHAKE (Kyber-R3 era; removed from FIPS 203) | CHANGELOG |
 | `90s-fixslice`     |   | `aes`, `ctr` | Bitsliced AES for side-channel hardening of 90s mode | CHANGELOG |
-| `avx2`             |   | `cc` | **Does not compile** since the v0.0.7 refactor; do not enable. Port tracked in [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) |
-| `nasm`             |   | `nasm-rs`, `avx2` | NASM build of the AVX2 backend; **does not compile** (as `avx2`, [#143](https://github.com/sebastienrousseau/kyberlib/issues/143)) | [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) |
 | `wasm`             |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — real WASM bindings live in [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm). Do not enable. | CHANGELOG |
 | `zeroize`          |   | — | **Legacy / Compat (no-op):** retained for v0.0.6 compatibility — `ZeroizeOnDrop` is unconditional since v0.0.7. Do not enable. | CHANGELOG |
 | `benchmarking`     |   | — | Re-exports internal `kem` module for the `benches/api.rs` harness. Not for production. | [`benches/api.rs`](benches/api.rs) |
@@ -632,7 +628,6 @@ cosign verify-blob \
 | Crate | What it is | Status (v0.0.15) |
 |---|---|---|
 | **[`kyberlib`](https://crates.io/crates/kyberlib)** (this) | Core library — FIPS 203 ML-KEM | Published; ACVP 180/180 |
-| [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton — [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit |
 | [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM per RFC 9935, incl. encrypted PKCS#8 | Implemented; unpublished until the audit |
 | [`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm) | `wasm-bindgen` wrapper for browser / Node / Workers / Deno | Published alongside `kyberlib` |

@@ -1,6 +1,7 @@
 # kyberlib vs. the 2026 Rust ML-KEM landscape
 
-> Last Updated: 2026-05-22
+> Last Updated: 2026-11-07 (kyberlib column, for v0.0.16). The other
+> columns were gathered in May 2026 and have not been re-verified.
 
 > Audit-quality comparison of kyberlib against the four other Rust ML-KEM
 > implementations that are realistically deployable in 2026. Updated for
@@ -16,7 +17,7 @@ or not on crates.io are listed for awareness but not scored.
 
 | Crate                | Latest (May 2026) | Owner                     | Approach                          |
 |----------------------|-------------------|---------------------------|-----------------------------------|
-| **kyberlib**         | 0.0.7             | sebastienrousseau         | Pure-Rust ref + AVX2; FIPS 203 migration in progress (#147) |
+| **kyberlib**         | 0.0.16            | sebastienrousseau         | Pure Rust, no `unsafe`; optional AWS-LC FIPS backend |
 | **RustCrypto/ml-kem**| 0.3.0-rc.0        | RustCrypto                | Pure-Rust spec-true                |
 | **libcrux-ml-kem**   | 0.0.8             | Cryspen / PQCP            | Pure-Rust, F* + hax verified       |
 | **pqcrypto-kyber**   | 0.8.x             | rustpq                    | C bindings (PQClean Kyber R3)      |
@@ -25,49 +26,49 @@ or not on crates.io are listed for awareness but not scored.
 
 ## Headline matrix
 
-| Capability                              | kyberlib (v0.0.7)            | RustCrypto/ml-kem         | libcrux-ml-kem            | pqcrypto-kyber             | oqs-rs               | aws-lc-rs (ML-KEM)     |
+| Capability                              | kyberlib (v0.0.16)           | RustCrypto/ml-kem         | libcrux-ml-kem            | pqcrypto-kyber             | oqs-rs               | aws-lc-rs (ML-KEM)     |
 |----------------------------------------|------------------------------|----------------------------|----------------------------|-----------------------------|----------------------|------------------------|
-| **Spec**                                | Kyber R3 → FIPS 203 in progress | FIPS 203                  | FIPS 203                   | Kyber R3 only               | Both (parameterised) | FIPS 203               |
-| **NIST ACVP vectors**                   | Harness wired; 0/60 pass (#147)| Passing                   | Passing                    | n/a (R3)                    | Passing              | Passing (CMVP-listed)  |
+| **Spec**                                | FIPS 203 | FIPS 203                  | FIPS 203                   | Kyber R3 only               | Both (parameterised) | FIPS 203               |
+| **NIST ACVP vectors**                   | 180/180 (ML-KEM-512, -768, -1024) | Passing                   | Passing                    | n/a (R3)                    | Passing              | Passing (CMVP-listed)  |
 | **Pure Rust**                           | ✅                            | ✅                          | ✅                          | ❌ (C FFI)                  | ❌ (C FFI)            | ❌ (C FFI to AWS-LC)    |
-| **`#![forbid(unsafe_code)]` core**      | ✅ (cfg-gated; #143)          | ✅                          | ✅ (verified backends)      | n/a                          | n/a                  | n/a                    |
-| **Formal verification**                 | ❌                            | ❌                          | ✅ (F* + hax)              | ❌                           | ❌                    | Partial (SAW for some primitives) |
-| **Third-party audit**                   | ❌ (gating v1.0, #177)        | ❌                          | ❌ (verified ≠ audited; bugs in eprint 2026/192) | ❌ (unmaintained)          | ❌ ("not for production") | FIPS 140-3 (CMVP, 2025) |
-| **MSRV**                                | 1.74                         | 1.74                       | 1.81                       | older                       | varies               | 1.71                   |
+| **`#![forbid(unsafe_code)]` core**      | ✅ every build | ✅                          | ✅ (verified backends)      | n/a                          | n/a                  | n/a                    |
+| **Formal verification**                 | ❌ (libcrux backend planned, #171) | ❌                          | ✅ (F* + hax)              | ❌                           | ❌                    | Partial (SAW for some primitives) |
+| **Third-party audit**                   | ❌ (gating v1.0; RFP ready) | ❌                          | ❌ (verified ≠ audited; bugs in eprint 2026/192) | ❌ (unmaintained)          | ❌ ("not for production") | FIPS 140-3 (CMVP, 2025) |
+| **MSRV**                                | 1.89 | 1.74                       | 1.81                       | older                       | varies               | 1.71                   |
 | **`no_std` (+ `alloc`)**                | ✅                            | ✅                          | ✅                          | partial                      | ❌                    | ❌                      |
 | **WASM (`wasm32-unknown-unknown`)**     | ✅ (`kyberlib-wasm`)          | ✅                          | ✅                          | ❌                           | partial              | ❌                      |
-| **AVX2**                                | ✅                            | partial                    | ✅                          | C asm                       | C asm                | ✅                      |
-| **NEON / AArch64**                      | planned (#172)               | partial                    | ✅                          | C asm                       | C asm                | ✅                      |
+| **AVX2**                                | ❌ (via libcrux backend, #171; in-tree AVX2 removed, ADR 0009) | partial                    | ✅                          | C asm                       | C asm                | ✅                      |
+| **NEON / AArch64**                      | ❌ (via libcrux backend, #171 / #172) | partial                    | ✅                          | C asm                       | C asm                | ✅                      |
 | **AVX-512**                             | ❌                            | ❌                          | roadmap                    | ❌                           | partial              | ✅                      |
 | **SVE2 / SME**                          | ❌                            | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
-| **Constant-time validation**            | dudect scaffolded (#161)      | post-CVE-2026-22705 audit  | hax `secret_independence` | n/a (R3)                    | ❌                    | NIST-vetted             |
+| **Constant-time validation**            | dudect harness wired; KyberSlash CI guard | post-CVE-2026-22705 audit  | hax `secret_independence` | n/a (R3)                    | ❌                    | NIST-vetted             |
 | **`Zeroize` / `ZeroizeOnDrop`**         | ✅ unconditional              | ✅ feature-gated            | ✅                          | ❌                           | partial              | ✅                      |
-| **`!Copy` secret types**                | partial (#154 splits further)| ✅                          | ✅                          | ❌                           | ❌                    | ✅                      |
-| **Trait-based generic API**             | planned (#153)               | ✅ (`KemCore`)              | ✅                          | macro-based                  | trait-ish            | ✅                      |
-| **HPKE drop-in via `kem` traits**       | planned (#155)               | ✅                          | partial                    | ❌                           | ❌                    | partial                |
-| **Hybrid X25519MLKEM768**               | skeleton (#167)              | ❌ (separate crate)         | ✅                          | ❌                           | ✅                    | partial                |
-| **PKCS#8 / SPKI / PEM**                 | skeleton (#168)              | ✅                          | ✅                          | ❌                           | ❌                    | ✅                      |
+| **`!Copy` secret types**                | ✅ | ✅                          | ✅                          | ❌                           | ❌                    | ✅                      |
+| **Trait-based generic API**             | ✅ (`KemCore`) | ✅ (`KemCore`)              | ✅                          | macro-based                  | trait-ish            | ✅                      |
+| **HPKE drop-in via `kem` traits**       | planned (#155) | ✅                          | partial                    | ❌                           | ❌                    | partial                |
+| **Hybrid X25519MLKEM768**               | ✅ + SecP256r1/SecP384r1 + X-Wing (`kyberlib-hybrid`, unpublished) | ❌ (separate crate)         | ✅                          | ❌                           | ✅                    | partial                |
+| **PKCS#8 / SPKI / PEM**                 | ✅ RFC 9935 + encrypted PKCS#8 (`kyberlib-pkcs8`, unpublished) | ✅                          | ✅                          | ❌                           | ❌                    | ✅                      |
 | **COSE / CBOR**                         | planned (#169)               | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
 | **`fuzz/` corpus**                      | ✅ (4 targets)                | ✅                          | ✅                          | upstream                     | upstream             | upstream                |
-| **Miri in CI**                          | ✅ (focused per-PR)           | ✅                          | ✅                          | ❌                           | ❌                    | ❌                      |
+| **Miri in CI**                          | ✅ (per-PR subset + weekly full sweep) | ✅                          | ✅                          | ❌                           | ❌                    | ❌                      |
 | **SBOM (CycloneDX)**                    | ✅ 1.5                        | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
 | **CBOM (CycloneDX 1.6, `cryptoProperties`)** | ✅                       | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
-| **SLSA L3 attestation**                 | release.yml (#173)           | ❌                          | partial                    | ❌                           | ❌                    | ❌                      |
-| **Sigstore / cosign signing**           | release.yml (#173)           | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
-| **`cargo-vet` audit graph**             | imports from 7 orgs (#165)   | upstream                   | upstream                   | ❌                           | ❌                    | upstream                |
+| **SLSA L3 attestation**                 | ✅ release.yml | ❌                          | partial                    | ❌                           | ❌                    | ❌                      |
+| **Sigstore / cosign signing**           | ✅ release.yml | ❌                          | ❌                          | ❌                           | ❌                    | ❌                      |
+| **`cargo-vet` audit graph**             | imports from 7 orgs | upstream                   | upstream                   | ❌                           | ❌                    | upstream                |
 | **`cargo-deny` policy**                 | ✅                            | ✅                          | ✅                          | partial                      | ❌                    | ✅                      |
-| **FIPS 140-3 path**                     | planned via `fips` feature (#170) | ❌                       | ❌                          | ❌                           | ❌                    | ✅ (CMVP "in process")  |
+| **FIPS 140-3 path**                     | ✅ `fips` feature (AWS-LC module) | ❌                       | ❌                          | ❌                           | ❌                    | ✅ (CMVP "in process")  |
 | **License**                             | MIT OR Apache-2.0            | MIT OR Apache-2.0          | Apache-2.0                 | MIT OR Apache-2.0           | MIT                  | ISC AND Apache-2.0     |
-| **crates.io downloads / month (May 2026)** | new                       | ~515k                      | ~85k                       | ~22k (declining)             | ~12k                 | ~3.2M (whole crate)    |
+| **crates.io downloads / month (May 2026)** | new | ~515k                      | ~85k                       | ~22k (declining)             | ~12k                 | ~3.2M (whole crate)    |
 
 ## Picking the right crate for your use case
 
 ### "I need FIPS 140-3"
 
-Use **`aws-lc-rs`** with the ML-KEM feature. It is the only crate
-above with a CMVP-listed module today. kyberlib's `fips` feature
-(#170) is planned to delegate to `aws-lc-rs` so consumers who want
-both pure-Rust ergonomics *and* the FIPS path can flip the switch.
+Use **`aws-lc-rs`** with the ML-KEM feature, or kyberlib's `fips`
+feature (since 0.0.12), which runs kyberlib's typed API inside the
+AWS-LC FIPS module. Check certificate coverage for your build
+([`FIPS.md`](./FIPS.md)).
 
 ### "I need pure Rust and formal verification"
 
@@ -93,8 +94,7 @@ marked unmaintained.
 
 A coherent multi-crate workspace:
 
-* `kyberlib`         — safe pure-Rust core (`#![forbid(unsafe_code)]` in the common path)
-* `kyberlib-asm`     — quarantined AVX2 / NEON acceleration
+* `kyberlib`         — safe pure-Rust core (`#![forbid(unsafe_code)]` in every build)
 * `kyberlib-hybrid`  — X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024
 * `kyberlib-pkcs8`   — PKCS#8 / SPKI / PEM encoding for X.509
 * `kyberlib-wasm`    — wasm-bindgen JS shim

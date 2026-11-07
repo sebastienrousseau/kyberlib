@@ -306,6 +306,9 @@ parity with C consumers, which is already covered by the
 
 ## Implementation notes (v0.0.12)
 
+(Since v0.0.16 the `avx2` and `nasm` features no longer exist,
+[ADR 0009](./0009-remove-avx2-backend.md).)
+
 The `fips` feature shipped in v0.0.12 (PR #252, `crates/kyberlib/src/fips.rs`,
 `crates/kyberlib/src/backend.rs`, `docs/FIPS.md`) and departs from the
 design above in these ways:

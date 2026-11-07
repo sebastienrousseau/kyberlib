@@ -58,7 +58,7 @@ GitHub Release.
    version = "0.0.7"   # ← bump here
    ```
 
-   Every member crate (`kyberlib`, `kyberlib-asm`, `kyberlib-hybrid`,
+   Every member crate (`kyberlib`, `kyberlib-hybrid`,
    `kyberlib-pkcs8`, `kyberlib-wasm`) inherits.
 
 2. **Update path-dep version pins.** The three satellites

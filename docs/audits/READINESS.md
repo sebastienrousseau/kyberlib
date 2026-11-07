@@ -43,7 +43,7 @@
 | Item | Status | Notes |
 |------|:------:|-------|
 | Safe core `#![forbid(unsafe_code)]` (no-feature build path) | ✅ | `crates/kyberlib/src/lib.rs` cfg-gated forbid |
-| AVX2 backend isolated by feature | 🟡 | Currently `crates/kyberlib/src/avx2/`; the move to `crates/kyberlib-asm` is tracked under #143 (ADR 0002). AVX2 code is reachable today via `cargo build --features avx2`. |
+| No `unsafe` / SIMD code to review | ✅ | The AVX2 backend never compiled and was removed in v0.0.16 (ADR 0009); `#![forbid(unsafe_code)]` holds in every build. |
 | `// SAFETY:` justification on every unsafe block | 🟡 | Many blocks are wrappers around SIMD intrinsics; not all carry inline SAFETY comments. RFP §3.1 explicitly asks the auditor to flag missing ones. |
 
 ## Supply chain

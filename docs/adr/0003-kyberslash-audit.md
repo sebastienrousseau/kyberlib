@@ -84,6 +84,9 @@ present in kyberlib.
 
 #### AVX2 backend (`crates/kyberlib/src/avx2/`)
 
+> Removed in v0.0.16 ([ADR 0009](./0009-remove-avx2-backend.md)); the
+> section is kept as the record of the 2026-05 audit.
+
 The AVX2 backend uses Intel SIMD intrinsics throughout. There is
 **no integer SIMD division instruction** in AVX2 — the only way to
 divide is the multiply-and-shift approximation, exactly the Barrett

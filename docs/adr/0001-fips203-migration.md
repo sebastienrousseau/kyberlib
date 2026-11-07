@@ -192,7 +192,8 @@ documented inline at the patch site.
 
 ### Neutral
 
-* **AVX2 backend parity** — the changes above touched only the
+* **AVX2 backend parity** (superseded: the backend never compiled and
+  was removed in v0.0.16, [ADR 0009](./0009-remove-avx2-backend.md)) — the changes above touched only the
   reference backend (`crates/kyberlib/src/reference/indcpa.rs` and
   `crates/kyberlib/src/kem.rs`). The AVX2 backend at
   `crates/kyberlib/src/avx2/indcpa.rs` carries its own `indcpa_keypair`

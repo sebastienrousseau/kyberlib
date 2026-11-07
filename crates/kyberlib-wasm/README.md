@@ -155,7 +155,6 @@ WebCrypto AES-GCM combiner.
 | Crate | What it is | Status (v0.0.15) | Use case |
 |---|---|---|---|
 | [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
-| [`kyberlib-asm`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-asm) | AVX2 / NEON / SIMD acceleration backend | Skeleton, unpublished; the AVX2 backend does not compile, [#143](https://github.com/sebastienrousseau/kyberlib/issues/143) | High-throughput servers; embedded NEON targets. |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit | Interop with `draft-ietf-tls-ecdhe-mlkem`; HPKE-style KEM. |
 | [`kyberlib-pkcs8`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-pkcs8) | PKCS#8 / SPKI / PEM per RFC 9935, incl. encrypted PKCS#8 | Implemented; unpublished until the audit | Key files, X.509 public keys, OpenSSL exchange. |
 | **[`kyberlib-wasm`](https://crates.io/crates/kyberlib-wasm)** | **`wasm-bindgen` wrapper for browser / Node / Cloudflare Workers / Deno** | **Published with `kyberlib`** | **Browser cryptography; built with `wasm-pack`.** |

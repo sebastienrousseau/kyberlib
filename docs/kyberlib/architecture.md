@@ -24,7 +24,6 @@ crates/kyberlib/src/
 ├── paramsets.rs        MlKemParams trait — unified parameter pack (#130b)
 ├── rng.rs              `randombytes` wrapper around rand_core::RngCore
 ├── symmetric.rs        SHAKE / AES-256-CTR backend selection
-├── avx2/               (cfg-gated) AVX2-accelerated backend
 └── reference/          pure-Rust reference backend (the audit target)
     ├── mod.rs
     ├── aes256ctr.rs    "90s mode" symmetric primitive (deprecated)
@@ -96,37 +95,21 @@ call — acceptable for non-embedded targets.
 See [`paramsets.rs`](../../crates/kyberlib/src/paramsets.rs) for the trait itself
 and the unit tests verifying FIPS 203 §6 formulas.
 
-## Two backends — which one is active?
+## Backends
 
-```text
-       ┌─────────────────────────────────────────────────────────┐
-       │  Cargo features                                         │
-       │                                                         │
-       │   default = ["kyber768", "std"]                         │
-       │                                                         │
-       │   #[cfg(all(target_arch = "x86_64", feature = "avx2"))] │
-       │       mod avx2;       ← uses unsafe SIMD intrinsics     │
-       │   #[cfg(not(...))]                                      │
-       │       mod reference;  ← pure-safe-Rust port             │
-       │                                                         │
-       └─────────────────────────────────────────────────────────┘
-```
-
-* `reference/` is the audit target. KyberSlash audit (ADR 0003) was
-  performed against this backend; FIPS 203 ACVP conformance is verified
-  against this backend (180 / 180 vectors green).
-* `avx2/` is performance-only. Lifting it into a dedicated crate is
-  tracked as #143 (see [ADR 0002](../adr/0002-asm-quarantine.md)).
+* `reference/` is the pure-Rust implementation and the audit target. The
+  KyberSlash audit (ADR 0003) was performed against it, and FIPS 203
+  ACVP conformance is verified against it (180 / 180 vectors).
+* With the `fips` feature, the typed API runs inside the AWS-LC FIPS
+  module instead (`fips.rs`, [`../FIPS.md`](../FIPS.md)).
+* The AVX2 backend never compiled and was removed in v0.0.16; SIMD comes
+  from the planned libcrux backend
+  ([ADR 0009](../adr/0009-remove-avx2-backend.md), #171).
 
 ## Safety boundaries
 
-* **`#![forbid(unsafe_code)]`** on the safe core under default features.
-  This is the strongest Rust lint level — inner `#[allow]` cannot lift it.
-* **`#![deny(unsafe_code)]` + `#[cfg_attr(avx2, allow(unsafe_code))]`
-  on `mod avx2;`** under `--features avx2`. Granular gate — the
-  safe-core modules stay unsafe-free even when SIMD is enabled.
-* Every `unsafe` block in `avx2/` is paired with a `// SAFETY:` comment
-  describing the invariant the call relies on.
+* **`#![forbid(unsafe_code)]`** on the whole crate, in every build. This
+  is the strongest Rust lint level: inner `#[allow]` cannot lift it.
 
 See [`safety.md`](./safety.md) for the full unsafe policy + the
 constant-time guarantees.

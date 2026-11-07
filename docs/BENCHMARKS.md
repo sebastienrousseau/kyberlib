@@ -20,7 +20,7 @@ report.
 | Memory | 16 GiB LPDDR5 |
 | OS | macOS 26.5 (BuildVersion 25F71) |
 | Toolchain | `rustc 1.95.0 (59807616e 2026-04-14)` |
-| Backend | pure-Rust reference (no `avx2` — host is aarch64) |
+| Backend | pure-Rust reference |
 | Workspace | `kyberlib` v0.0.7 |
 
 ## ML-KEM-768 — primary API surface
@@ -144,12 +144,12 @@ core, mean of 1000 samples, lower is better):
 
 The C-backed (`aws-lc-rs`) and verified-Rust-with-aggressive-SIMD
 (`libcrux-ml-kem`) implementations have a structural 1.5–2× edge
-over portable pure-Rust on aarch64. With the `avx2` feature on
-x86_64 (issue [#143] / [#172] NEON port) the pure-Rust gap closes
-to within 10–15 %.
+over portable pure-Rust on aarch64. kyberlib's planned libcrux
+backend ([#171] / [#172]) is the route to those SIMD paths; the
+in-tree AVX2 code never compiled and was removed in 0.0.16.
 
 See [`docs/COMPARISON.md`](./COMPARISON.md) for the full
 methodology + reproducible scripts.
 
-[#143]: https://github.com/sebastienrousseau/kyberlib/issues/143
+[#171]: https://github.com/sebastienrousseau/kyberlib/issues/171
 [#172]: https://github.com/sebastienrousseau/kyberlib/issues/172

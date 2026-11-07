@@ -31,25 +31,16 @@ To run the known answer tests you will need to enable `KYBER_SECURITY_PARAMETERa
 RUSTFLAGS=' --cfg KYBER_SECURITY_PARAMETERat' cargo test --features "kyber1024 90s"
 ```
 
-For applicable x86 architectures you must export the avx2 RUSTFLAGS if you don't want to test on the reference codebase.
-
 To run a matrix of all possible features use the helper script from this folder:
 
 ```shell
 ./run_all_tests.sh
 ```
 
-The script also checks for the existence of different environment variables and modifies
-its behaviour
-
-* KAT: Runs the known answer tests
-* AVX2: Runs avx2 code on x86 platforms with compiled GAS files
-* NASM: Runs avx2 code with both GAS and NASM files separately, requires a NASM compiler installed
-
-To activate, instantiate the variables, for example:
+Set `KAT=1` to also run the known answer tests:
 
 ```shell
-KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
+KAT=1 ./run_all_tests.sh
 ```
 
 Test files:

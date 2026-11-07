@@ -8,20 +8,14 @@ where the bodies are buried.
 
 ## Unsafe code policy
 
-| Configuration | Lint level | Effect |
-|---|---|---|
-| Default (no `avx2`, no `nasm`) | `#![forbid(unsafe_code)]` | Strongest. No `#[allow]` inside the crate can lift this. The safe-core surface (`api`, `kex`, `kem`, `ml_kem`, `paramsets`, `params`, `rng`, `symmetric`, `oid`, `error`, `reference/*`) is guaranteed unsafe-free at compile time. |
-| `--features avx2` or `--features nasm` | `#![deny(unsafe_code)]` crate-wide + `#[cfg_attr(avx2, allow(unsafe_code))]` on `mod avx2;` only | Granular: the safe-core modules still inherit `deny`. Only the `avx2/` SIMD-intrinsics + assembly trampoline module can hold `unsafe`. |
+`kyberlib` is `#![forbid(unsafe_code)]` in every build: no feature and no
+inner `#[allow]` can lift it. The whole crate (`api`, `hazmat`, `kem`,
+`ml_kem`, `paramsets`, `params`, `rng`, `symmetric`, `oid`, `error`,
+`reference/*`, and `fips`, which calls the `aws-lc-rs` safe API) is
+unsafe-free at compile time.
 
-Every `unsafe` block in `avx2/` is paired with a `// SAFETY:` comment
-documenting the invariant the call relies on (typically: alignment,
-length, target-feature gate).
-
-Issue [#143](https://github.com/sebastienrousseau/kyberlib/issues/143)
-tracks relocating the AVX2 surface into a dedicated `kyberlib-asm`
-crate so the file layout matches the safety boundary 1:1. The
-*safety property* — safe core stays safe regardless of feature set
-— has already landed via the granular gate.
+The AVX2 backend that used to need `unsafe` never compiled and was
+removed in v0.0.16 ([ADR 0009](../adr/0009-remove-avx2-backend.md)).
 
 ## Constant-time guarantees
 
@@ -124,9 +118,6 @@ keeps the secret bytes private behind `as_bytes()`.
 * **Quantum resistance of the X25519 half of the hybrid construction**
   — when used in `kyberlib-hybrid`, X25519 provides classical
   hardness only. The ML-KEM half is the post-quantum guarantee.
-* **Soundness of unsafe AVX2 backend** — `forbid(unsafe_code)` is
-  active only on the safe core. The AVX2 backend is reviewed but
-  not formally verified.
 * **FIPS 140-3 module validation** — kyberlib is not currently a
   CMVP-validated module. Issue
   [#170](https://github.com/sebastienrousseau/kyberlib/issues/170)
