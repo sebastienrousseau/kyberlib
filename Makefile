@@ -104,6 +104,9 @@ kyberslash-guard: ## Fail if any non-annotated `/ KYBER_Q` / `% KYBER_Q` appears
 non-exhaustive-guard: ## Fail if a public struct or enum lacks #[non_exhaustive] (#157).
 	bash scripts/non-exhaustive-guard.sh
 
+reuse: ## REUSE 3.3 licence and copyright check (requires `reuse`).
+	reuse lint
+
 # --------------------------------------------------------------- ACVP (phase 2)
 acvp: ## Run NIST ACVP ML-KEM-512/768/1024 vectors (180 cases). Reports pass / fail per group.
 	RUSTFLAGS='--cfg KYBER_SECURITY_PARAMETERat' \
@@ -134,4 +137,4 @@ clean: ## cargo clean.
 	$(CARGO) clean
 
 # --------------------------------------------------------------- CI parity
-ci: fmt-check clippy doc test deny machete kyberslash-guard non-exhaustive-guard ## Run the local CI superset.
+ci: fmt-check clippy doc test deny machete kyberslash-guard non-exhaustive-guard reuse ## Run the local CI superset.
