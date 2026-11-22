@@ -46,6 +46,21 @@ versioning and support policy.
   stuck at 0.0.7, the crate README's "60 / 60" ACVP count (it is 180),
   stale statements in PLAN.md, four broken links, and a missing ADR
   template that CONTRIBUTING.md told contributors to copy.
+- `bindgen` (build dependency of the `fips` backend) is locked to
+  `syn` 2 again; a lock refresh had moved it to `syn` 3, which it
+  cannot compile against.
+- Nine reference-backend loops iterate the polynomial vector instead
+  of indexing it, for Rust 1.100's `needless_range_loop`; output is
+  unchanged.
+
+### Dependencies
+
+- Minor and patch updates from Dependabot #260 (`aes` 0.9.4,
+  `crypto-bigint` 0.7.11, `cc` 1.11.3) and GitHub Actions updates
+  from #257.
+- `sha3` stays at 0.10 (#259 is open): 0.12 brings `cpufeatures` 0.3
+  next to the 0.2 that `x25519-dalek` 2 uses, and `x25519-dalek` 3
+  needs `rand_core` 0.10.
 
 ## [0.0.15] - Unreleased
 
