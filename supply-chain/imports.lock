@@ -154,8 +154,8 @@ when = "2026-05-20"
 trusted-publisher = "github:RustCrypto/block-modes"
 
 [[publisher.cc]]
-version = "1.10.0"
-when = "2026-10-23"
+version = "1.11.3"
+when = "2026-11-20"
 trusted-publisher = "github:rust-lang/cc-rs"
 
 [[publisher.cexpr]]
@@ -247,8 +247,8 @@ user-login = "taiki-e"
 user-name = "Taiki Endo"
 
 [[publisher.crypto-bigint]]
-version = "0.7.10"
-when = "2026-10-26"
+version = "0.7.11"
+when = "2026-11-08"
 trusted-publisher = "github:RustCrypto/crypto-bigint"
 
 [[publisher.crypto-common]]
