@@ -27,10 +27,10 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
     {
         let mut t = [0u16; 8];
         let mut idx = 0usize;
-        for i in 0..KYBER_SECURITY_PARAMETER {
+        for poly in a.vec.iter() {
             for j in 0..KYBER_N / 8 {
                 for (k, t_k) in t.iter_mut().enumerate() {
-                    *t_k = a.vec[i].coeffs[8 * j + k] as u16;
+                    *t_k = poly.coeffs[8 * j + k] as u16;
                     *t_k = t_k.wrapping_add(
                         (((*t_k as i16) >> 15) & KYBER_Q as i16) as u16,
                     );
@@ -60,10 +60,10 @@ pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
     {
         let mut t = [0u16; 4];
         let mut idx = 0usize;
-        for i in 0..KYBER_SECURITY_PARAMETER {
+        for poly in a.vec.iter() {
             for j in 0..KYBER_N / 4 {
                 for (k, t_k) in t.iter_mut().enumerate() {
-                    *t_k = a.vec[i].coeffs[4 * j + k] as u16;
+                    *t_k = poly.coeffs[4 * j + k] as u16;
                     *t_k = t_k.wrapping_add(
                         (((*t_k as i16) >> 15) & KYBER_Q as i16) as u16,
                     );
@@ -393,7 +393,7 @@ pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
     {
         let mut t = [0u16; 8];
         let mut idx = 0usize;
-        for i in 0..KYBER_SECURITY_PARAMETER {
+        for poly in r.vec.iter_mut() {
             for j in 0..KYBER_N / 8 {
                 t[0] = (a[idx]) as u16 | (a[idx + 1] as u16) << 8;
                 t[1] =
@@ -415,7 +415,7 @@ pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
                 idx += 11;
 
                 for k in 0..8 {
-                    r.vec[i].coeffs[8 * j + k] =
+                    poly.coeffs[8 * j + k] =
                         (((t[k] & 0x7FF) as u32 * KYBER_Q as u32
                             + 1024)
                             >> 11) as i16;
@@ -428,7 +428,7 @@ pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
     {
         let mut idx = 0usize;
         let mut t = [0u16; 4];
-        for i in 0..KYBER_SECURITY_PARAMETER {
+        for poly in r.vec.iter_mut() {
             for j in 0..KYBER_N / 4 {
                 t[0] = (a[idx]) as u16 | (a[idx + 1] as u16) << 8;
                 t[1] =
@@ -440,7 +440,7 @@ pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
                 idx += 5;
 
                 for (k, item) in t.iter().enumerate() {
-                    r.vec[i].coeffs[4 * j + k] =
+                    poly.coeffs[4 * j + k] =
                         ((((*item as u32) & 0x3FF) * KYBER_Q as u32
                             + 512)
                             >> 10) as i16;
@@ -481,8 +481,8 @@ pub(crate) fn polyvec_frombytes(r: &mut Polyvec, a: &[u8]) {
 ///
 /// Arguments:   - Polyvec r: in/output vector of polynomials
 pub(crate) fn polyvec_ntt(r: &mut Polyvec) {
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_ntt(&mut r.vec[i]);
+    for poly in r.vec.iter_mut() {
+        poly_ntt(poly);
     }
 }
 
@@ -492,8 +492,8 @@ pub(crate) fn polyvec_ntt(r: &mut Polyvec) {
 ///
 /// Arguments:   - Polyvec r: in/output vector of polynomials
 pub(crate) fn polyvec_invntt_tomont(r: &mut Polyvec) {
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_invntt_tomont(&mut r.vec[i]);
+    for poly in r.vec.iter_mut() {
+        poly_invntt_tomont(poly);
     }
 }
 
@@ -526,8 +526,8 @@ pub(crate) fn polyvec_basemul_acc_montgomery(
 ///
 /// Arguments:   - poly *r:   input/output polynomial
 pub(crate) fn polyvec_reduce(r: &mut Polyvec) {
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_reduce(&mut r.vec[i]);
+    for poly in r.vec.iter_mut() {
+        poly_reduce(poly);
     }
 }
 

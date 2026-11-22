@@ -236,12 +236,12 @@ where
     let (publicseed, noiseseed) = buf.split_at(KYBER_SYM_BYTES);
     gen_a(&mut a, publicseed);
 
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut skpv.vec[i], noiseseed, nonce);
+    for poly in skpv.vec.iter_mut() {
+        poly_getnoise_eta1(poly, noiseseed, nonce);
         nonce += 1;
     }
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut e.vec[i], noiseseed, nonce);
+    for poly in e.vec.iter_mut() {
+        poly_getnoise_eta1(poly, noiseseed, nonce);
         nonce += 1;
     }
 
@@ -295,12 +295,12 @@ pub(crate) fn indcpa_enc(
     poly_frommsg(&mut k, m);
     gen_at(&mut at, &seed);
 
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut sp.vec[i], coins, nonce);
+    for poly in sp.vec.iter_mut() {
+        poly_getnoise_eta1(poly, coins, nonce);
         nonce += 1;
     }
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta2(&mut ep.vec[i], coins, nonce);
+    for poly in ep.vec.iter_mut() {
+        poly_getnoise_eta2(poly, coins, nonce);
         nonce += 1;
     }
     poly_getnoise_eta2(&mut epp, coins, nonce);
