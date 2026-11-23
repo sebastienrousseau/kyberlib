@@ -173,8 +173,8 @@ user-login = "madsmtm"
 user-name = "Mads Marquart"
 
 [[publisher.clap]]
-version = "4.6.7"
-when = "2026-09-14"
+version = "4.6.9"
+when = "2026-11-20"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
@@ -187,8 +187,8 @@ user-login = "epage"
 user-name = "Ed Page"
 
 [[publisher.clap_derive]]
-version = "4.6.7"
-when = "2026-09-14"
+version = "4.6.9"
+when = "2026-11-20"
 user-id = 6743
 user-login = "epage"
 user-name = "Ed Page"
@@ -638,8 +638,8 @@ user-login = "dtolnay"
 user-name = "David Tolnay"
 
 [[publisher.syn]]
-version = "3.0.3"
-when = "2026-07-22"
+version = "3.0.10"
+when = "2026-11-09"
 user-id = 3618
 user-login = "dtolnay"
 user-name = "David Tolnay"
