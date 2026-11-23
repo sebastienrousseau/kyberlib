@@ -126,7 +126,7 @@ jobs:
           toolchain: stable
       # Pinned: releases before 0.10 reject a `[[trusted.*]]` entry that
       # names a `trusted-publisher` instead of a `user-id`.
-      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.87.31, installs cargo-vet
+      - uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2.87.31, installs cargo-vet
         with:
           tool: cargo-vet@0.10.2
       - run: cargo vet --locked
@@ -296,7 +296,7 @@ jobs:
       # (libcrux-ml-dsa) which uses CVSS 4.0. PR #805 in
       # EmbarkStudios/cargo-deny added the parser support
       # (merged 2025-11-23, shipped in 0.19.6).
-      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25  # v2.1.1
+      - uses: EmbarkStudios/cargo-deny-action@17aeb3c839e42274e2b8adf721c8c65edfdc74dd  # v2.1.3
         with:
           command: check
           # `--all-features` here is for advisory/license graph
@@ -335,7 +335,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: bnjbvr/cargo-machete@ac30a525c0a8d163a92d727b3ff079ee3f6ecb08  # v0.7.0
+      - uses: bnjbvr/cargo-machete@431e75731b681a69a4cfdeb1315b505778bb5c70  # v0.7.0
 
   vendor-build:
     name: Vendor + offline build (air-gap simulation)
@@ -472,7 +472,7 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68  # v2.88.1
+        uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f  # v2.90.6
         with:
           tool: cargo-llvm-cov
       - name: Run coverage gate
