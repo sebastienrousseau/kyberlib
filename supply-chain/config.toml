@@ -33,11 +33,6 @@ criteria = "safe-to-deploy"
 audit-as-crates-io = true
 criteria = "safe-to-deploy"
 
-[[exemptions.aes]]
-version = "0.8.4"
-criteria = "safe-to-deploy"
-suggest = false
-
 [[exemptions.criterion]]
 version = "0.5.1"
 criteria = "safe-to-run"
