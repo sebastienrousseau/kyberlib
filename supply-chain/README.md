@@ -62,7 +62,7 @@ rewrites it). Comments in those files do not survive, so the reasoning
 lives here:
 
 - The exemptions are grouped by role: production dependencies
-  (`safe-to-deploy`), build dependencies (`cc`, `nasm-rs`; `safe-to-run`,
+  (`safe-to-deploy`), build dependencies (`cc`; `safe-to-run`,
   they only execute at build time) and dev dependencies (`criterion`,
   `serde`, `serde_json`, `wasm-bindgen-test`; `safe-to-run`, they only
   enter test and bench binaries).
@@ -71,7 +71,5 @@ lives here:
   parse and `cargo vet` never ran. They are pinned to the versions the
   lockfile carried when the format was fixed (1.0.229 and 1.0.151),
   narrower than the original intent, never looser.
-- `kyberlib-asm` is `publish = false`, so its policy no longer asks
-  cargo-vet to audit it as a crates.io crate (that lookup failed).
 - `exemptions-baseline.txt` is the ceiling CI holds the exemption count
   to: it may go down, never up.

@@ -31,7 +31,7 @@ KEM in HPKE.
   the all-zero X25519 check, and SEC 1 point validation
   (`tests/input_checks.rs`, `tests/secp_input_checks.rs`).
 
-Wire layouts are in [`doc/spec.md`](doc/spec.md).
+Wire layouts are in [`docs/kyberlib-hybrid/spec.md`](../../docs/kyberlib-hybrid/spec.md).
 
 ## Status
 

@@ -130,10 +130,9 @@ jobs:
 
       # The release-pipeline validation gates run against each
       # workspace member's default features — same surface as
-      # `cargo install kyberlib`. AVX2 / NASM / 90s features have
-      # known pre-existing compile issues that don't affect the
-      # default user surface; they're not gating for the release
-      # pipeline. The broader cross-feature matrix lives in
+      # `cargo install kyberlib`. The optional feature sets (fips,
+      # hazmat, 90s, the hybrid and PKCS#8 crates) are tested by their
+      # own CI jobs on every pull request. The broader cross-feature matrix lives in
       # `.github/workflows/ci.yml`'s `test-matrix` job.
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
@@ -227,7 +226,7 @@ jobs:
           subject-path: dist/*.crate
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
 
       - name: Cosign keyless sign-blob (Fulcio + Rekor)
         working-directory: dist

@@ -13,8 +13,8 @@
 # workspace Cargo.toml.
 msrv = "1.89"
 
-# Avoid `clippy::module_inception` shouting at the `reference` / `avx2`
-# backend modules whose internal layout mirrors the upstream
+# Avoid `clippy::module_inception` shouting at the `reference`
+# backend modules, whose internal layout mirrors the upstream
 # pq-crystals C reference.
 allow-private-module-inception = true
 

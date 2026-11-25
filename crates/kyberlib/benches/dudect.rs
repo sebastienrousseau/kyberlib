@@ -15,7 +15,7 @@
 //!
 //! - **Negative result only** — passing means we *failed to detect* a
 //!   leak, not that one provably doesn't exist. Pair with the formal
-//!   audit in `doc/adr/0003-kyberslash-audit.md` and the structural
+//!   audit in `docs/adr/0003-kyberslash-audit.md` and the structural
 //!   Barrett-reduction guarantees inherited from pq-crystals.
 //! - **Noise-bound** — runs on shared CI hosts are drowned in noise.
 //!   For actionable signal, run on a quiescent baremetal host.

@@ -22,13 +22,11 @@ cd "$REPO_ROOT"
 
 # Not public API:
 #   crates/atty-compat         workspace shim mirroring the `atty` crate's API
-#   crates/kyberlib/src/avx2   `mod avx2;` is private
 #   .../reference/aes256ctr.rs `pub(crate) mod aes256ctr;`
 mapfile -t files < <(
-  find crates/kyberlib/src crates/kyberlib-asm/src crates/kyberlib-hybrid/src \
+  find crates/kyberlib/src crates/kyberlib-hybrid/src \
        crates/kyberlib-pkcs8/src crates/kyberlib-wasm/src -name '*.rs' \
-    | grep -v -e '^crates/kyberlib/src/avx2/' \
-              -e '^crates/kyberlib/src/reference/aes256ctr.rs$' \
+    | grep -v -e '^crates/kyberlib/src/reference/aes256ctr.rs$' \
     | sort
 )
 

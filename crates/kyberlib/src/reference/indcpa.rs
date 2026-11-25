@@ -213,7 +213,6 @@ where
     let mut a = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
     let (mut e, mut pkpv, mut skpv) =
         (Polyvec::new(), Polyvec::new(), Polyvec::new());
-    let mut nonce = 0u8;
     let mut buf = [0u8; 2 * KYBER_SYM_BYTES];
     let mut randbuf = [0u8; 2 * KYBER_SYM_BYTES];
 
@@ -236,13 +235,16 @@ where
     let (publicseed, noiseseed) = buf.split_at(KYBER_SYM_BYTES);
     gen_a(&mut a, publicseed);
 
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut skpv.vec[i], noiseseed, nonce);
-        nonce += 1;
+    // PRF nonces N = 0 .. 2k - 1, in FIPS 203 order: s, then e.
+    for (i, poly) in skpv.vec.iter_mut().enumerate() {
+        poly_getnoise_eta1(poly, noiseseed, i as u8);
     }
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut e.vec[i], noiseseed, nonce);
-        nonce += 1;
+    for (i, poly) in e.vec.iter_mut().enumerate() {
+        poly_getnoise_eta1(
+            poly,
+            noiseseed,
+            (KYBER_SECURITY_PARAMETER + i) as u8,
+        );
     }
 
     polyvec_ntt(&mut skpv);
@@ -289,21 +291,27 @@ pub(crate) fn indcpa_enc(
     let (mut v, mut k, mut epp) =
         (Poly::new(), Poly::new(), Poly::new());
     let mut seed = [0u8; KYBER_SYM_BYTES];
-    let mut nonce = 0u8;
 
     unpack_pk(&mut pkpv, &mut seed, pk);
     poly_frommsg(&mut k, m);
     gen_at(&mut at, &seed);
 
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta1(&mut sp.vec[i], coins, nonce);
-        nonce += 1;
+    // PRF nonces N = 0 .. 2k, in FIPS 203 order: y, then e1, then e2.
+    for (i, poly) in sp.vec.iter_mut().enumerate() {
+        poly_getnoise_eta1(poly, coins, i as u8);
     }
-    for i in 0..KYBER_SECURITY_PARAMETER {
-        poly_getnoise_eta2(&mut ep.vec[i], coins, nonce);
-        nonce += 1;
+    for (i, poly) in ep.vec.iter_mut().enumerate() {
+        poly_getnoise_eta2(
+            poly,
+            coins,
+            (KYBER_SECURITY_PARAMETER + i) as u8,
+        );
     }
-    poly_getnoise_eta2(&mut epp, coins, nonce);
+    poly_getnoise_eta2(
+        &mut epp,
+        coins,
+        (2 * KYBER_SECURITY_PARAMETER) as u8,
+    );
 
     polyvec_ntt(&mut sp);
 

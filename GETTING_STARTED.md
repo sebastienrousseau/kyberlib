@@ -109,8 +109,8 @@ fn main() -> Result<(), kyberlib::KyberLibError> {
   comparison vs `RustCrypto/ml-kem` / `pqcrypto-kyber` / `oqs-rs`.
 * [`SECURITY.md`](./SECURITY.md) — threat model, constant-time
   guarantees, ACVP conformance status.
-* [`doc/adr/`](./doc/adr/) — architectural decision records (KyberSlash
-  audit, AVX2 quarantine, FIPS 203 migration).
+* [`docs/adr/`](docs/adr/) — architectural decision records (KyberSlash
+  audit, FIPS 203 migration, AVX2 removal, key exchanges under `hazmat`).
 * [`GLOSSARY.md`](./GLOSSARY.md) — FIPS 203 / ML-KEM / lattice-cryptography
   terminology.
 * [`PLAN.md`](./PLAN.md) — v0.0.7 audit roadmap and the multi-day

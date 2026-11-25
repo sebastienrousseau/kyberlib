@@ -23,8 +23,8 @@
 //!   `scripts/dudect.sh`.
 //! - **`no_std`**: optional `std` feature. Default features pull in
 //!   `std` for ergonomic error types.
-//! - **No `unsafe`** in the safe core. The optional `avx2` / `nasm`
-//!   backends scope `unsafe` to the SIMD module only.
+//! - **No `unsafe`**: the crate is `#![forbid(unsafe_code)]` in every
+//!   build.
 //!
 //! ## Quick start (typed API — recommended)
 //!
@@ -72,8 +72,6 @@
 //! | `kyber1024` |  | NIST security category 5 (≈ AES-256). Required by CNSA 2.0 for NSS by 2027-01-01. Mutually exclusive with `kyber768`/`kyber512`. |
 //! | `90s` |  | "Kyber-90s" variant — SHA-2 / AES-CTR instead of SHAKE. Removed in FIPS 203 but retained for pre-spec compatibility. |
 //! | `90s-fixslice` |  | `90s` with a bitsliced AES implementation (`aes` + `ctr` crates). |
-//! | `avx2` |  | AVX2-accelerated backend (x86_64 only). Compile-errors on other arches. |
-//! | `nasm` |  | AVX2 via NASM assembler (instead of GAS). Requires NASM installed. Implies `avx2`. |
 //! | `hazmat` |  | Re-exports the IND-CPA primitives (no Fujisaki–Okamoto transform). Advanced use only; the resulting construction is NOT IND-CCA secure. |
 //!
 //! ## Architecture
@@ -117,25 +115,10 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Every public item must carry rustdoc. See issue #137.
 #![deny(missing_docs)]
-// `unsafe` policy:
-//   - Default build (no `avx2`, no `nasm`): `forbid(unsafe_code)` —
-//     strongest guarantee, no inner `#[allow]` can lift it.
-//   - With `--features avx2` or `--features nasm`: crate-level
-//     `deny(unsafe_code)` keeps the safe-core modules (api / kex /
-//     kem / ml_kem / params / rng / symmetric / oid / error) unsafe-
-//     free; only the `mod avx2;` declaration itself carries
-//     `#[allow(unsafe_code)]`, so the SIMD intrinsics + assembly
-//     trampolines are the only place `unsafe` is permitted.
-//   - Phase 1.2 (#143) tracks the full source relocation into a
-//     dedicated `kyberlib-asm` workspace crate. The granular gate
-//     below gives the same *safety property* (safe core stays
-//     unsafe-free under every feature combination) without the
-//     cross-crate refactor.
-#![cfg_attr(
-    not(any(feature = "avx2", feature = "nasm")),
-    forbid(unsafe_code)
-)]
-#![cfg_attr(any(feature = "avx2", feature = "nasm"), deny(unsafe_code))]
+// `unsafe` policy: the crate forbids it in every build. The AVX2 backend,
+// which needed it, never compiled and was removed in v0.0.16 (ADR 0009);
+// SIMD speed is the libcrux backend's job (#171).
+#![forbid(unsafe_code)]
 
 // Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
@@ -154,33 +137,10 @@ compile_error!("Only one security level can be specified");
 pub const __VERIFIED_BACKEND_STUB: &str =
     "kyberlib `verified` feature is a phase-5 placeholder — see issue #171";
 
-// `#[allow(unsafe_code)]` is the granular exception to the crate-level
-// `deny(unsafe_code)` policy (see the policy block above). The safe-core
-// modules — declared below this — inherit `deny` and stay unsafe-free
-// even under `--features avx2`. Phase 1.2 (#143) relocates this module
-// into `kyberlib-asm` so the source layout matches the safety policy
-// 1:1.
-#[cfg(all(target_arch = "x86_64", feature = "avx2"))]
-// `cfg_attr` (rather than `#[allow]` directly) keeps the `allow` and
-// the cfg-gating in sync — without this, Rust 1.74's E0453 check
-// triggers `allow(unsafe_code) incompatible with previous forbid`
-// before cfg evaluation, even though the module is excluded under
-// default features.
-#[cfg_attr(
-    all(target_arch = "x86_64", feature = "avx2"),
-    allow(unsafe_code)
-)]
-mod avx2;
-#[cfg(all(target_arch = "x86_64", feature = "avx2"))]
-use avx2::*;
-
-#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 /// Reference implementation for the KyberLib library.
 pub mod reference;
-#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 use reference::*;
 
-#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
 #[cfg(feature = "hazmat")]
 pub use reference::indcpa;
 
