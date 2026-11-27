@@ -8,7 +8,28 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
-## [0.0.17] - Unreleased
+## [0.0.18] - Unreleased
+
+### Changed
+
+- **kyberlib no longer depends on `zeroize_derive` or `syn`.** Its
+  `Zeroize` and `ZeroizeOnDrop` impls are written in the crate (a
+  private `zeroize_fields!` macro) instead of derived, so the
+  workspace's `zeroize` no longer turns on `derive` and a dependent's
+  lockfile no longer gains a proc-macro build of `syn` 2 through
+  kyberlib. Every impl stays, and clears the same fields: `Keypair`
+  (both keys), `SharedSecret`, `MlKem512/768/1024DecapKey`, and all five
+  fields of `Uake` and `Ake`, each zeroized on drop.
+  `kyberlib-hybrid` keeps its derives (`x25519-dalek` enables `derive`
+  there regardless).
+
+### Fixed
+
+- `kyberlib-pkcs8`'s `rejects` test declares that it needs `alloc`, so
+  a build without default features skips it instead of failing.
+- `atty-compat` inherits the workspace lints (a cargo 1.100 warning).
+
+## [0.0.17] - 2026-11-27
 
 The first release since 0.0.11: it also ships everything listed under
 0.0.12 to 0.0.16 below.

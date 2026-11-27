@@ -15,7 +15,7 @@ For `no_std` consumers:
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.17", default-features = false }
+kyberlib = { version = "0.0.18", default-features = false }
 ```
 
 ## First keypair → encapsulate → decapsulate
