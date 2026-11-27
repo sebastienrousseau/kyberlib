@@ -169,6 +169,9 @@ pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
 
+/// SHA3-256 and SHAKE256 (FIPS 202) for constructions on ML-KEM.
+pub mod hash;
+
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;
 
