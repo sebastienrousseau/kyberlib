@@ -26,15 +26,21 @@ build: ## cargo build across the workspace (default features).
 	$(CARGO) build --workspace
 
 # --------------------------------------------------------------- testing
-test: ## cargo test --workspace --all-features.
-	$(CARGO) test --workspace --all-features
+test: ## cargo test as CI runs it: the workspace, then each crate's feature sets.
+	$(CARGO) test --workspace
+	$(CARGO) test -p kyberlib --features hazmat
+	$(CARGO) test -p kyberlib-hybrid --all-features
+	$(CARGO) test -p kyberlib-pkcs8 --all-features
 
 test-no-std: ## Build the safe core with no default features.
 	$(CARGO) check -p kyberlib --lib --no-default-features --features kyber768
 
 # --------------------------------------------------------------- quality
-clippy: ## clippy --all-targets -D warnings across the workspace.
-	$(CARGO) clippy --workspace --all-features --all-targets -- -D warnings
+clippy: ## clippy -D warnings as CI runs it (kyber512/768/1024 are exclusive, so no --all-features on the workspace).
+	$(CARGO) clippy --workspace --all-targets -- -D warnings
+	$(CARGO) clippy -p kyberlib --all-targets --features hazmat -- -D warnings
+	$(CARGO) clippy -p kyberlib-hybrid --all-targets --all-features -- -D warnings
+	$(CARGO) clippy -p kyberlib-pkcs8 --all-targets --all-features -- -D warnings
 
 fmt: ## Apply rustfmt across the workspace.
 	$(CARGO) fmt --all
@@ -43,7 +49,7 @@ fmt-check: ## Verify rustfmt across the workspace (no writes).
 	$(CARGO) fmt --all -- --check
 
 doc: ## Strict rustdoc build.
-	RUSTDOCFLAGS="$(RUSTDOCFLAGS)" $(CARGO) doc --no-deps --all-features --workspace
+	RUSTDOCFLAGS="$(RUSTDOCFLAGS)" $(CARGO) doc --no-deps --workspace
 
 # --------------------------------------------------------------- supply chain
 deny: ## cargo deny check (advisories, bans, licenses, sources).
