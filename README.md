@@ -67,7 +67,7 @@ Releases adhere strictly to https://github.com/sebastienrousseau/passmcp/release
 
 ```toml
 [dependencies]
-kyberlib = "0.0.17"
+kyberlib = "0.0.18"
 ```
 
 Or `cargo add kyberlib`.
@@ -78,7 +78,7 @@ parameter-set feature: the parameter set is a type (`MlKem512`, `MlKem768`,
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.17", default-features = false }
+kyberlib = { version = "0.0.18", default-features = false }
 ```
 
 **WebAssembly.** The core crate builds for `wasm32-unknown-unknown`; for
@@ -270,7 +270,7 @@ default.
 ```toml
 # Run ML-KEM inside the AWS-LC FIPS module.
 [dependencies]
-kyberlib = { version = "0.0.17", features = ["fips"] }
+kyberlib = { version = "0.0.18", features = ["fips"] }
 ```
 
 ---
@@ -346,13 +346,13 @@ commit; `Cargo.lock` is committed and CI builds `--locked`; commits on
 **Verifying a release.**
 
 ```bash
-gh release download v0.0.17 -R sebastienrousseau/kyberlib \
-  --pattern 'kyberlib-0.0.17.crate*' --pattern SHA256SUMS
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.17.crate
+gh release download v0.0.18 -R sebastienrousseau/kyberlib \
+  --pattern 'kyberlib-0.0.18.crate*' --pattern SHA256SUMS
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.18.crate
 cosign verify-blob \
   --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --bundle kyberlib-0.0.17.crate.cosign-bundle.json kyberlib-0.0.17.crate
+  --bundle kyberlib-0.0.18.crate.cosign-bundle.json kyberlib-0.0.18.crate
 shasum -a 256 --ignore-missing -c SHA256SUMS
 ```
 

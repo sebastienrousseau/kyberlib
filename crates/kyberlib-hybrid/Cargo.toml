@@ -44,7 +44,7 @@ secp384r1    = ["dep:p384", "dep:crypto-bigint"]
 # the workspace build uses — `cargo deny`'s wildcards check rejects
 # unversioned path deps, and `cargo publish` requires the version
 # stamp to be present on the manifest.
-kyberlib = { path = "../kyberlib", version = "0.0.17", default-features = false }
+kyberlib = { path = "../kyberlib", version = "0.0.18", default-features = false }
 # X25519 classical KEM. Activated only when the `x25519` feature is on.
 x25519-dalek = { workspace = true, optional = true }
 # SHAKE256 / SHA3-256 for X-Wing key expansion and its combiner.
@@ -56,7 +56,8 @@ p384         = { workspace = true, optional = true }
 # set below because no code names it.
 crypto-bigint = { workspace = true, optional = true }
 rand_core    = { workspace = true }
-zeroize      = { workspace = true }
+# The derive is free here: x25519-dalek turns it on regardless.
+zeroize      = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }

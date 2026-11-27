@@ -2,12 +2,12 @@
 # cargo-vet imports lock
 
 [[unpublished.kyberlib]]
-version = "0.0.17"
-audited_as = "0.0.11"
+version = "0.0.18"
+audited_as = "0.0.17"
 
 [[unpublished.kyberlib-wasm]]
-version = "0.0.17"
-audited_as = "0.0.11"
+version = "0.0.18"
+audited_as = "0.0.17"
 
 [[publisher.aead]]
 version = "0.6.1"
@@ -380,13 +380,13 @@ user-login = "epage"
 user-name = "Ed Page"
 
 [[publisher.kyberlib]]
-version = "0.0.11"
-when = "2026-10-26"
+version = "0.0.17"
+when = "2026-11-27"
 trusted-publisher = "github:sebastienrousseau/kyberlib"
 
 [[publisher.kyberlib-wasm]]
-version = "0.0.11"
-when = "2026-10-26"
+version = "0.0.17"
+when = "2026-11-27"
 trusted-publisher = "github:sebastienrousseau/kyberlib"
 
 [[publisher.libloading]]

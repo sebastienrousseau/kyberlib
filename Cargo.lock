@@ -1048,7 +1048,7 @@ dependencies = [
 
 [[package]]
 name = "kyberlib"
-version = "0.0.17"
+version = "0.0.18"
 dependencies = [
  "aes",
  "aws-lc-rs",
@@ -1068,7 +1068,7 @@ dependencies = [
 
 [[package]]
 name = "kyberlib-hybrid"
-version = "0.0.17"
+version = "0.0.18"
 dependencies = [
  "crypto-bigint",
  "kyberlib",
@@ -1083,7 +1083,7 @@ dependencies = [
 
 [[package]]
 name = "kyberlib-pkcs8"
-version = "0.0.17"
+version = "0.0.18"
 dependencies = [
  "der",
  "kyberlib",
@@ -1096,7 +1096,7 @@ dependencies = [
 
 [[package]]
 name = "kyberlib-wasm"
-version = "0.0.17"
+version = "0.0.18"
 dependencies = [
  "criterion",
  "getrandom 0.2.15",

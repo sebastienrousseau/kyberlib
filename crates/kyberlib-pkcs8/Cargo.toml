@@ -35,7 +35,7 @@ encryption = ["alloc", "pkcs8/encryption"]
 [dependencies]
 der = { version = "0.8.3", default-features = false }
 # See note on the same dep in `kyberlib-hybrid/Cargo.toml`.
-kyberlib = { path = "../kyberlib", version = "0.0.17", default-features = false }
+kyberlib = { path = "../kyberlib", version = "0.0.18", default-features = false }
 pkcs8 = { version = "0.11.0", default-features = false }
 spki = { version = "0.8.1", default-features = false }
 zeroize = { workspace = true }
@@ -55,6 +55,11 @@ required-features = ["pem", "std"]
 [[test]]
 name = "encrypted"
 required-features = ["encryption", "pem", "std"]
+
+# It encodes the keys it then breaks.
+[[test]]
+name = "rejects"
+required-features = ["alloc"]
 
 [lints]
 workspace = true

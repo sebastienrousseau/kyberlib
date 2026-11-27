@@ -66,7 +66,6 @@ use crate::{
 };
 use core::fmt;
 use rand_core::{CryptoRng, RngCore};
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::backend::{
     backend_decapsulate, backend_encapsulate, backend_keygen,
@@ -240,9 +239,11 @@ pub use sized::*;
 /// Construct via [`KemCore::generate`] →
 /// `EncapsulationKey::encapsulate` → `DecapsulationKey::decapsulate`;
 /// never directly by the consumer.
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone)]
 #[non_exhaustive]
 pub struct SharedSecret([u8; KYBER_SHARED_SECRET_BYTES]);
+
+zeroize_fields!(SharedSecret { 0 });
 
 impl SharedSecret {
     /// Wrap bytes produced by a backend in `crate::backend`.
@@ -344,9 +345,11 @@ impl MlKem768EncapKey {
 }
 
 /// ML-KEM-768 decapsulation key (private). 2400 bytes. Zeroized on drop.
-#[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct MlKem768DecapKey(pub(crate) [u8; KYBER_SECRET_KEY_BYTES]);
+
+zeroize_fields!(MlKem768DecapKey { 0 });
 
 impl fmt::Debug for MlKem768DecapKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
