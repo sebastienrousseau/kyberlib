@@ -135,6 +135,56 @@
 pub const __VERIFIED_BACKEND_STUB: &str =
     "kyberlib `verified` feature is a phase-5 placeholder — see issue #171";
 
+/// `Zeroize` that clears each listed field, and `ZeroizeOnDrop` through
+/// a `Drop` that calls it: what `#[derive(Zeroize, ZeroizeOnDrop)]`
+/// generates, without the derive's proc-macro build dependencies (`syn`,
+/// `zeroize_derive`). A field left out of the list is not cleared.
+macro_rules! zeroize_fields {
+    ($ty:ident { $($field:tt),+ $(,)? }) => {
+        impl zeroize::Zeroize for $ty {
+            fn zeroize(&mut self) {
+                $(zeroize::Zeroize::zeroize(&mut self.$field);)+
+            }
+        }
+
+        impl Drop for $ty {
+            fn drop(&mut self) {
+                zeroize::Zeroize::zeroize(self);
+            }
+        }
+
+        impl zeroize::ZeroizeOnDrop for $ty {}
+    };
+}
+
+#[cfg(test)]
+mod zeroize_fields_tests {
+    use core::sync::atomic::{AtomicUsize, Ordering};
+
+    /// Counts how often a field was zeroized.
+    static CLEARED: AtomicUsize = AtomicUsize::new(0);
+
+    struct Probe;
+
+    impl zeroize::Zeroize for Probe {
+        fn zeroize(&mut self) {
+            let _ = CLEARED.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    struct Holder(Probe, Probe);
+
+    zeroize_fields!(Holder { 0, 1 });
+
+    /// Dropping a value clears every listed field, once.
+    #[test]
+    fn drop_zeroizes_every_listed_field() {
+        CLEARED.store(0, Ordering::SeqCst);
+        drop(Holder(Probe, Probe));
+        assert_eq!(CLEARED.load(Ordering::SeqCst), 2);
+    }
+}
+
 /// Reference implementation for the KyberLib library.
 pub mod reference;
 use reference::*;

@@ -8,7 +8,6 @@
 use super::{MlKem1024, MlKem512};
 use crate::error::KyberLibError;
 use core::fmt;
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 // ---------------------------------------------------------------- ML-KEM-512 + 1024 typed wrappers
 
@@ -57,9 +56,11 @@ macro_rules! sized_wrapper_types {
         }
 
         /// Secret decapsulation key. Zeroized on drop.
-        #[derive(Clone, Zeroize, ZeroizeOnDrop, Eq, PartialEq)]
+        #[derive(Clone, Eq, PartialEq)]
         #[non_exhaustive]
         pub struct $dk(pub(crate) [u8; $sk_bytes]);
+
+        zeroize_fields!($dk { 0 });
 
         impl $dk {
             /// Construct from raw bytes.

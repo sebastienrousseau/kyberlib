@@ -50,7 +50,6 @@ use core::fmt;
 use crate::api::{PublicKey, SecretKey, SharedSecret};
 use crate::{kem::*, params::*, symmetric::kdf, KyberLibError};
 use rand_core::{CryptoRng, RngCore};
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Unilateral Key Exchange Initiation Byte Length
 pub const UAKE_INIT_BYTES: usize =
@@ -142,7 +141,7 @@ fn fmt_exchange(
 ///
 /// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
 /// fields are zeroized on drop.
-#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct Uake {
     /// The resulting shared secret from a key exchange
@@ -156,6 +155,14 @@ pub struct Uake {
     /// Ephemeral secret key
     pub eska: Eska,
 }
+
+zeroize_fields!(Uake {
+    shared_secret,
+    send_a,
+    send_b,
+    temp_key,
+    eska,
+});
 
 impl fmt::Debug for Uake {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -309,7 +316,7 @@ impl Uake {
 ///
 /// `Debug` redacts `shared_secret`, `temp_key` and `eska`, and all
 /// fields are zeroized on drop.
-#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct Ake {
     /// The resulting shared secret from a key exchange
@@ -323,6 +330,14 @@ pub struct Ake {
     /// Ephemeral secret key
     pub eska: Eska,
 }
+
+zeroize_fields!(Ake {
+    shared_secret,
+    send_a,
+    send_b,
+    temp_key,
+    eska,
+});
 
 impl fmt::Debug for Ake {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

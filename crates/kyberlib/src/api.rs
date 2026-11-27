@@ -36,7 +36,7 @@ use core::fmt;
 use crate::{
     error::KyberLibError, kem::*, params::*, CryptoRng, RngCore,
 };
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated = Result<
@@ -222,8 +222,8 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 ///
 /// # Secret handling (legacy)
 ///
-/// `Keypair` does not derive [`Copy`] (since v0.0.7) and derives
-/// [`Zeroize`] / [`ZeroizeOnDrop`] unconditionally — the `zeroize`
+/// `Keypair` does not derive [`Copy`] (since v0.0.7) and implements
+/// [`Zeroize`] / [`ZeroizeOnDrop`](zeroize::ZeroizeOnDrop) unconditionally — the `zeroize`
 /// Cargo feature is a no-op opt-out retained for one release.
 ///
 /// `Debug` redacts the secret key and prints only the two lengths,
@@ -237,13 +237,15 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 // without buying us safety, since the new typed API is where the
 // `#[non_exhaustive]` rigour lives.
 // non-exhaustive-guard: exempt (soft-deprecated; literals stay valid until removal)
-#[derive(Clone, Eq, PartialEq, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Keypair {
     /// The public key.
     pub public: PublicKey,
     /// The secret key.
     pub secret: SecretKey,
 }
+
+zeroize_fields!(Keypair { public, secret });
 
 impl fmt::Debug for Keypair {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

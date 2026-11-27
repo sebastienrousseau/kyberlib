@@ -51,7 +51,7 @@ crypto-bigint    = { version = "0.7.6", default-features = false }
 aws-lc-rs        = { version = "1.19.0", default-features = false, features = ["fips"] }
 wasm-bindgen     = { version = "0.2.122", default-features = false }
 wasm-bindgen-test = { version = "0.3.50" }
-zeroize          = { version = "1.8.2",  default-features = false, features = ["derive"] }
+zeroize          = { version = "1.8.2",  default-features = false }
 criterion        = { version = "0.5.1" }
 serde            = { version = "1.0",   default-features = false, features = ["derive"] }
 serde_json       = { version = "1.0",   default-features = false, features = ["alloc"] }

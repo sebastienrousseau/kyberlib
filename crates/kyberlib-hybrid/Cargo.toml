@@ -56,7 +56,8 @@ p384         = { workspace = true, optional = true }
 # set below because no code names it.
 crypto-bigint = { workspace = true, optional = true }
 rand_core    = { workspace = true }
-zeroize      = { workspace = true }
+# The derive is free here: x25519-dalek turns it on regardless.
+zeroize      = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 rand = { workspace = true, features = ["std", "std_rng", "getrandom"] }
