@@ -216,3 +216,66 @@ fn default_limits_accept_what_this_crate_and_openssl_write() {
         "OpenSSL's scrypt default ceiling"
     );
 }
+
+/// Decrypts `der` with the default limits, catching a panic, so a
+/// degenerate parameter shows as a failed assertion, not an abort.
+fn refused_without_panic(der: &[u8], what: &str) {
+    let der = der.to_vec();
+    let outcome = std::panic::catch_unwind(move || {
+        PrivateKey::<MlKem768>::decrypt_pkcs8_der(&der, PASSWORD)
+            .map(drop)
+    });
+    let result = outcome
+        .unwrap_or_else(|_| panic!("{what}: decryption panicked"));
+    assert!(result.is_err(), "{what}: accepted");
+}
+
+#[test]
+fn degenerate_scrypt_parameters_are_refused_not_a_panic() {
+    // GHSA-ppxp-qw4c-43c9: scrypt N = 0 made 128 * r * N = 0 pass the
+    // memory check, then panicked in pkcs5 before the password was used.
+    let advisory = "3062304e06092a864886f70d01050d3041302006092b06010401da47040b30130408010203040506\
+                    0708020100020108020101301d060960864801650304012a0410000102030405060708090a0b0c0d\
+                    0e0f041000000000000000000000000000000000";
+    let der: Vec<u8> = (0..advisory.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&advisory[i..i + 2], 16).unwrap())
+        .collect();
+    refused_without_panic(&der, "the advisory's file (N = 0)");
+    for (n, r, p) in [
+        (0, 8, 1),
+        (1, 8, 1),
+        (3, 8, 1),
+        (1 << 10, 0, 1),
+        (1 << 10, 8, 0),
+    ] {
+        let der = with_params(
+            "ml-kem-768",
+            "encrypted-scrypt.pem",
+            |params| {
+                if let pbes2::Kdf::Scrypt(k) = &mut params.kdf {
+                    (
+                        k.cost_parameter,
+                        k.block_size,
+                        k.parallelization,
+                    ) = (n, r, p);
+                }
+            },
+        );
+        refused_without_panic(
+            &der,
+            &format!("scrypt N = {n}, r = {r}, p = {p}"),
+        );
+    }
+}
+
+#[test]
+fn pbkdf2_with_no_iterations_is_refused_not_a_panic() {
+    let der =
+        with_params("ml-kem-768", "encrypted-pbkdf2.pem", |params| {
+            if let pbes2::Kdf::Pbkdf2(k) = &mut params.kdf {
+                k.iteration_count = 0;
+            }
+        });
+    refused_without_panic(&der, "PBKDF2 with 0 iterations");
+}
