@@ -21,7 +21,9 @@ The audit RFP, materials package, and readiness checklist live at
 
 **Please do not file public GitHub issues for security bugs.**
 
-Email <contact@kyberlib.com> with:
+Report it privately through GitHub's
+[private vulnerability reporting](https://github.com/sebastienrousseau/kyberlib/security/advisories/new)
+(the repository's Security tab, then *Report a vulnerability*), with:
 
 - a clear description of the bug,
 - the affected version(s) (commit SHA preferred),
