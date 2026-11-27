@@ -67,7 +67,7 @@ Releases adhere strictly to https://github.com/sebastienrousseau/passmcp/release
 
 ```toml
 [dependencies]
-kyberlib = "0.0.16"
+kyberlib = "0.0.17"
 ```
 
 Or `cargo add kyberlib`.
@@ -270,7 +270,7 @@ default.
 ```toml
 # Run ML-KEM inside the AWS-LC FIPS module.
 [dependencies]
-kyberlib = { version = "0.0.16", features = ["fips"] }
+kyberlib = { version = "0.0.17", features = ["fips"] }
 ```
 
 ---
@@ -346,13 +346,13 @@ commit; `Cargo.lock` is committed and CI builds `--locked`; commits on
 **Verifying a release.**
 
 ```bash
-gh release download v0.0.16 -R sebastienrousseau/kyberlib \
-  --pattern 'kyberlib-0.0.16.crate*' --pattern SHA256SUMS
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.16.crate
+gh release download v0.0.17 -R sebastienrousseau/kyberlib \
+  --pattern 'kyberlib-0.0.17.crate*' --pattern SHA256SUMS
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.17.crate
 cosign verify-blob \
   --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --bundle kyberlib-0.0.16.crate.cosign-bundle.json kyberlib-0.0.16.crate
+  --bundle kyberlib-0.0.17.crate.cosign-bundle.json kyberlib-0.0.17.crate
 shasum -a 256 --ignore-missing -c SHA256SUMS
 ```
 
