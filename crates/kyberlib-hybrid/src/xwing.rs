@@ -24,8 +24,6 @@ use kyberlib::{
     MlKem768DecapKey, MlKem768EncapKey,
 };
 use rand_core::{CryptoRng, RngCore};
-use sha3::digest::{ExtendableOutput, Update, XofReader};
-use sha3::{Digest, Sha3_256, Shake256};
 use x25519_dalek::{PublicKey, StaticSecret};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
@@ -159,9 +157,7 @@ impl XWingDecapKey {
         seed: &[u8; XWING_SEED_BYTES],
     ) -> Result<(Self, XWingEncapKey), KyberLibError> {
         let mut expanded = [0u8; 96];
-        let mut xof = Shake256::default();
-        xof.update(seed);
-        xof.finalize_xof().read(&mut expanded);
+        kyberlib::hash::shake256(seed, &mut expanded);
 
         let mut d = [0u8; 32];
         let mut z = [0u8; 32];
@@ -287,13 +283,15 @@ fn combiner(
     ct_x: &[u8; 32],
     pk_x: &[u8; 32],
 ) -> XWingSharedSecret {
-    let mut h = Sha3_256::new();
-    Digest::update(&mut h, ss_m);
-    Digest::update(&mut h, ss_x);
-    Digest::update(&mut h, ct_x);
-    Digest::update(&mut h, pk_x);
-    Digest::update(&mut h, LABEL);
-    XWingSharedSecret(h.finalize().into())
+    // ss_M || ss_X || ct_X || pk_X || label; it holds both secrets.
+    let mut input = [0u8; 32 * 4 + LABEL.len()];
+    for (i, part) in [ss_m, ss_x, ct_x, pk_x].into_iter().enumerate() {
+        input[32 * i..32 * (i + 1)].copy_from_slice(part);
+    }
+    input[128..].copy_from_slice(LABEL);
+    let ss = kyberlib::hash::sha3_256(&input);
+    input.zeroize();
+    XWingSharedSecret(ss)
 }
 
 /// Hands kyberlib's encapsulation exactly the 32-byte message taken

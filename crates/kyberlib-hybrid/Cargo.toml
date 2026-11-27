@@ -35,7 +35,7 @@ default = ["x25519", "xwing"]
 # Per-share enable. All three hybrids will eventually be on-demand.
 x25519       = ["dep:x25519-dalek"]
 # X-Wing general-purpose KEM (draft-connolly-cfrg-xwing-kem).
-xwing        = ["dep:x25519-dalek", "dep:sha3"]
+xwing        = ["dep:x25519-dalek"]
 secp256r1    = ["dep:p256", "dep:crypto-bigint"]
 secp384r1    = ["dep:p384", "dep:crypto-bigint"]
 
@@ -48,7 +48,6 @@ kyberlib = { path = "../kyberlib", version = "0.0.16", default-features = false,
 # X25519 classical KEM. Activated only when the `x25519` feature is on.
 x25519-dalek = { workspace = true, optional = true }
 # SHAKE256 / SHA3-256 for X-Wing key expansion and its combiner.
-sha3         = { workspace = true, optional = true }
 # NIST curves for the SecP*MLKEM TLS hybrids.
 p256         = { workspace = true, optional = true }
 p384         = { workspace = true, optional = true }
