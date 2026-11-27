@@ -105,9 +105,20 @@ impl DecryptLimits {
     }
 
     /// scrypt needs `128 * r * N` bytes; each of `p` lanes repeats it.
+    ///
+    /// Parameters RFC 7914 does not allow are refused first: `N` a power
+    /// of two from 2, `r` and `p` from 1, `r * p` under 2^30. `N = 0`
+    /// would make the memory 0 and pass, then panic in `pkcs5`
+    /// (GHSA-ppxp-qw4c-43c9).
     fn scrypt_within(&self, n: u64, r: u16, p: u16) -> bool {
+        let valid = n >= 2
+            && n.is_power_of_two()
+            && r >= 1
+            && p >= 1
+            && u32::from(r) * u32::from(p) < 1 << 30;
         let memory = 128 * u128::from(r) * u128::from(n);
-        memory <= u128::from(self.max_scrypt_memory)
+        valid
+            && memory <= u128::from(self.max_scrypt_memory)
             && p <= self.max_scrypt_parallelization
     }
 }

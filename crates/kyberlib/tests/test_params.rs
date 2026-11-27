@@ -16,12 +16,8 @@ mod tests {
 
     #[test]
     fn test_kyber_eta1() {
-        // Test KYBER_ETA1 depending on feature configuration
-        if cfg!(feature = "kyber512") {
-            assert_eq!(KYBER_ETA1, 3);
-        } else {
-            assert_eq!(KYBER_ETA1, 2);
-        }
+        // The untyped API is ML-KEM-768 (#158).
+        assert_eq!(KYBER_ETA1, 2);
     }
 
     #[test]
@@ -42,7 +38,6 @@ mod tests {
         assert_eq!(KYBER_POLY_BYTES, 384);
     }
 
-    #[cfg(not(feature = "kyber1024"))]
     #[test]
     fn test_kyber_poly_compressed_bytes() {
         // Test KYBER_POLY_COMPRESSED_BYTES for non-kyber1024
@@ -58,7 +53,6 @@ mod tests {
         );
     }
 
-    #[cfg(not(feature = "kyber1024"))]
     #[test]
     fn test_kyber_polyvec_compressed_bytes() {
         // Test KYBER_POLYVEC_COMPRESSED_BYTES for non-kyber1024
@@ -90,13 +84,7 @@ mod tests {
     #[test]
     fn test_kyber_security_parameter() {
         // Test KYBER_SECURITY_PARAMETER
-        if cfg!(feature = "kyber512") {
-            assert_eq!(KYBER_SECURITY_PARAMETER, 2);
-        } else if cfg!(feature = "kyber1024") {
-            assert_eq!(KYBER_SECURITY_PARAMETER, 4);
-        } else {
-            assert_eq!(KYBER_SECURITY_PARAMETER, 3);
-        }
+        assert_eq!(KYBER_SECURITY_PARAMETER, 3);
     }
 
     #[test]
@@ -112,23 +100,6 @@ mod tests {
     }
 
     // Test Kyber parameters related to kyber1024 feature
-
-    #[cfg(feature = "kyber1024")]
-    #[test]
-    fn test_KYBER_POLY_COMPRESSED_BYTES_kyber1024() {
-        // Test KYBER_POLY_COMPRESSED_BYTES for kyber1024
-        assert_eq!(KYBER_POLY_COMPRESSED_BYTES, 160);
-    }
-
-    #[cfg(feature = "kyber1024")]
-    #[test]
-    fn test_KYBER_POLYVEC_COMPRESSED_BYTES_kyber1024() {
-        // Test KYBER_POLYVEC_COMPRESSED_BYTES for kyber1024
-        assert_eq!(
-            KYBER_POLYVEC_COMPRESSED_BYTES,
-            KYBER_SECURITY_PARAMETER * 352
-        );
-    }
 
     // Test Kyber parameters related to indcpa
 

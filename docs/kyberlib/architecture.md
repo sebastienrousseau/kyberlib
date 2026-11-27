@@ -53,8 +53,9 @@ let ss_b = decapsulate(&ct, &bob.secret)?;
 ```
 
 * Bytes flow as `&[u8]` / `[u8; KYBER_*_BYTES]`.
-* Parameter set is fixed at build time via the `kyber512` /
-  `kyber768` (default) / `kyber1024` Cargo features.
+* Parameter set is ML-KEM-768. The `kyber512` / `kyber1024`
+  features that switched it were removed in 0.0.17 (#158); use the
+  typed `MlKem512` / `MlKem1024` instead.
 * Retained for downstream-consumer migration from v0.0.6.
 * `#[deprecated]` annotations land in v0.1.
 

@@ -7,20 +7,6 @@ mod tests {
     /// Tests for feature flags
     mod feature_flags {
         #[test]
-        #[cfg(feature = "kyber512")]
-        fn test_kyber512_enabled() {
-            // Assert that the Kyber512 feature is enabled
-            assert!(cfg!(feature = "kyber512"));
-        }
-
-        #[test]
-        #[cfg(feature = "kyber1024")]
-        fn test_kyber1024_enabled() {
-            // Assert that the Kyber1024 feature is enabled
-            assert!(cfg!(feature = "kyber1024"));
-        }
-
-        #[test]
         #[cfg(feature = "90s")]
         fn test_90s_enabled() {
             // Assert that the 90s feature is enabled
@@ -32,15 +18,6 @@ mod tests {
         fn test_std_enabled() {
             // Assert that the std feature is enabled
             assert!(cfg!(feature = "std"));
-        }
-        #[test]
-        #[should_panic(
-            expected = "Only one security level can be specified"
-        )]
-        #[cfg(all(feature = "kyber512", feature = "kyber1024"))]
-        fn test_invalid_feature_combination() {
-            // This test should panic with the expected error message
-            // when both `kyber512` and `kyber1024` are enabled
         }
     }
 

@@ -97,18 +97,13 @@ name              = "ake"
 required-features = ["hazmat"]
 
 [features]
-### Security Levels ###
-# Defaults to `kyber768` if none selected. Phase 3 of the v0.0.7 roadmap
-# replaces this Cargo-feature switch with sealed marker types
-# (`MlKem512`, `MlKem768`, `MlKem1024`) — see issues #130 / #153 / #158.
+# The parameter set is a type, not a feature (#158): `MlKem512`,
+# `MlKem768` and `MlKem1024` all work in one build. The untyped API is
+# ML-KEM-768. The kyber512 / kyber768 / kyber1024 features are gone.
 #
 # `std` is on by default so `cargo build` works for typical applications.
-# For embedded / `no_std` consumers set `default-features = false` and
-# re-enable `kyber768` explicitly.
-default = ["kyber768", "std"]
-kyber512 = []
-kyber768 = []
-kyber1024 = []
+# For embedded / `no_std` consumers set `default-features = false`.
+default = ["std"]
 
 ### Export IND-CPA primitives (advanced — bypasses the FO transform).
 hazmat = []
@@ -144,7 +139,7 @@ fips = ["std", "dep:aws-lc-rs"]
 verified = []
 
 [package.metadata.docs.rs]
-features     = ["kyber768", "std", "hazmat"]
+features     = ["std", "hazmat"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [package.metadata.clippy]

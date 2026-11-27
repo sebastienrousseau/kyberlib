@@ -25,10 +25,10 @@ cd KAT
 
 Which will clone the C reference repo, generate the KAT files, then rename and put them in the correct folder for testing.
 
-To run the known answer tests you will need to enable `KYBER_SECURITY_PARAMETERat` in `RUSTFLAGS`. To check different Kyber levels or 90's mode you will need to include those flags also. eg:
+To run the known answer tests you will need to enable `KYBER_SECURITY_PARAMETERat` in `RUSTFLAGS`. To check 90's mode you will need to include that feature also; every build tests all three parameter sets through the typed API. eg:
 
 ```bash
-RUSTFLAGS=' --cfg KYBER_SECURITY_PARAMETERat' cargo test --features "kyber1024 90s"
+RUSTFLAGS=' --cfg KYBER_SECURITY_PARAMETERat' cargo test --features 90s
 ```
 
 To run a matrix of all possible features use the helper script from this folder:

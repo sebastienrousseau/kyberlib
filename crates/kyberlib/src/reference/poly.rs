@@ -503,7 +503,6 @@ mod poly_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn poly_compress_matches_existing_kyber768() {
         use crate::MlKem768;
         let p = build_test_poly();
@@ -517,35 +516,6 @@ mod poly_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber512")]
-    fn poly_compress_matches_existing_kyber512() {
-        use crate::MlKem512;
-        let p = build_test_poly();
-        let mut buf_existing = [0u8; KYBER_POLY_COMPRESSED_BYTES];
-        poly_compress(&mut buf_existing, p);
-
-        let mut buf_generic = [0u8; poly_compressed_len::<MlKem512>()];
-        poly_compress_generic::<MlKem512>(&mut buf_generic, p);
-
-        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn poly_compress_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-        let p = build_test_poly();
-        let mut buf_existing = [0u8; KYBER_POLY_COMPRESSED_BYTES];
-        poly_compress(&mut buf_existing, p);
-
-        let mut buf_generic = [0u8; poly_compressed_len::<MlKem1024>()];
-        poly_compress_generic::<MlKem1024>(&mut buf_generic, p);
-
-        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
-    }
-
-    #[test]
-    #[cfg(feature = "kyber768")]
     fn poly_decompress_matches_existing_kyber768() {
         use crate::MlKem768;
         let p = build_test_poly();
@@ -613,7 +583,6 @@ mod poly_getnoise_generic_tests {
     use crate::paramsets::MlKemParams;
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn poly_getnoise_eta1_matches_existing_kyber768() {
         use crate::MlKem768;
         let seed = [0xAAu8; KYBER_SYM_BYTES];
@@ -625,31 +594,6 @@ mod poly_getnoise_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber512")]
-    fn poly_getnoise_eta1_matches_existing_kyber512() {
-        use crate::MlKem512;
-        let seed = [0xAAu8; KYBER_SYM_BYTES];
-        let mut p_e = Poly::new();
-        let mut p_g = Poly::new();
-        poly_getnoise_eta1(&mut p_e, &seed, 7);
-        poly_getnoise_eta1_generic::<MlKem512>(&mut p_g, &seed, 7);
-        assert_eq!(p_e.coeffs, p_g.coeffs);
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn poly_getnoise_eta1_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-        let seed = [0xAAu8; KYBER_SYM_BYTES];
-        let mut p_e = Poly::new();
-        let mut p_g = Poly::new();
-        poly_getnoise_eta1(&mut p_e, &seed, 7);
-        poly_getnoise_eta1_generic::<MlKem1024>(&mut p_g, &seed, 7);
-        assert_eq!(p_e.coeffs, p_g.coeffs);
-    }
-
-    #[test]
-    #[cfg(feature = "kyber768")]
     fn poly_getnoise_eta2_matches_existing_kyber768() {
         use crate::MlKem768;
         let seed = [0xBBu8; KYBER_SYM_BYTES];

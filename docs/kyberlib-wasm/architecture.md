@@ -60,10 +60,9 @@ expose.
 
 ## Parameter set
 
-The parameter set is **ML-KEM-768**, fixed: the crate depends
-on `kyberlib` with `features = ["kyber768"]` and has no Cargo
-features of its own, so ML-KEM-512 and ML-KEM-1024 cannot be
-selected today.
+The parameter set is **ML-KEM-768**, fixed: the crate wraps
+kyberlib's ML-KEM-768 and has no Cargo features of its own, so
+ML-KEM-512 and ML-KEM-1024 cannot be selected today.
 
 A future enhancement (issue
 [#180](https://github.com/sebastienrousseau/kyberlib/issues/180))

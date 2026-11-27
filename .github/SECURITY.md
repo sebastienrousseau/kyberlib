@@ -4,7 +4,7 @@ We take the security of our software products and services seriously, which incl
 
 ## Contact Information
 
-To report a security vulnerability, please use the following email address: <contact@kyberlib.com>.
+To report a security vulnerability, use GitHub's private vulnerability reporting: <https://github.com/sebastienrousseau/kyberlib/security/advisories/new>. Do not open a public issue.
 
 We accept reports in the following languages:English or French.
 

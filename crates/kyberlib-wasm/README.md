@@ -44,7 +44,7 @@
 
 - [Migrating to `kyberlib-wasm`](#migrating-to-kyberlib-wasm) — `diff`-style snippets from `@noble/post-quantum`, `@cloudflare/pq`, and pre-FIPS-203 Kyber libs
 - [Why this approach?](#why-this-approach) — design rationale
-- [Capabilities in 0.0.16](#capabilities-in-0016) — release inventory
+- [Capabilities in 0.0.17](#capabilities-in-0017) — release inventory
 - [JS API surface](#js-api-surface) — what every export does
 - [Bundle anatomy](#bundle-anatomy) — output shape, sizes, budgets
 - [Parameter set](#parameter-set) — ML-KEM-768 only
@@ -85,7 +85,7 @@ your project, or add it as a local dependency
 
 ```toml
 [dependencies]
-kyberlib-wasm = "0.0.16"
+kyberlib-wasm = "0.0.17"
 ```
 
 You need [Rust](https://rustup.rs/) stable ≥ 1.89 (the declared
@@ -152,7 +152,7 @@ WebCrypto AES-GCM combiner.
 
 ## The kyberlib ecosystem
 
-| Crate | What it is | Status (v0.0.16) | Use case |
+| Crate | What it is | Status (v0.0.17) | Use case |
 |---|---|---|---|
 | [`kyberlib`](https://crates.io/crates/kyberlib) | Core library — FIPS 203 ML-KEM, no_std + alloc, `#![forbid(unsafe_code)]` (default features) | Published; ACVP 180/180 across ML-KEM-512, -768 and -1024 | Embed ML-KEM in any Rust binary or library. |
 | [`kyberlib-hybrid`](https://github.com/sebastienrousseau/kyberlib/tree/main/crates/kyberlib-hybrid) | TLS 1.3 hybrid KEMs and X-Wing | All three TLS groups and X-Wing; unpublished until the audit | Interop with `draft-ietf-tls-ecdhe-mlkem`; HPKE-style KEM. |
@@ -267,7 +267,7 @@ without its own signed artefacts; see
 
 ---
 
-## Capabilities in 0.0.16
+## Capabilities in 0.0.17
 
 | Capability | Status |
 |---|---|
@@ -291,7 +291,7 @@ without its own signed artefacts; see
 
 ## JS API surface
 
-The crate exports four JS-callable functions and two opaque
+The crate exports these JS-callable functions and opaque
 classes. Everything is `Uint8Array` in, `Uint8Array` out — no
 strings, no JSON, no length prefixes.
 
@@ -300,6 +300,7 @@ strings, no JSON, no length prefixes.
 | `keypair()` | `kyberlib::keypair` | `Keys { pubkey, secret }` |
 | `encapsulate(pk)` | `kyberlib::encapsulate` | `Kex { ciphertext, sharedSecret }` |
 | `decapsulate(ct, sk)` | `kyberlib::decapsulate` | `Uint8Array` (32-byte shared secret) |
+| `sha3_256(data)` | `kyberlib::hash::sha3_256` | `Uint8Array` (32-byte digest): WebCrypto has no SHA-3 |
 | `Keys` (class) | typed-buffer pair | `.pubkey: Uint8Array`, `.secret: Uint8Array`, `.free()` |
 | `Kex` (class) | typed-buffer pair | `.ciphertext: Uint8Array`, `.sharedSecret: Uint8Array`, `.free()` |
 
@@ -366,10 +367,9 @@ budget. See [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) f
 
 ## Parameter set
 
-`kyberlib-wasm` builds **ML-KEM-768** only: it depends on
-`kyberlib` with `default-features = false, features = ["kyber768"]`
-and has no Cargo features of its own. ML-KEM-512 and ML-KEM-1024
-are not exposed to JavaScript.
+`kyberlib-wasm` exposes **ML-KEM-768** only: it wraps kyberlib's
+`MlKem768` and has no Cargo features of its own. ML-KEM-512 and
+ML-KEM-1024 are not exposed to JavaScript.
 
 | Item | Size |
 |---|---|

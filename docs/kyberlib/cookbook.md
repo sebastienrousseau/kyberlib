@@ -132,7 +132,7 @@ kyberlib works on `no_std` with the default features + `--no-default-features`.
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.7", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.17", default-features = false }
 ```
 
 ```rust

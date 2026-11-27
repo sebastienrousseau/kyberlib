@@ -2,11 +2,11 @@
 # cargo-vet imports lock
 
 [[unpublished.kyberlib]]
-version = "0.0.16"
+version = "0.0.17"
 audited_as = "0.0.11"
 
 [[unpublished.kyberlib-wasm]]
-version = "0.0.16"
+version = "0.0.17"
 audited_as = "0.0.11"
 
 [[publisher.aead]]
@@ -256,13 +256,6 @@ version = "0.7.11"
 when = "2026-11-08"
 trusted-publisher = "github:RustCrypto/crypto-bigint"
 
-[[publisher.crypto-common]]
-version = "0.1.7"
-when = "2025-11-12"
-user-id = 5059
-user-login = "newpavlov"
-user-name = "Artyom Pavlov"
-
 [[publisher.ctr]]
 version = "0.10.1"
 when = "2026-05-20"
@@ -291,13 +284,6 @@ user-name = "Michael Rosenberg"
 version = "0.8.3"
 when = "2026-10-25"
 trusted-publisher = "github:RustCrypto/formats"
-
-[[publisher.digest]]
-version = "0.10.7"
-when = "2023-05-19"
-user-id = 267
-user-login = "tarcieri"
-user-name = "Tony Arcieri"
 
 [[publisher.digest]]
 version = "0.11.3"
@@ -329,13 +315,6 @@ when = "2023-02-03"
 user-id = 5882
 user-login = "webdesus"
 user-name = "Denis Kurilenko"
-
-[[publisher.generic-array]]
-version = "0.14.7"
-when = "2023-03-28"
-user-id = 5704
-user-login = "novacrazy"
-user-name = "Nova"
 
 [[publisher.getrandom]]
 version = "0.2.15"
@@ -622,13 +601,6 @@ user-name = "David Tolnay"
 version = "0.11.1"
 when = "2026-10-12"
 trusted-publisher = "github:RustCrypto/hashes"
-
-[[publisher.sha3]]
-version = "0.10.9"
-when = "2026-04-19"
-user-id = 5059
-user-login = "newpavlov"
-user-name = "Artyom Pavlov"
 
 [[publisher.slab]]
 version = "0.4.12"
@@ -1049,11 +1021,6 @@ who = "Alex Crichton <alex@alexcrichton.com>"
 criteria = "safe-to-deploy"
 delta = "2.10.0 -> 2.11.1"
 notes = "Minor updates, nothing awry here."
-
-[[audits.bytecode-alliance.audits.block-buffer]]
-who = "Benjamin Bouvier <public@benj.me>"
-criteria = "safe-to-deploy"
-delta = "0.9.0 -> 0.10.2"
 
 [[audits.bytecode-alliance.audits.cfg-if]]
 who = "Alex Crichton <alex@alexcrichton.com>"
@@ -1917,12 +1884,6 @@ This crate has been added to Chromium in https://crrev.com/c/3891618.
 '''
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
 
-[[audits.google.audits.version_check]]
-who = "George Burgess IV <gbiv@google.com>"
-criteria = "safe-to-deploy"
-version = "0.9.4"
-aggregated-from = "https://chromium.googlesource.com/chromiumos/third_party/rust_crates/+/refs/heads/main/cargo-vet/audits.toml?format=TEXT"
-
 [[audits.google.audits.wait-timeout]]
 who = "George Burgess IV <gbiv@google.com>"
 criteria = "safe-to-run"
@@ -1956,11 +1917,6 @@ who = "danakj <danakj@chromium.org>"
 criteria = "safe-to-run"
 delta = "0.1.6 -> 0.1.8"
 aggregated-from = "https://chromium.googlesource.com/chromium/src/+/main/third_party/rust/chromium_crates_io/supply-chain/audits.toml?format=TEXT"
-
-[[audits.isrg.audits.block-buffer]]
-who = "David Cook <dcook@divviup.org>"
-criteria = "safe-to-deploy"
-version = "0.9.0"
 
 [[audits.isrg.audits.chacha20]]
 who = "David Cook <dcook@divviup.org>"
@@ -2092,21 +2048,6 @@ delta = "0.2.6 -> 0.3.1"
 who = "David Cook <dcook@divviup.org>"
 criteria = "safe-to-deploy"
 delta = "0.1.4 -> 0.2.2"
-
-[[audits.isrg.audits.keccak]]
-who = "David Cook <dcook@divviup.org>"
-criteria = "safe-to-deploy"
-version = "0.1.2"
-
-[[audits.isrg.audits.keccak]]
-who = "Brandon Pitman <bran@bran.land>"
-criteria = "safe-to-deploy"
-delta = "0.1.2 -> 0.1.3"
-
-[[audits.isrg.audits.keccak]]
-who = "Brandon Pitman <bran@bran.land>"
-criteria = "safe-to-deploy"
-delta = "0.1.3 -> 0.1.4"
 
 [[audits.isrg.audits.rand]]
 who = "David Cook <dcook@divviup.org>"
@@ -2306,12 +2247,6 @@ criteria = "safe-to-deploy"
 delta = "2.9.4 -> 2.10.0"
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
-[[audits.mozilla.audits.block-buffer]]
-who = "Mike Hommey <mh+mozilla@glandium.org>"
-criteria = "safe-to-deploy"
-delta = "0.10.2 -> 0.10.3"
-aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
-
 [[audits.mozilla.audits.block2]]
 who = "Andy Leiserson <aleiserson@mozilla.com>"
 criteria = "safe-to-deploy"
@@ -2455,12 +2390,6 @@ who = "Ben Dean-Kawamura <bdk@mozilla.com>"
 criteria = "safe-to-deploy"
 delta = "2.11.4 -> 2.14.0"
 notes = "Mostly internal refactorings.  No new unsafe code."
-aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
-
-[[audits.mozilla.audits.keccak]]
-who = "Erich Gubler <erichdongubler@gmail.com>"
-criteria = "safe-to-deploy"
-delta = "0.1.4 -> 0.1.6"
 aggregated-from = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/supply-chain/audits.toml"
 
 [[audits.mozilla.audits.log]]
@@ -2746,13 +2675,6 @@ who = "Daira-Emma Hopwood <daira@jacaranda.org>"
 criteria = "safe-to-deploy"
 delta = "1.2.0 -> 1.3.0"
 aggregated-from = "https://raw.githubusercontent.com/zcash/librustzcash/main/supply-chain/audits.toml"
-
-[[audits.zcash.audits.block-buffer]]
-who = "Jack Grigg <jack@electriccoin.co>"
-criteria = "safe-to-deploy"
-delta = "0.10.3 -> 0.10.4"
-notes = "Adds panics to prevent a block size of zero from causing unsoundness."
-aggregated-from = "https://raw.githubusercontent.com/zcash/zcash/master/qa/supply-chain/audits.toml"
 
 [[audits.zcash.audits.cpufeatures]]
 who = "Jack Grigg <jack@electriccoin.co>"

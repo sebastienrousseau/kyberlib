@@ -532,7 +532,6 @@ mod indcpa_generic_tests {
     /// gen_matrix_generic must produce the same matrix as the existing
     /// gen_matrix under the active feature.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn gen_matrix_matches_existing_kyber768() {
         use crate::MlKem768;
         let seed = [0xA5u8; KYBER_SYM_BYTES];
@@ -558,7 +557,6 @@ mod indcpa_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn gen_matrix_transposed_matches_existing_kyber768() {
         use crate::MlKem768;
         let seed = [0xC3u8; KYBER_SYM_BYTES];
@@ -574,48 +572,6 @@ mod indcpa_generic_tests {
                 assert_eq!(
                     a_existing[i].vec[j].coeffs,
                     a_generic[i * 3 + j].coeffs
-                );
-            }
-        }
-    }
-
-    #[test]
-    #[cfg(feature = "kyber512")]
-    fn gen_matrix_matches_existing_kyber512() {
-        use crate::MlKem512;
-        let seed = [0xA5u8; KYBER_SYM_BYTES];
-        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
-        gen_matrix(&mut a_existing, &seed, false);
-
-        let mut a_generic = [Poly::new(); 4]; // K=2, K*K=4
-        gen_matrix_generic::<MlKem512>(&mut a_generic, &seed, false);
-
-        for i in 0..2 {
-            for j in 0..2 {
-                assert_eq!(
-                    a_existing[i].vec[j].coeffs,
-                    a_generic[i * 2 + j].coeffs
-                );
-            }
-        }
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn gen_matrix_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-        let seed = [0xA5u8; KYBER_SYM_BYTES];
-        let mut a_existing = [Polyvec::new(); KYBER_SECURITY_PARAMETER];
-        gen_matrix(&mut a_existing, &seed, false);
-
-        let mut a_generic = [Poly::new(); 16]; // K=4, K*K=16
-        gen_matrix_generic::<MlKem1024>(&mut a_generic, &seed, false);
-
-        for i in 0..4 {
-            for j in 0..4 {
-                assert_eq!(
-                    a_existing[i].vec[j].coeffs,
-                    a_generic[i * 4 + j].coeffs
                 );
             }
         }
@@ -758,7 +714,6 @@ mod indcpa_integration_tests {
     /// indcpa_enc_generic must produce byte-identical ciphertext to
     /// the existing indcpa_enc under the active feature.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn indcpa_enc_generic_matches_existing_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;
@@ -802,7 +757,6 @@ mod indcpa_integration_tests {
     /// indcpa_dec, including under the IND-CPA security property
     /// (round-trip from indcpa_enc).
     #[test]
-    #[cfg(feature = "kyber768")]
     fn indcpa_dec_generic_matches_existing_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;
@@ -841,7 +795,6 @@ mod indcpa_integration_tests {
 
     /// **End-to-end IND-CPA round-trip** via the all-generic path.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn indcpa_round_trip_all_generic_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;
@@ -879,7 +832,6 @@ mod indcpa_integration_tests {
     /// driven from a fixed seed must produce byte-identical (pk, sk)
     /// to the existing cfg-gated indcpa_keypair.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn indcpa_keypair_generic_matches_existing_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;

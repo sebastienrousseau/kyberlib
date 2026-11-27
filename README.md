@@ -67,17 +67,18 @@ Releases adhere strictly to https://github.com/sebastienrousseau/passmcp/release
 
 ```toml
 [dependencies]
-kyberlib = "0.0.16"
+kyberlib = "0.0.17"
 ```
 
 Or `cargo add kyberlib`.
 
 **`no_std`.** Turn off the default `std` feature and keep the default
-parameter-set feature. An allocator is required.
+parameter-set feature: the parameter set is a type (`MlKem512`, `MlKem768`,
+`MlKem1024`), all three in every build. An allocator is required.
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.16", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.17", default-features = false }
 ```
 
 **WebAssembly.** The core crate builds for `wasm32-unknown-unknown`; for
@@ -260,8 +261,6 @@ default.
 | Feature | Default | Effect |
 | :--- | :---: | :--- |
 | `std` | ✓ | `std::error::Error` for `KyberLibError` |
-| `kyber768` | ✓ | ML-KEM-768 for the legacy functions; the typed API has all three sets in every build |
-| `kyber512`, `kyber1024` | | ML-KEM-512 / -1024 for the legacy functions |
 | `fips` | | Typed API runs inside the AWS-LC FIPS module ([`docs/FIPS.md`](docs/FIPS.md)) |
 | `hazmat` | | IND-CPA primitives and `hazmat::kex::{Uake, Ake}` |
 | `90s`, `90s-fixslice` | | CRYSTALS-Kyber "90s" variant (AES/SHA-2); not in FIPS 203 |
@@ -271,7 +270,7 @@ default.
 ```toml
 # Run ML-KEM inside the AWS-LC FIPS module.
 [dependencies]
-kyberlib = { version = "0.0.16", features = ["fips"] }
+kyberlib = { version = "0.0.17", features = ["fips"] }
 ```
 
 ---
@@ -347,13 +346,13 @@ commit; `Cargo.lock` is committed and CI builds `--locked`; commits on
 **Verifying a release.**
 
 ```bash
-gh release download v0.0.16 -R sebastienrousseau/kyberlib \
-  --pattern 'kyberlib-0.0.16.crate*' --pattern SHA256SUMS
-gh attestation verify --owner sebastienrousseau kyberlib-0.0.16.crate
+gh release download v0.0.17 -R sebastienrousseau/kyberlib \
+  --pattern 'kyberlib-0.0.17.crate*' --pattern SHA256SUMS
+gh attestation verify --owner sebastienrousseau kyberlib-0.0.17.crate
 cosign verify-blob \
   --certificate-identity-regexp '^https://github\.com/sebastienrousseau/kyberlib/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --bundle kyberlib-0.0.16.crate.cosign-bundle.json kyberlib-0.0.16.crate
+  --bundle kyberlib-0.0.17.crate.cosign-bundle.json kyberlib-0.0.17.crate
 shasum -a 256 --ignore-missing -c SHA256SUMS
 ```
 

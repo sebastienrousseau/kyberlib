@@ -8,6 +8,59 @@ with the pre-1.0 caveat that the **patch** number is the breaking-change axis:
 `0.0.x` → `0.0.(x+1)` may break source compatibility. See `SECURITY.md` for the
 versioning and support policy.
 
+## [0.0.17] - Unreleased
+
+The first release since 0.0.11: it also ships everything listed under
+0.0.12 to 0.0.16 below.
+
+### Security
+
+- **kyberlib-pkcs8: a crafted encrypted key no longer panics**
+  (GHSA-ppxp-qw4c-43c9, low). `decrypt_pkcs8_der`,
+  `decrypt_pkcs8_der_with_limits` and `decrypt_pkcs8_pem` panicked in
+  `pkcs5` 0.8.1 on scrypt `N = 0`, which passed the memory limit
+  (`128 * r * N = 0`). Parameters RFC 7914 forbids (`N` not a power of
+  two from 2, `r` or `p` of 0, `r * p` from 2^30) are now refused with
+  `AlgorithmParametersInvalid`. The trait method
+  `DecodePrivateKey::from_pkcs8_encrypted_der` calls `pkcs5` directly
+  and panics until a `pkcs5` release carries RustCrypto/formats#2537.
+- `SECURITY.md` named an address that cannot receive mail; reports now
+  go through GitHub's private vulnerability reporting.
+
+### Removed
+
+- **BREAKING: the `kyber512`, `kyber768` and `kyber1024` features**
+  (#158). The parameter set is a type: `MlKem512`, `MlKem768` and
+  `MlKem1024` in every build. The soft-deprecated untyped API
+  (`keypair`, `encapsulate`, `decapsulate`, the `KYBER_*` constants) is
+  ML-KEM-768, as every default build already had it. A build that names
+  one of the features fails to resolve; drop `"kyber768"`, and use the
+  typed API for 512 and 1024.
+- `sha3` and six crates it brought (`keccak`, `digest`,
+  `crypto-common`, `block-buffer`, `generic-array`, `version_check`):
+  X-Wing now uses kyberlib's own FIPS 202 routines.
+
+### Added
+
+- `kyberlib::hash::{sha3_256, shake256}`: the FIPS 202 hashes ML-KEM
+  runs, for constructions on top of it such as X-Wing.
+- `sha3_256` in kyberlib-wasm: browsers' WebCrypto has no SHA-3, and a
+  browser X-Wing (ML-KEM-768 + X25519) combines with SHA3-256.
+- REUSE 3.3 lint in CI (#126).
+
+### Fixed
+
+- `keccak_squeeze` wrote whole 64-bit words, so a SHAKE output whose
+  length is not a multiple of 8 overran the buffer and underflowed its
+  counter. ML-KEM only asks for multiples of 8 and was not affected;
+  the squeeze now works byte by byte, as the C reference does.
+- `make ci` failed on `--all-features`, which enabled the three
+  security levels together; it now runs what CI runs.
+
+### Changed
+
+- `taiki-e/install-action` 2.90.6 to 2.90.8 (#263).
+
 ## [0.0.16] - Unreleased
 
 ### Removed

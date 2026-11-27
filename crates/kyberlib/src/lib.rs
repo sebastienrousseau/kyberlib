@@ -121,8 +121,6 @@
 #![forbid(unsafe_code)]
 
 // Prevent usage of mutually exclusive features
-#[cfg(all(feature = "kyber1024", feature = "kyber512"))]
-compile_error!("Only one security level can be specified");
 
 // Phase 5 backend selection. `fips` is implemented (module `fips`,
 // issue #170). `verified` is still a reservation (#171): it declares
@@ -168,6 +166,9 @@ pub mod params;
 pub mod rng;
 /// Symmetric key encapsulation module for the KyberLib library.
 pub mod symmetric;
+
+/// SHA3-256 and SHAKE256 (FIPS 202) for constructions on ML-KEM.
+pub mod hash;
 
 /// FIPS 203 ML-KEM type-state API (v0.0.7 — see issue #130).
 pub mod ml_kem;

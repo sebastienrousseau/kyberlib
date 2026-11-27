@@ -19,7 +19,9 @@ use kyberlib::{
     KYBER_CIPHERTEXT_BYTES, KYBER_PUBLIC_KEY_BYTES,
     KYBER_SECRET_KEY_BYTES, KYBER_SHARED_SECRET_BYTES,
 };
-use kyberlib_wasm::{decapsulate, encapsulate, keypair, Params};
+use kyberlib_wasm::{
+    decapsulate, encapsulate, keypair, sha3_256, Params,
+};
 
 #[test]
 fn params_match_kyberlib_core() {
@@ -213,4 +215,20 @@ fn keys_and_kex_debug_redact_secrets() {
             lengths.iter().map(ToString::to_string).collect();
         assert_eq!(debug_numbers(&rendered), expected, "{rendered}");
     }
+}
+
+#[test]
+fn sha3_256_matches_fips_202() {
+    // FIPS 202, SHA3-256 of the empty string.
+    let digest = sha3_256(b"");
+    let hex: String =
+        digest.iter().fold(String::new(), |mut out, b| {
+            use core::fmt::Write as _;
+            let _ = write!(out, "{b:02x}");
+            out
+        });
+    assert_eq!(
+        hex,
+        "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
+    );
 }

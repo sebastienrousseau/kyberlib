@@ -42,27 +42,18 @@ start=$(date +%s)
 # Announce the target platform
 announce "${TARGET}"
 
-# Define arrays for security levels and nine-way optimization options
-LEVELS=("kyber512" "kyber768" "kyber1024")
+# The parameter set is a type, not a feature (#158): every build tests
+# all three. Iterate over the symmetric-primitive and optimisation options.
 NINES=("" "90s" "90s-fixslice")
 
-# Iterate over security levels and nine-way optimization options, running the tests
-for level in "${LEVELS[@]}"; do
-  for nine in "${NINES[@]}"; do
-    for opt in "${OPT[@]}"; do
-      # Construct the test name
-      name="${level} ${nine} ${opt}"
+for nine in "${NINES[@]}"; do
+  for opt in "${OPT[@]}"; do
+    name="${nine:-default} ${opt}"
+    feat=${opt}${nine:+",${nine}"}
+    feat=${feat#,}
 
-      # Construct the feature string
-      feat=${level:+"${level}"}${opt:+",${opt}"}${nine:+",${nine}"}
-
-      # Announce the test
-      announce "${name}"
-
-      # Add the feature flags to RUSTFLAGS and run the tests
-      RUSTFLAGS=${RUSTFLAGS} cargo test --features "${feat}"
-
-    done
+    announce "${name}"
+    RUSTFLAGS=${RUSTFLAGS} cargo test ${feat:+--features "${feat}"}
   done
 done
 

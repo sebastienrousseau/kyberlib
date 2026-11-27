@@ -490,6 +490,10 @@ pub(crate) fn keccak_squeeze(
     mut pos: usize,
     r: usize,
 ) -> usize {
+    // Byte by byte, as the C reference does: whole words only would
+    // write past `outlen`, and underflow it, when it is not a multiple
+    // of 8. ML-KEM only asks for multiples of 8; SHAKE256 for others
+    // through `crate::hash` may not.
     let mut idx = 0;
     while outlen > 0 {
         if pos == r {
@@ -497,12 +501,10 @@ pub(crate) fn keccak_squeeze(
             pos = 0
         }
         let mut i = pos;
-        let mut w = i / 8;
         while i < r && i < pos + outlen {
-            store64(&mut out[idx..], s[w]);
-            i += 8;
-            w += 1;
-            idx += 8;
+            out[idx] = (s[i / 8] >> (8 * (i % 8))) as u8;
+            i += 1;
+            idx += 1;
         }
         outlen -= i - pos;
         pos = i;

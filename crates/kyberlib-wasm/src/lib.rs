@@ -97,6 +97,15 @@ pub fn decapsulate(
     }
 }
 
+/// SHA3-256 (FIPS 202) of `data`, the hash ML-KEM runs: browsers'
+/// WebCrypto has no SHA-3, and hybrids such as X-Wing combine their
+/// shared secrets with it.
+#[wasm_bindgen(js_name = sha3_256)]
+#[must_use]
+pub fn sha3_256(data: &[u8]) -> Box<[u8]> {
+    Box::new(kyberlib::hash::sha3_256(data))
+}
+
 /// Represents Kyber key pair.
 #[wasm_bindgen]
 #[non_exhaustive]

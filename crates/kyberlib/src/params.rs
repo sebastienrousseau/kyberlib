@@ -29,9 +29,10 @@ pub const ML_KEM_90S: bool = cfg!(feature = "90s");
 /// Noise parameter eta1 — width of the centred binomial distribution
 /// for the secret-key sampling.
 ///
-/// `3` for ML-KEM-512, `2` for ML-KEM-768 and ML-KEM-1024.
-pub const ML_KEM_ETA1: usize =
-    if cfg!(feature = "kyber512") { 3 } else { 2 };
+/// The constants here describe ML-KEM-768, the parameter set of the
+/// soft-deprecated untyped API; the typed API takes its parameters from
+/// `MlKem512`, `MlKem768` or `MlKem1024` (#158). `3` would be ML-KEM-512.
+pub const ML_KEM_ETA1: usize = 2;
 
 /// Noise parameter eta2 — width of the centred binomial distribution
 /// for the ciphertext-noise sampling. Always 2 in FIPS 203.
@@ -51,15 +52,9 @@ pub const ML_KEM_Q: usize = 3329;
 /// The module rank `k` — number of polynomials in the secret-key /
 /// public-key polynomial vectors.
 ///
-/// `2` for ML-KEM-512, `3` for ML-KEM-768 (default), `4` for ML-KEM-1024.
-pub const ML_KEM_SECURITY_PARAMETER: usize =
-    if cfg!(feature = "kyber512") {
-        2
-    } else if cfg!(feature = "kyber1024") {
-        4
-    } else {
-        3
-    };
+/// `3`: ML-KEM-768, the untyped API's parameter set (#158). The typed
+/// API's `MlKem512` and `MlKem1024` use 2 and 4.
+pub const ML_KEM_SECURITY_PARAMETER: usize = 3;
 
 /// Serialized size of a single polynomial in the ring. 384 = 256 * 12 / 8.
 pub const ML_KEM_POLY_BYTES: usize = 384;
@@ -67,12 +62,7 @@ pub const ML_KEM_POLY_BYTES: usize = 384;
 /// Compressed serialized size of a single polynomial (for the v half
 /// of the ciphertext). 128 bytes for ML-KEM-512/768 (d_v = 4),
 /// 160 bytes for ML-KEM-1024 (d_v = 5).
-#[cfg(not(feature = "kyber1024"))]
 pub const ML_KEM_POLY_COMPRESSED_BYTES: usize = 128;
-
-/// See [`ML_KEM_POLY_COMPRESSED_BYTES`] (ML-KEM-1024 variant).
-#[cfg(feature = "kyber1024")]
-pub const ML_KEM_POLY_COMPRESSED_BYTES: usize = 160;
 
 /// Serialized size of the polynomial vector (k polynomials).
 pub const ML_KEM_POLYVEC_BYTES: usize =
@@ -80,14 +70,8 @@ pub const ML_KEM_POLYVEC_BYTES: usize =
 
 /// Compressed serialized size of the polynomial vector (for the u half
 /// of the ciphertext).
-#[cfg(not(feature = "kyber1024"))]
 pub const ML_KEM_POLYVEC_COMPRESSED_BYTES: usize =
     ML_KEM_SECURITY_PARAMETER * 320;
-
-/// See [`ML_KEM_POLYVEC_COMPRESSED_BYTES`] (ML-KEM-1024 variant).
-#[cfg(feature = "kyber1024")]
-pub const ML_KEM_POLYVEC_COMPRESSED_BYTES: usize =
-    ML_KEM_SECURITY_PARAMETER * 352;
 
 /// Size of the IND-CPA public key (polynomial vector + 32-byte
 /// `publicseed`).

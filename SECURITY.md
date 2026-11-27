@@ -8,8 +8,8 @@ upstream consumers should track the latest patch number.
 
 | Version  | Supported |
 |----------|:---------:|
-| `0.0.16`  |     ✅    |
-| `< 0.0.16`|     ❌    |
+| `0.0.17`  |     ✅    |
+| `< 0.0.17`|     ❌    |
 
 A `v1.0.0` will not be tagged until the
 [third-party security audit](https://github.com/sebastienrousseau/kyberlib/issues/177)
@@ -21,7 +21,9 @@ The audit RFP, materials package, and readiness checklist live at
 
 **Please do not file public GitHub issues for security bugs.**
 
-Email <contact@kyberlib.com> with:
+Report it privately through GitHub's
+[private vulnerability reporting](https://github.com/sebastienrousseau/kyberlib/security/advisories/new)
+(the repository's Security tab, then *Report a vulnerability*), with:
 
 - a clear description of the bug,
 - the affected version(s) (commit SHA preferred),

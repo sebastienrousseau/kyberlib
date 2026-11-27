@@ -23,40 +23,6 @@ impl Polyvec {
 /// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVEC_COMPRESSED_BYTES)
 ///  - const Polyvec a: input vector of polynomials
 pub(crate) fn polyvec_compress(r: &mut [u8], a: Polyvec) {
-    #[cfg(feature = "kyber1024")]
-    {
-        let mut t = [0u16; 8];
-        let mut idx = 0usize;
-        for poly in a.vec.iter() {
-            for j in 0..KYBER_N / 8 {
-                for (k, t_k) in t.iter_mut().enumerate() {
-                    *t_k = poly.coeffs[8 * j + k] as u16;
-                    *t_k = t_k.wrapping_add(
-                        (((*t_k as i16) >> 15) & KYBER_Q as i16) as u16,
-                    );
-                    let mut tmp: u64 =
-                        ((*t_k as u64) << 11) + (KYBER_Q as u64 / 2);
-                    tmp *= 20642679;
-                    tmp >>= 36;
-                    *t_k = (tmp as u16) & 0x7ff;
-                }
-                r[idx] = (t[0]) as u8;
-                r[idx + 1] = ((t[0] >> 8) | (t[1] << 3)) as u8;
-                r[idx + 2] = ((t[1] >> 5) | (t[2] << 6)) as u8;
-                r[idx + 3] = (t[2] >> 2) as u8;
-                r[idx + 4] = ((t[2] >> 10) | (t[3] << 1)) as u8;
-                r[idx + 5] = ((t[3] >> 7) | (t[4] << 4)) as u8;
-                r[idx + 6] = ((t[4] >> 4) | (t[5] << 7)) as u8;
-                r[idx + 7] = (t[5] >> 1) as u8;
-                r[idx + 8] = ((t[5] >> 9) | (t[6] << 2)) as u8;
-                r[idx + 9] = ((t[6] >> 6) | (t[7] << 5)) as u8;
-                r[idx + 10] = (t[7] >> 3) as u8;
-                idx += 11
-            }
-        }
-    }
-
-    #[cfg(not(feature = "kyber1024"))]
     {
         let mut t = [0u16; 4];
         let mut idx = 0usize;
@@ -127,7 +93,7 @@ pub(crate) fn polyvec_compress_generic<
     match P::DU {
         10 => {
             // ML-KEM-512 / ML-KEM-768 path: d_u = 10. Same bit-packing
-            // as the existing `#[cfg(not(feature = "kyber1024"))]` branch.
+            // as the untyped (ML-KEM-768) API's.
             let mut t = [0u16; 4];
             for poly in polys.iter() {
                 for j in 0..KYBER_N / 4 {
@@ -389,42 +355,6 @@ pub(crate) const fn polyvec_bytes_len<
 /// Arguments:   - Polyvec r:   output vector of polynomials
 ///  - [u8] a: input byte array (of length KYBER_POLYVEC_COMPRESSED_BYTES)
 pub(crate) fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) {
-    #[cfg(feature = "kyber1024")]
-    {
-        let mut t = [0u16; 8];
-        let mut idx = 0usize;
-        for poly in r.vec.iter_mut() {
-            for j in 0..KYBER_N / 8 {
-                t[0] = (a[idx]) as u16 | (a[idx + 1] as u16) << 8;
-                t[1] =
-                    (a[idx + 1] >> 3) as u16 | (a[idx + 2] as u16) << 5;
-                t[2] = (a[idx + 2] >> 6) as u16
-                    | (a[idx + 3] as u16) << 2
-                    | (a[idx + 4] as u16) << 10;
-                t[3] =
-                    (a[idx + 4] >> 1) as u16 | (a[idx + 5] as u16) << 7;
-                t[4] =
-                    (a[idx + 5] >> 4) as u16 | (a[idx + 6] as u16) << 4;
-                t[5] = (a[idx + 6] >> 7) as u16
-                    | (a[idx + 7] as u16) << 1
-                    | (a[idx + 8] as u16) << 9;
-                t[6] =
-                    (a[idx + 8] >> 2) as u16 | (a[idx + 9] as u16) << 6;
-                t[7] = (a[idx + 9] >> 5) as u16
-                    | (a[idx + 10] as u16) << 3;
-                idx += 11;
-
-                for k in 0..8 {
-                    poly.coeffs[8 * j + k] =
-                        (((t[k] & 0x7FF) as u32 * KYBER_Q as u32
-                            + 1024)
-                            >> 11) as i16;
-                }
-            }
-        }
-    }
-
-    #[cfg(not(feature = "kyber1024"))]
     {
         let mut idx = 0usize;
         let mut t = [0u16; 4];
@@ -576,7 +506,6 @@ mod compress_generic_tests {
     /// parameter set. Tested under kyber768 (default); the cfg-gated
     /// alternatives are validated when those features are selected.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn generic_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -594,41 +523,6 @@ mod compress_generic_tests {
             "generic port diverges from existing polyvec_compress under \
              kyber768 — FIPS 203 compliance regression"
         );
-    }
-
-    #[test]
-    #[cfg(feature = "kyber512")]
-    fn generic_matches_existing_kyber512() {
-        use crate::MlKem512;
-
-        let pv = build_test_polyvec();
-        let mut buf_existing = [0u8; KYBER_POLYVEC_COMPRESSED_BYTES];
-        polyvec_compress(&mut buf_existing, pv);
-
-        let mut buf_generic =
-            [0u8; polyvec_compressed_len::<MlKem512>()];
-        polyvec_compress_generic::<MlKem512>(&mut buf_generic, &pv.vec);
-
-        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn generic_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-
-        let pv = build_test_polyvec();
-        let mut buf_existing = [0u8; KYBER_POLYVEC_COMPRESSED_BYTES];
-        polyvec_compress(&mut buf_existing, pv);
-
-        let mut buf_generic =
-            [0u8; polyvec_compressed_len::<MlKem1024>()];
-        polyvec_compress_generic::<MlKem1024>(
-            &mut buf_generic,
-            &pv.vec,
-        );
-
-        assert_eq!(buf_existing.as_slice(), buf_generic.as_slice());
     }
 
     /// Confirms the generic length helper matches FIPS 203 §6's
@@ -649,7 +543,6 @@ mod compress_generic_tests {
     /// the input (it can't be byte-identical because compression is
     /// lossy by design).
     #[test]
-    #[cfg(feature = "kyber768")]
     fn decompress_round_trip_kyber768() {
         use crate::MlKem768;
 
@@ -693,7 +586,6 @@ mod compress_generic_tests {
     /// Also verify generic decompress matches existing decompress
     /// byte-for-byte (rounding behaviour must be identical).
     #[test]
-    #[cfg(feature = "kyber768")]
     fn decompress_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -719,7 +611,6 @@ mod compress_generic_tests {
     // ----- tobytes / frombytes -----
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn tobytes_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -734,7 +625,6 @@ mod compress_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn frombytes_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -760,7 +650,6 @@ mod compress_generic_tests {
     // ----- ntt / invntt -----
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn ntt_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -777,7 +666,6 @@ mod compress_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn invntt_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -797,7 +685,6 @@ mod compress_generic_tests {
     // ----- basemul_acc, reduce, add -----
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn basemul_acc_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -826,7 +713,6 @@ mod compress_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn reduce_matches_existing_kyber768() {
         use crate::MlKem768;
 
@@ -843,7 +729,6 @@ mod compress_generic_tests {
     }
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn add_matches_existing_kyber768() {
         use crate::MlKem768;
 
