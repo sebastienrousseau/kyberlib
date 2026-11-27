@@ -291,7 +291,7 @@ without its own signed artefacts; see
 
 ## JS API surface
 
-The crate exports four JS-callable functions and two opaque
+The crate exports these JS-callable functions and opaque
 classes. Everything is `Uint8Array` in, `Uint8Array` out — no
 strings, no JSON, no length prefixes.
 
@@ -300,6 +300,7 @@ strings, no JSON, no length prefixes.
 | `keypair()` | `kyberlib::keypair` | `Keys { pubkey, secret }` |
 | `encapsulate(pk)` | `kyberlib::encapsulate` | `Kex { ciphertext, sharedSecret }` |
 | `decapsulate(ct, sk)` | `kyberlib::decapsulate` | `Uint8Array` (32-byte shared secret) |
+| `sha3_256(data)` | `kyberlib::hash::sha3_256` | `Uint8Array` (32-byte digest): WebCrypto has no SHA-3 |
 | `Keys` (class) | typed-buffer pair | `.pubkey: Uint8Array`, `.secret: Uint8Array`, `.free()` |
 | `Kex` (class) | typed-buffer pair | `.ciphertext: Uint8Array`, `.sharedSecret: Uint8Array`, `.free()` |
 

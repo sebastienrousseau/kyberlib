@@ -44,6 +44,8 @@ The first release since 0.0.11: it also ships everything listed under
 
 - `kyberlib::hash::{sha3_256, shake256}`: the FIPS 202 hashes ML-KEM
   runs, for constructions on top of it such as X-Wing.
+- `sha3_256` in kyberlib-wasm: browsers' WebCrypto has no SHA-3, and a
+  browser X-Wing (ML-KEM-768 + X25519) combines with SHA3-256.
 - REUSE 3.3 lint in CI (#126).
 
 ### Fixed
