@@ -350,6 +350,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: bnjbvr/cargo-machete@431e75731b681a69a4cfdeb1315b505778bb5c70  # v0.10.1
 
+  reuse:
+    # REUSE 3.3: every file states its licence and copyright (#126).
+    name: REUSE lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
+
   vendor-build:
     name: Vendor + offline build (air-gap simulation)
     runs-on: ubuntu-latest
