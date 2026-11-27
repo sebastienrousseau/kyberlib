@@ -33,38 +33,41 @@ pub fn shake256(input: &[u8], output: &mut [u8]) {
 mod tests {
     use super::*;
 
-    fn hex(bytes: &[u8]) -> String {
-        use core::fmt::Write as _;
-        bytes.iter().fold(String::new(), |mut out, b| {
-            let _ = write!(out, "{b:02x}");
-            out
-        })
+    /// `text` (hex) as `N` bytes; no allocation, so the no_std tests
+    /// build too.
+    fn unhex<const N: usize>(text: &str) -> [u8; N] {
+        let mut out = [0u8; N];
+        for (i, b) in out.iter_mut().enumerate() {
+            *b = u8::from_str_radix(&text[2 * i..2 * i + 2], 16)
+                .unwrap();
+        }
+        out
     }
 
     #[test]
     fn known_answers() {
         // FIPS 202 examples (NIST CSRC), empty input.
         assert_eq!(
-            hex(&sha3_256(b"")),
-            "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
+            sha3_256(b""),
+            unhex("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
         );
         let mut out = [0u8; 32];
         shake256(b"", &mut out);
         assert_eq!(
-            hex(&out),
-            "46b9dd2b0ba88d13233b3feb743eeb243fcd52ea62b81b82b50c27646ed5762f"
+            out,
+            unhex("46b9dd2b0ba88d13233b3feb743eeb243fcd52ea62b81b82b50c27646ed5762f")
         );
         // Lengths that are not a multiple of 8, across blocks (136-byte
         // rate), against Python's hashlib.
         let mut short = [0u8; 33];
         shake256(b"", &mut short);
         assert_eq!(
-            hex(&short),
-            "46b9dd2b0ba88d13233b3feb743eeb243fcd52ea62b81b82b50c27646ed5762fd7"
+            short,
+            unhex("46b9dd2b0ba88d13233b3feb743eeb243fcd52ea62b81b82b50c27646ed5762fd7")
         );
         let mut long = [0u8; 300];
         shake256(&[0xa3; 200], &mut long);
-        let expected = [
+        let expected: [u8; 300] = unhex(concat!(
             "cd8a920ed141aa0407a22d59288652e9d9f1a7ee0c1e7c1ca699424da84a904d",
             "2d700caae7396ece96604440577da4f3aa22aeb8857f961c4cd8e06f0ae6610b",
             "1048a7f64e1074cd629e85ad7566048efc4fb500b486a3309a8f26724c0ed628",
@@ -75,12 +78,11 @@ mod tests {
             "a1a76877b6f37198e3a641c68a7c42d45fa7acc10dae5f3cefb7b735f12d4e58",
             "9f7a456e78c0f5e4c4471fffa5e4fa0514ae974d8c2648513b5db494cea84715",
             "6d277ad0e141c24c7839064c",
-        ]
-        .concat();
-        assert_eq!(hex(&long), expected);
+        ));
+        assert_eq!(long, expected);
         assert_eq!(
-            hex(&sha3_256(&[0xa3; 200])),
-            "79f38adec5c20307a98ef76e8324afbfd46cfd81b22e3973c65fa1bd9de31787"
+            sha3_256(&[0xa3; 200]),
+            unhex("79f38adec5c20307a98ef76e8324afbfd46cfd81b22e3973c65fa1bd9de31787")
         );
     }
 }
