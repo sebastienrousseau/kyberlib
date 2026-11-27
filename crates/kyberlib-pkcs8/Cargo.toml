@@ -56,5 +56,10 @@ required-features = ["pem", "std"]
 name = "encrypted"
 required-features = ["encryption", "pem", "std"]
 
+# It encodes the keys it then breaks.
+[[test]]
+name = "rejects"
+required-features = ["alloc"]
+
 [lints]
 workspace = true
