@@ -49,7 +49,6 @@ case "$MODE" in
         cargo "+$TOOLCHAIN" miri test \
             -p kyberlib \
             --no-default-features \
-            --features kyber768 \
             --lib \
             -- --test-threads=1
         ;;
@@ -58,7 +57,6 @@ case "$MODE" in
         cargo "+$TOOLCHAIN" miri test \
             -p kyberlib \
             --no-default-features \
-            --features kyber768 \
             -- --test-threads=1
 
         # Big-endian cross-target: catches endianness bugs in
@@ -68,7 +66,6 @@ case "$MODE" in
             cargo "+$TOOLCHAIN" miri test \
             -p kyberlib \
             --no-default-features \
-            --features kyber768 \
             --lib \
             -- --test-threads=1
         ;;

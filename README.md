@@ -73,11 +73,12 @@ kyberlib = "0.0.16"
 Or `cargo add kyberlib`.
 
 **`no_std`.** Turn off the default `std` feature and keep the default
-parameter-set feature. An allocator is required.
+parameter-set feature: the parameter set is a type (`MlKem512`, `MlKem768`,
+`MlKem1024`), all three in every build. An allocator is required.
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.16", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.17", default-features = false }
 ```
 
 **WebAssembly.** The core crate builds for `wasm32-unknown-unknown`; for
@@ -260,8 +261,6 @@ default.
 | Feature | Default | Effect |
 | :--- | :---: | :--- |
 | `std` | ✓ | `std::error::Error` for `KyberLibError` |
-| `kyber768` | ✓ | ML-KEM-768 for the legacy functions; the typed API has all three sets in every build |
-| `kyber512`, `kyber1024` | | ML-KEM-512 / -1024 for the legacy functions |
 | `fips` | | Typed API runs inside the AWS-LC FIPS module ([`docs/FIPS.md`](docs/FIPS.md)) |
 | `hazmat` | | IND-CPA primitives and `hazmat::kex::{Uake, Ake}` |
 | `90s`, `90s-fixslice` | | CRYSTALS-Kyber "90s" variant (AES/SHA-2); not in FIPS 203 |

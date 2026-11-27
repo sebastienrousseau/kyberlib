@@ -105,8 +105,8 @@ jobs:
       # No `--all-features` — see the comment on the `lint` job above.
       - name: Test (default features)
         run: cargo test --locked
-      - name: Test (no default features + kyber768)
-        run: cargo test --locked --lib --no-default-features --features kyber768
+      - name: Test (no default features)
+        run: cargo test --locked --lib --no-default-features
 
   cargo-vet:
     name: cargo-vet
@@ -172,7 +172,7 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
       - name: Check no_std (lib only)
-        run: cargo check --lib --no-default-features --features kyber768
+        run: cargo check --lib --no-default-features
 
   # The 90s-fixslice backend (RustCrypto aes + ctr) is outside every
   # other job's feature set, so a dependency bump broke it unnoticed.
@@ -186,7 +186,7 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
       - name: Test kyberlib with 90s-fixslice
-        run: cargo test --locked -p kyberlib --no-default-features --features kyber768,90s-fixslice,std
+        run: cargo test --locked -p kyberlib --no-default-features --features 90s-fixslice,std
 
   # kyberlib-hybrid's NIST-curve groups are opt-in features, outside
   # the default-feature test matrix. Test and lint them here.
@@ -341,7 +341,7 @@ jobs:
           # tries to build rustdoc for every feature group, including
           # `fips` (AWS-LC build; see lint job comment).
           feature-group: only-explicit-features
-          features: kyber768,std
+          features: std
 
   machete:
     name: cargo-machete (unused deps)

@@ -85,7 +85,7 @@ make ci          # fmt + clippy + doc + test + deny + machete + kyberslash-guard
 
 ```toml
 [dependencies]
-kyberlib = { version = "0.0.16", default-features = false, features = ["kyber768"] }
+kyberlib = { version = "0.0.17", default-features = false }
 ```
 
 Requires `alloc` (because of `Vec` buffers in the rejection sampler).
@@ -389,10 +389,7 @@ application needs.
 
 | Feature | Default? | Pulls in | Adds | Documented in |
 |---|---|---|---|---|
-| `kyber768`         | ✓ | — | ML-KEM-768 parameter set (the default) | [Capabilities](#capabilities-in-0011) |
 | `std`              | ✓ | — | `std::error::Error` impl; `getrandom`-backed default RNG | [Install](#install) |
-| `kyber512`         |   | — | ML-KEM-512 parameter set | `paramsets.rs` |
-| `kyber1024`        |   | — | ML-KEM-1024 parameter set | `paramsets.rs` |
 | `hazmat`           |   | — | IND-CPA primitives (no FO transform) and `hazmat::kex::{Uake, Ake}` (since 0.0.15); use with care | [docs.rs `hazmat`](https://docs.rs/kyberlib) |
 | `90s`              |   | `sha2` | AES-CTR + SHA-2 instead of SHAKE (Kyber-R3 era; removed from FIPS 203) | CHANGELOG |
 | `90s-fixslice`     |   | `aes`, `ctr` | Bitsliced AES for side-channel hardening of 90s mode | CHANGELOG |

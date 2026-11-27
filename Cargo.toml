@@ -84,7 +84,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
     'cfg(KYBER_SECURITY_PARAMETERat)',
     'cfg(fuzzing)',
     'cfg(docsrs)',
-    'cfg(feature, values("kyber512", "kyber1024", "benchmarking"))',
+    'cfg(feature, values("benchmarking"))',
     'cfg(wasm_bindgen_unstable_test_coverage)',
 ] }
 

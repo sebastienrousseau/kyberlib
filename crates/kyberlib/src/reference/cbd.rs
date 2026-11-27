@@ -78,12 +78,9 @@ pub(crate) fn cbd3(r: &mut Poly, buf: &[u8]) {
     }
 }
 
+/// eta1 = 2 (ML-KEM-768), for the untyped API.
 pub(crate) fn poly_cbd_eta1(r: &mut Poly, buf: &[u8]) {
-    if cfg!(feature = "kyber512") {
-        cbd3(r, buf)
-    } else {
-        cbd2(r, buf)
-    }
+    cbd2(r, buf)
 }
 
 pub(crate) fn poly_cbd_eta2(r: &mut Poly, buf: &[u8]) {
@@ -148,7 +145,6 @@ mod cbd_generic_tests {
     use crate::paramsets::MlKemParams;
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn cbd_eta1_matches_existing_kyber768() {
         use crate::MlKem768;
         // ETA1 = 2 for MlKem768 → routes to cbd2.
@@ -158,35 +154,6 @@ mod cbd_generic_tests {
 
         let mut p_generic = Poly::new();
         poly_cbd_eta1_generic::<MlKem768>(&mut p_generic, &buf);
-
-        assert_eq!(p_existing.coeffs, p_generic.coeffs);
-    }
-
-    #[test]
-    #[cfg(feature = "kyber512")]
-    fn cbd_eta1_matches_existing_kyber512() {
-        use crate::MlKem512;
-        // ETA1 = 3 for MlKem512 → routes to cbd3.
-        let buf = [0xA5u8; 192]; // 3 * 256 / 4 = 192
-        let mut p_existing = Poly::new();
-        poly_cbd_eta1(&mut p_existing, &buf);
-
-        let mut p_generic = Poly::new();
-        poly_cbd_eta1_generic::<MlKem512>(&mut p_generic, &buf);
-
-        assert_eq!(p_existing.coeffs, p_generic.coeffs);
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn cbd_eta1_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-        let buf = [0xA5u8; 128];
-        let mut p_existing = Poly::new();
-        poly_cbd_eta1(&mut p_existing, &buf);
-
-        let mut p_generic = Poly::new();
-        poly_cbd_eta1_generic::<MlKem1024>(&mut p_generic, &buf);
 
         assert_eq!(p_existing.coeffs, p_generic.coeffs);
     }

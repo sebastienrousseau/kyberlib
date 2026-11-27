@@ -33,10 +33,10 @@ test: ## cargo test as CI runs it: the workspace, then each crate's feature sets
 	$(CARGO) test -p kyberlib-pkcs8 --all-features
 
 test-no-std: ## Build the safe core with no default features.
-	$(CARGO) check -p kyberlib --lib --no-default-features --features kyber768
+	$(CARGO) check -p kyberlib --lib --no-default-features
 
 # --------------------------------------------------------------- quality
-clippy: ## clippy -D warnings as CI runs it (kyber512/768/1024 are exclusive, so no --all-features on the workspace).
+clippy: ## clippy -D warnings as CI runs it (the fips feature needs AWS-LC, so CI runs it separately).
 	$(CARGO) clippy --workspace --all-targets -- -D warnings
 	$(CARGO) clippy -p kyberlib --all-targets --features hazmat -- -D warnings
 	$(CARGO) clippy -p kyberlib-hybrid --all-targets --all-features -- -D warnings
@@ -64,10 +64,10 @@ machete: ## cargo machete (unused dep detection).
 # --------------------------------------------------------------- MSRV / no_std
 msrv: ## Verify the declared MSRV (Rust 1.89) builds across feature combos.
 	$(CARGO) +1.89.0 check --workspace --all-features
-	$(CARGO) +1.89.0 check -p kyberlib --no-default-features --features kyber768
+	$(CARGO) +1.89.0 check -p kyberlib --no-default-features
 
 no-std: ## Verify no_std builds for the safe core.
-	$(CARGO) check -p kyberlib --lib --no-default-features --features kyber768
+	$(CARGO) check -p kyberlib --lib --no-default-features
 
 # --------------------------------------------------------------- packaging
 vendor: ## Air-gapped build simulation: cargo vendor + offline build.

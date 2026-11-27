@@ -366,10 +366,9 @@ budget. See [`docs/kyberlib-wasm/usage.md`](../../docs/kyberlib-wasm/usage.md) f
 
 ## Parameter set
 
-`kyberlib-wasm` builds **ML-KEM-768** only: it depends on
-`kyberlib` with `default-features = false, features = ["kyber768"]`
-and has no Cargo features of its own. ML-KEM-512 and ML-KEM-1024
-are not exposed to JavaScript.
+`kyberlib-wasm` exposes **ML-KEM-768** only: it wraps kyberlib's
+`MlKem768` and has no Cargo features of its own. ML-KEM-512 and
+ML-KEM-1024 are not exposed to JavaScript.
 
 | Item | Size |
 |---|---|

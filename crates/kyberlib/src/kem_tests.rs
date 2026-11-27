@@ -11,7 +11,6 @@ mod kem_generic_tests {
     use crate::paramsets::MlKemParams;
 
     #[test]
-    #[cfg(feature = "kyber768")]
     fn kem_keypair_generic_matches_existing_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;
@@ -47,7 +46,6 @@ mod kem_generic_tests {
 
     /// **End-to-end full-FIPS-203 round-trip via the all-generic path.**
     #[test]
-    #[cfg(feature = "kyber768")]
     fn kem_round_trip_all_generic_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;
@@ -87,78 +85,9 @@ mod kem_generic_tests {
         );
     }
 
-    #[test]
-    #[cfg(feature = "kyber512")]
-    fn kem_keypair_generic_matches_existing_kyber512() {
-        use crate::MlKem512;
-        use rand::rngs::StdRng;
-        use rand::SeedableRng;
-
-        let seed = [0x42u8; 64];
-        let mut rng = StdRng::from_seed([3u8; 32]);
-        let mut pk_e = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut sk_e = [0u8; KYBER_SECRET_KEY_BYTES];
-        generate_key_pair(
-            &mut pk_e,
-            &mut sk_e,
-            &mut rng,
-            Some((&seed[..32], &seed[32..])),
-        )
-        .unwrap();
-
-        let mut rng2 = StdRng::from_seed([3u8; 32]);
-        let mut pk_g = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut sk_g = [0u8; KYBER_SECRET_KEY_BYTES];
-        kem_keypair_generic::<MlKem512, _>(
-            &mut pk_g,
-            &mut sk_g,
-            &mut rng2,
-            Some((&seed[..32], &seed[32..])),
-        )
-        .unwrap();
-
-        assert_eq!(pk_e.as_slice(), pk_g.as_slice());
-        assert_eq!(sk_e.as_slice(), sk_g.as_slice());
-    }
-
-    #[test]
-    #[cfg(feature = "kyber1024")]
-    fn kem_keypair_generic_matches_existing_kyber1024() {
-        use crate::MlKem1024;
-        use rand::rngs::StdRng;
-        use rand::SeedableRng;
-
-        let seed = [0x42u8; 64];
-        let mut rng = StdRng::from_seed([3u8; 32]);
-        let mut pk_e = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut sk_e = [0u8; KYBER_SECRET_KEY_BYTES];
-        generate_key_pair(
-            &mut pk_e,
-            &mut sk_e,
-            &mut rng,
-            Some((&seed[..32], &seed[32..])),
-        )
-        .unwrap();
-
-        let mut rng2 = StdRng::from_seed([3u8; 32]);
-        let mut pk_g = [0u8; KYBER_PUBLIC_KEY_BYTES];
-        let mut sk_g = [0u8; KYBER_SECRET_KEY_BYTES];
-        kem_keypair_generic::<MlKem1024, _>(
-            &mut pk_g,
-            &mut sk_g,
-            &mut rng2,
-            Some((&seed[..32], &seed[32..])),
-        )
-        .unwrap();
-
-        assert_eq!(pk_e.as_slice(), pk_g.as_slice());
-        assert_eq!(sk_e.as_slice(), sk_g.as_slice());
-    }
-
     /// Cross-check: the all-generic encap result must match the
     /// existing implementation byte-for-byte under the active feature.
     #[test]
-    #[cfg(feature = "kyber768")]
     fn kem_enc_generic_matches_existing_kyber768() {
         use crate::MlKem768;
         use rand::rngs::StdRng;

@@ -121,8 +121,6 @@
 #![forbid(unsafe_code)]
 
 // Prevent usage of mutually exclusive features
-#[cfg(all(feature = "kyber1024", feature = "kyber512"))]
-compile_error!("Only one security level can be specified");
 
 // Phase 5 backend selection. `fips` is implemented (module `fips`,
 // issue #170). `verified` is still a reservation (#171): it declares
